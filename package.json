@@ -1,0 +1,14 @@
+{
+    "name": "plate",
+    "version":"0.0.1",
+    "description": "A javascript templating language",
+    "keywords": [ 
+        "template",
+        "dtl"
+    ],
+    "author":"Chris Dickinson",
+    "license": [
+        "New BSD License"
+    ],
+    "main":"./lib/main"
+}
