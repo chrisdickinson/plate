@@ -5,4 +5,5 @@ var includeFile = function(file) {
     }
 };
 
+includeFile('tags');
 includeFile('plate');
