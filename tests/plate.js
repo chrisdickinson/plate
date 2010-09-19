@@ -50,7 +50,7 @@ exports.TestTemplateAPI = platoon.unit({},
                 };
             };
         lib.register(name, creationFunction);
-        var tpl = new plate.Template("{% "+name+" %}", lib);
+        var tpl = new plate.Template("{% "+name+" %}", {tag_library:lib});
         tpl.render({}, function(err, data) {
             assert.equal(data, value);
         });
