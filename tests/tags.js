@@ -329,3 +329,46 @@ exports.TestExtendsAndBlockTags = platoon.unit({},
         });
     }
 );
+
+exports.TestIncludeTag = platoon.unit({},
+    function(assert) {
+        "Test that include does not trigger a parser error";
+        var tpl = new plate.Template("{% include something %}");
+        assert.doesNotThrow(function() {
+            tpl.getNodeList();
+        });
+    },
+    function(assert) {
+        "Test that include will include the contents of the included template into the includer.";
+        var random = "random-"+Math.random(),
+            include = new plate.Template(random),
+            tpl = new plate.Template("{% include tpl %}"),
+            context = { tpl:include };
+        tpl.render(context, function(err, data) {
+            assert.equal(data, random);
+        });
+    },
+    function(assert) {
+        "Test that the loader plugin works with include";
+        var loader = function(name, callback) {
+                setTimeout(function() {
+                    callback(null, new plate.Template(name));
+                }, ~~(Math.random()*10));
+            },
+            pluginLib = function() {
+                plate.libraries.Library.call(this);
+                this.register('loader', loader);
+            },
+            F = function(){};
+        F.prototype = plate.libraries.Library.prototype;
+        pluginLib.prototype = new F();
+
+        var name = "name-"+Math.random(),
+            tpl = new plate.Template("{% include \""+name+"\" %}", {
+                plugin_library:new pluginLib()
+            });
+        tpl.render({}, assert.async(function(err, data) {
+            assert.equal(data, name);
+        }));
+    }
+);
