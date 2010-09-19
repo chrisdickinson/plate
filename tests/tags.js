@@ -307,7 +307,7 @@ exports.TestExtendsAndBlockTags = platoon.unit({},
     function(assert) {
         "Test that extending a template produces super great results.";
         var base = new plate.Template("hey {% block who %}gary{% endblock %}, how are you?"),
-            child = new plate.Template("{% extends base %}{% block who %}{{ block._super }} busey{% endblock %}"),
+            child = new plate.Template("{% extends base %}{% block who %}{{ block.super }} busey{% endblock %}"),
             ctxt = { base:base };
         child.render(ctxt, function(err, data) {
             assert.equal(data, "hey gary busey, how are you?");
@@ -318,7 +318,7 @@ exports.TestExtendsAndBlockTags = platoon.unit({},
         var base = new plate.Template("hey {% block firstname %}{% endblock %} {% block lastname %}{% endblock %}"+
                                         ", {% block greeting %}hi there{% endblock %}"),
             child1 = new plate.Template("{% extends base %}{% block firstname %}gary{% endblock %}"),
-            child2 = new plate.Template("{% extends child %}{% block firstname %}{{ block._super }} m.{% endblock %}"+
+            child2 = new plate.Template("{% extends child %}{% block firstname %}{{ block.super }} m.{% endblock %}"+
                                         "{% block lastname %}busey{% endblock %}"),
             context = {
                 base:base,
