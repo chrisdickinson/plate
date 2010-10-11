@@ -2,8 +2,6 @@ var plate = require('plate'),
     path = require('path'),
     platoon = require('platoon');
 
-var sys = require('sys');
-
 exports.TestOfFilesystemLoader = platoon.unit({}, 
     function(assert) {
         "Test that the filesystem loader returns templates from filesystem.";
