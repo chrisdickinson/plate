@@ -6,5 +6,6 @@ var includeFile = function(file) {
 };
 
 includeFile('tags');
+includeFile('filters');
 includeFile('plate');
 includeFile('plugins');
