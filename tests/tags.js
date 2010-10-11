@@ -270,6 +270,24 @@ exports.TestIfTag = platoon.unit({},
         }));
     },
     function(assert) {
+        "Test that in and not in work";
+        var tpl = new plate.Template("{% for x,y,z in list %}{% if x in y %}y{% endif %}{% if x not in y %}n{% endif %}:{{ z }}\n{% endfor %}"),
+            tests = [
+                [[1,2], [1,2,3], 'n'],
+                [[1,2], [[1,2],3], 'y'],
+                [1, {1:'something'}, 'y'],
+                ['hi', 'asahi', 'y'],
+                ['no', 'yes', 'n']
+            ];
+        tpl.render({list:tests}, assert.async(function(err, data) {
+            var items = data.split('\n').slice(0, -1);
+            while(items.length) {
+                var v = items.shift().split(':');
+                assert.equal(v[0],v[1]);
+            }
+        }));
+    },
+    function(assert) {
         "Test that >, <, <=, and >= work";
         var pairs = [[~~(Math.random()*10), ~~(10 + Math.random()*10)],
                     [3, 3],
