@@ -1,0 +1,11 @@
+{
+    "testing":{
+        "plate":"plate.min.js"
+    },
+    "tests":{
+        "test_filters":"tests/filters.js",
+        "test_plate":"tests/plate.js",
+        "test_plugins":"tests/plugins.js",
+        "test_tags":"tests/tags.js"
+    }
+}
