@@ -232,7 +232,7 @@ exports.TestOfFirstFilter = platoon.unit({},
                     accum.push(~~(Math.random()*10));
                 }
                 return accum; 
-            })(~~(Math.random()*10)),
+            })(~~(Math.random()*10)+1),
             template = new plate.Template("{{ items|first }}");
         template.render({items:items}, assert.async(function(err, data) {
             assert.equal(data, items[0].toString());
