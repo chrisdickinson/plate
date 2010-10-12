@@ -1,0 +1,60 @@
+#!/usr/bin/env node
+var sys = require('sys'),
+    fn = function(callback) {
+    var items = [   'namespace',
+                    'utils',
+                    'nodes',
+                    'tags/block',
+                    'tags/extends',
+                    'tags/for',
+                    'tags/if',
+                    'tags/include',
+                    'tags/with',
+                    'filters/add',
+                    'filters/addslashes',
+                    'filters/capfirst',
+                    'filters/center',
+                    'filters/cut',
+                    'filters/default',
+                    'filters/dictsort',
+                    'filters/divisibleby',
+                    'filters/filesizeformat',
+                    'filters/first',
+                    'filters/floatformat',
+                    'filters/safe',
+                    'libraries',
+                    'parsers',
+                    'tokens',
+                    'plate'
+        ],
+        fs = require('fs'),
+        path = require('path'),
+        len = items.length,
+        index = -1,
+        translate = function(item) {
+            return path.join(process.cwd(), 'lib', item+'.js');
+        },
+        eterator = function(err, data) {
+            var callee = arguments.callee;
+            if(err) {
+                callback(err, null);
+            } else {
+                if(data) {
+                    sys.puts(data);
+                }
+                index += 1;
+                if(index < len) {
+                    setTimeout(function() {
+                        fs.readFile(translate(items[index]), callee);
+                    }, 0);
+                } else {
+                    callback(null, '// finished');
+                }
+            }
+        };
+    eterator(null, null);
+};
+
+fn(function(err, data) {
+    sys.puts(err || data);
+});
