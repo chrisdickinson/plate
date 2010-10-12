@@ -5,11 +5,11 @@ Plate is a Django Template Language implementation in Javascript. Super exciting
 
 Why Plate?
 ----------
-*. Plate plays nicely with the event loop. Control of the loop is returned after each node is rendered -- consequently Plate makes heavy use of the concept of eteration.
-*. Plate aims to be compatible (insofar as possible) with the latest version of the Django Template Language. If you've got a template in Django, it should render just fine in Plate.
-*. Plate is heavily tested using the [Platoon](http://github.com/chrisdickinson/platoon) testing framework.
-*. It's designed to work nicely in a Node.js environment (mostly thanks to the aforementioned "being nice to the event loop").
-*. It makes use of plugins to provide capabilities such as URL matching, template loading, etc.
+* Plate plays nicely with the event loop. Control of the loop is returned after each node is rendered -- consequently Plate makes heavy use of the concept of eteration.
+* Plate aims to be compatible (insofar as possible) with the latest version of the Django Template Language. If you've got a template in Django, it should render just fine in Plate.
+* Plate is heavily tested using the [Platoon](http://github.com/chrisdickinson/platoon) testing framework.
+* It's designed to work nicely in a Node.js environment (mostly thanks to the aforementioned "being nice to the event loop").
+* It makes use of plugins to provide capabilities such as URL matching, template loading, etc.
 
 What's Missing?
 ---------------
