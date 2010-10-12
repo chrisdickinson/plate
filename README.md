@@ -10,17 +10,30 @@ Why Plate?
 *. Plate is heavily tested using the [Platoon](http://github.com/chrisdickinson/platoon) testing framework.
 *. It's designed to work nicely in a Node.js environment (mostly thanks to the aforementioned "being nice to the event loop").
 *. It makes use of plugins to provide capabilities such as URL matching, template loading, etc.
-*. The ultimate goal of plate is to be cross-compatible between Node.js and browser environments -- No V8-specific features are used, and in the near future plate will provide a command to compile itself into a minified JS file for use in-browser.
 
 What's Missing?
 ---------------
-Plate is still a work-in-progress. The most obvious missing piece at this point is the lack of a compilation command to create a single, namespaced javascript file for use in browser. That's coming, though. Promise.
+Plate is still a work-in-progress. 
 Otherwise:
 
 * `true`, `false`, `null`, etc do not get casted into the Python versions (`True`, `False`, `None`, etc).
 * Some tags are missing -- notably `url`, `cycle`, `ifchanged`, and `now`. This is being addressed.
 * Likewise, filters are a work in progress -- I've only made it as far as `first` alphabetically.
 * If a tag is deprecated -- e.g., `ifequal x y` versus `if x == y`, it will not be supported anytime soon.
+
+Can I use it in my browser?
+---------------------------
+That's the goal. I haven't finished testing Plate across browsers, but the Platoon tests currently pass
+in Firefox (3.7) and Chrome (latest).
+
+To get a file suitable for use in-browser, do the following:
+
+    git clone git://github.com/chrisdickinson/plate.git
+    cd plate
+    chmod +x bin/build-plate
+    bin/build-plate > plate.js
+    # or alternatively
+    bin/build-plate | jsmin > plate.min.js
 
 How do I use it?
 ----------------
