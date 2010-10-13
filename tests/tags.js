@@ -390,3 +390,20 @@ exports.TestIncludeTag = platoon.unit({},
         }));
     }
 );
+
+exports.TestCommentTag = platoon.unit({},
+    function(assert) {
+        "Test that comment does not trigger a parser error";
+        var tpl = new plate.Template("{% comment %}{% endcomment %}");
+        assert.doesNotThrow(function() {
+            tpl.getNodeList();
+        });
+    },
+    function(assert) {
+        "Test that comment omits all items wrapped inside the comment block.";
+        var tpl = new plate.Template("{% comment %}asdf{% endcomment %}");
+        tpl.render({}, assert.async(function(err, data) {
+            assert.equal(data, '');
+        }));
+    }
+);
