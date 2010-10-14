@@ -240,6 +240,43 @@ exports.TestOfFirstFilter = platoon.unit({},
     }
 );
 
-/*
-first.js
-*/
+exports.TestOfFloatFormatFilter = platoon.unit({},
+    function(assert) {
+        "Test that the floatformat filter works as expected";
+        var tpl = new plate.Template(
+                "{% for x,y in values %}{{ forloop.counter0 }}:{{ x|floatformat:y }}\n{% endfor %}"
+            ),
+            context = {
+                'values':[]
+            };
+
+        while(context.values.length < 10) {
+            context.values.push([
+                (Math.random() * 10),
+                (~~(Math.random*10)-5)
+            ]);
+        }
+
+        tpl.render(context, assert.async(function(err, data) {
+            var lines = data.split('\n').slice(0, -1),
+                line_split,
+                idx,
+                val,
+                val_split,
+                decimal;
+            while(lines.length) {
+                line_split = lines.shift().split(':');
+                idx = line_split[0];
+                val = line_split[1];
+                val_split = val.split('.');
+                decimal = val_split.length > 1 ? val_split[1] : '';
+
+                if(context.values[idx][1] < 0) {
+                    assert.ok(decimal.length <= parseInt(Math.abs(context.values[idx][1])));
+                } else {
+                    assert.ok(decimal.length == parseInt(context.values[idx][1]));
+                }
+            }
+        }));
+    }
+);
