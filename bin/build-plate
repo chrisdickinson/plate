@@ -42,9 +42,7 @@ var sys = require('sys'),
         plate = require('plate'),
         template = new plate.Template(fs.readFileSync(path.join(__dirname, 'filetemplate.js')).toString())
 
-        template.render({data:data}, function(err, data) {
-            sys.puts(data);
-        }); 
+        template.render({data:data}, callback); 
 };
 
 fn(function(err, data) {
