@@ -1,5 +1,5 @@
 var plate = require('plate'),
-    platelib = plate.libraries, 
+    platelib = require('plate/libraries'), 
     platoon = require('platoon');
 
 exports.TestTemplateAPI = platoon.unit({},

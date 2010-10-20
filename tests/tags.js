@@ -1,5 +1,5 @@
 var plate = require('plate'),
-    platelib = plate.libraries, 
+    platelib = require('plate/libraries'), 
     platoon = require('platoon');
 
 exports.TestForTag = platoon.unit({},
@@ -375,11 +375,11 @@ exports.TestIncludeTag = platoon.unit({},
                 }, ~~(Math.random()*10));
             },
             pluginLib = function() {
-                plate.libraries.Library.call(this);
+                platelib.Library.call(this);
                 this.register('loader', loader);
             },
             F = function(){};
-        F.prototype = plate.libraries.Library.prototype;
+        F.prototype = platelib.Library.prototype;
         pluginLib.prototype = new F();
 
         var name = "name-"+Math.random(),

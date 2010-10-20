@@ -1,11 +1,13 @@
 var plate = require('plate'),
     path = require('path'),
-    platoon = require('platoon');
+    platoon = require('platoon'),
+    libraries = require('plate/libraries'),
+    filesystem = require('plate/plugins/loaders/filesystem');
 
 exports.TestOfFilesystemLoader = platoon.unit({}, 
     function(assert) {
         "Test that the filesystem loader returns templates from filesystem.";
-        var loader = new plate.plugins.loaders.filesystem.Loader(
+        var loader = new filesystem.Loader(
                 [path.join(process.cwd(), 'tests', 'templates')]
             );
         loader.lookup('test.html', assert.async(function(err, template) {
@@ -14,8 +16,8 @@ exports.TestOfFilesystemLoader = platoon.unit({},
     },
     function(assert) {
         "Test that the filesystem loader works with the extends tag";
-        var lib = new plate.libraries.Library(),
-            loader = new plate.plugins.loaders.filesystem.Loader( 
+        var lib = new libraries.Library(),
+            loader = new filesystem.Loader( 
                 [path.join(process.cwd(), 'tests', 'templates')]
             );
 

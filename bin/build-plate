@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 var sys = require('sys'),
     fn = function(callback) {
-    var items = [   'namespace',
+    var items = [
                     'utils',
                     'nodes',
                     'tags/block',
@@ -26,34 +26,25 @@ var sys = require('sys'),
                     'libraries',
                     'parsers',
                     'tokens',
-                    'plate'
+                    'index'
         ],
         fs = require('fs'),
         path = require('path'),
-        len = items.length,
-        index = -1,
-        translate = function(item) {
-            return path.join(process.cwd(), 'lib', item+'.js');
-        },
-        eterator = function(err, data) {
-            var callee = arguments.callee;
-            if(err) {
-                callback(err, null);
-            } else {
-                if(data) {
-                    sys.puts(data);
-                }
-                index += 1;
-                if(index < len) {
-                    setTimeout(function() {
-                        fs.readFile(translate(items[index]), callee);
-                    }, 0);
-                } else {
-                    callback(null, '// finished');
-                }
-            }
-        };
-    eterator(null, null);
+        data = items.map(function(item) {
+            var realFilename = path.join(process.cwd(), 'lib', item+'.js');
+
+            return [item, function(callback) {
+                fs.readFile(realFilename, function(err, data) {
+                    callback(err, data.toString());
+                });
+            }];
+        }),
+        plate = require('plate'),
+        template = new plate.Template(fs.readFileSync(path.join(__dirname, 'filetemplate.js')).toString())
+
+        template.render({data:data}, function(err, data) {
+            sys.puts(data);
+        }); 
 };
 
 fn(function(err, data) {
