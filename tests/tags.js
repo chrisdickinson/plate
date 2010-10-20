@@ -232,9 +232,10 @@ exports.TestWithTag = platoon.unit({},
     function(assert) {
         "Test that an unclosed with statement throws an error";
         var tpl = new plate.Template("{% with x as y %}\n\n yeahhhhh");
-        assert.throws(Error, function() {
-            tpl.render({}, function(){});
-        });
+        tpl.render({}, assert.async(function(err, data){
+            assert.strictEqual(data, null);
+            assert.isInstance(err, Error);
+        }));
     }
 );
 

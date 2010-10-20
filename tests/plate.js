@@ -99,10 +99,9 @@ exports.TestTemplateAPI = platoon.unit({},
     function(assert) {
         "Test that hitting an unknown tag triggers an error.";
         var tpl = new plate.Template("{% lol dne %}");
-        assert.throws(Error, function() {
-            tpl.render({}, function(err, data) {
-                
-            });
-        });
+        tpl.render({}, assert.async(function(err, data) {
+            assert.strictEqual(data, null);
+            assert.isInstance(err, Error); 
+        }));
     }
 );
