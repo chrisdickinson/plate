@@ -1,5 +1,5 @@
 var plate = require('plate'),
-    platelib = require('plate/libraries'), 
+    platelib = require('plate/lib/libraries'), 
     platoon = require('platoon');
 
 exports.TestForTag = platoon.unit({},

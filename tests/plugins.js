@@ -1,8 +1,8 @@
 var plate = require('plate'),
     path = require('path'),
     platoon = require('platoon'),
-    libraries = require('plate/libraries'),
-    filesystem = require('plate/plugins/loaders/filesystem');
+    libraries = require('plate/lib/libraries'),
+    filesystem = require('plate/lib/plugins/loaders/filesystem');
 
 exports.TestOfFilesystemLoader = platoon.unit({}, 
     function(assert) {
