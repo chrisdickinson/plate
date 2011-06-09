@@ -30,10 +30,9 @@ To get a file suitable for use in-browser, do the following:
 
     git clone git://github.com/chrisdickinson/plate.git
     cd plate
-    chmod +x bin/build-plate
-    bin/build-plate > plate.js
-    # or alternatively
-    bin/build-plate | jsmin > plate.min.js
+    make build
+    # optionally:
+    uglifyjs plate.js > plate.min.js
 
 How do I use it?
 ----------------
