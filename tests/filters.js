@@ -252,7 +252,7 @@ exports.TestOfFloatFormatFilter = platoon.unit({},
         while(context.values.length < 10) {
             context.values.push([
                 (Math.random() * 10),
-                (~~(Math.random*10)-5)
+                (~~(Math.random()*10)-5)
             ]);
         }
 
@@ -270,7 +270,8 @@ exports.TestOfFloatFormatFilter = platoon.unit({},
                 val_split = val.split('.');
                 decimal = val_split.length > 1 ? val_split[1] : '';
 
-                if(context.values[idx][1] < 0) {
+
+                if(context.values[idx][1] < 1) {
                     assert.ok(decimal.length <= parseInt(Math.abs(context.values[idx][1])));
                 } else {
                     assert.ok(decimal.length == parseInt(context.values[idx][1]));
