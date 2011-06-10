@@ -510,9 +510,11 @@ exports.TestOfLJust = platoon.unit({},
           var idx = context.range.length - bits.length
               bit = bits.shift();
 
-          assert.ok(bit.length === context.str.length || bit.length === context.range[idx]);
           if(bit.length > context.str.length) {
-            assert.ok((/\s+$/g)(bit));
+            assert.equal(bit.length, context.range[idx]);
+            assert.ok((/\s+$/g).test(bit));
+          } else {
+            assert.strictEqual(bit.length, context.str.length);
           }
         }
       }));
@@ -526,7 +528,7 @@ exports.TestOfLower = platoon.unit({},
         "{% for word in words %}{{ word|lower }}{% endfor %}"
       );
       tpl.render({words:['Asdf', '1ST', 'YEAHHHH']}, assert.async(function(err, data) {
-        assert.fail((/[A-Z]+/g)(data));
+        assert.fail((/[A-Z]+/g).test(data));
       }));
     }
 );
@@ -660,7 +662,7 @@ exports.TestOfRJust = platoon.unit({},
 
           assert.ok(bit.length === context.str.length || bit.length === context.range[idx]);
           if(bit.length > context.str.length) {
-            assert.ok((/^\s+/g)(bit));
+            assert.ok((/^\s+/g).test(bit));
           }
         }
       }));
@@ -674,7 +676,7 @@ exports.TestOfUpper = platoon.unit({},
         "{% for word in words %}{{ word|upper }}{% endfor %}"
       );
       tpl.render({words:['Asdf', '1ST', 'YEAHHHH']}, assert.async(function(err, data) {
-        assert.fail((/[a-z]+/g)(data));
+        assert.fail((/[a-z]+/g).test(data));
       }));
     }
 );
@@ -731,7 +733,7 @@ exports.TestOfSlugify = platoon.unit({},
       context = {item:makeRandomString()};
 
       tpl.render(context, assert.async(function(err, data) {
-        assert.fail((/[^a-z\-0-9_]+/g)(data));
+        assert.fail((/[^a-z\-0-9_]+/g).test(data));
       }));
     }
 );
@@ -749,7 +751,7 @@ exports.TestOfTitle = platoon.unit({},
       tpl.render({sentence:sentence}, assert.async(function(err, data) {
         var bits = data.split(/\s+/g);
         while(bits.length) {
-          assert.ok((/^[A-Z0-9]{1}[a-z']+/g)(bits.pop()));
+          assert.ok((/^[A-Z0-9]{1}[a-z']+/g).test(bits.pop()));
         }
       }));
     }
@@ -771,7 +773,7 @@ exports.TestOfStripTags = platoon.unit({},
 
       tpl.render({text:testData}, assert.async(function(err, data) {
           // fail if you see a tag.
-          assert.fail((/<[^>]*?>/g)(data));
+          assert.fail((/<[^>]*?>/g).test(data));
       }));
     }
 );
