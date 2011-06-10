@@ -119,17 +119,12 @@ exports.TestTemplateMetaAPI = platoon.unit({},
     function(assert) {
       "Test that autoregistration of the tag library works as expected.";
       var expected = ~~(Math.random()*100);
-      var TestTag = nodes.Node.subclass('TestTag', {
-        init:function(){},
+      var tag = {
         render:function(context, ready) {
           ready(null, ''+expected);
         }
-      }); 
-      TestTag.parse = function(contents, parser) {
-        return new TestTag(); 
-      };
-
-      plate.Template.Meta.registerTag('lolwut', TestTag.parse);
+      }; 
+      plate.Template.Meta.registerTag('lolwut', function() { return tag; });
 
       assert.doesNotThrow(function() {
         var tpl = new plate.Template('{% lolwut %}');
@@ -162,12 +157,12 @@ exports.TestTemplateMetaAPI = platoon.unit({},
       };
       plate.Template.Meta.registerPlugin('test_plugin', plugin);
 
-      var TestNode = nodes.Node.subclass('TestNode',{
-        init:function(test_plugin){ this.plugin = test_plugin; },
-        render:function(context, ready) {
-          ready(null, this.plugin());
-        }
-      });
+      var TestNode = function(test_plugin){ this.plugin = test_plugin; };
+      TestNode.prototype = new nodes.Node;
+
+      TestNode.prototype.render = function(context, ready) {
+        ready(null, this.plugin());
+      };
       TestNode.parse = function(contents, parser) {
         var test_plugin = parser.pluginLibrary.lookup('test_plugin');
         return new TestNode(test_plugin);
