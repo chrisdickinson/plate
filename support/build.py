@@ -85,7 +85,12 @@ template = """
 })();
 """
 
-    
+def fix_reserved(string):
+    problems = [reserved for reserved in ['with', 'for', 'if', 'extends', 'default'] if reserved in string]
+    if problems:
+        for problem in problems:
+            string = string.replace(problem, '_%s'%problem)
+    return string
 
 def build(target):
     f = open(target, 'w')
@@ -103,16 +108,21 @@ def build(target):
         def replace_path(match):
             path = match.groupdict()['path']
             path = os.path.realpath(os.path.join(base_dir, path)).replace(cwd, '')
+            path = fix_reserved(path)
             objpath = path[1:].replace('/', '.')
+            if objpath == 'lib':
+                objpath = 'plate'
+
             return (objpath and [objpath.replace('lib.', 'plate.')] or ['plate'])[0]
 
         data = regex.sub(replace_path, data)
-        data = '(function(exports){%s})(get_exports("%s"));' % (data, file.replace('lib/', '').replace('.js', ''))
+        file = fix_reserved(file.replace('lib/', '').replace('.js', ''))
+        data = '(function(exports){%s})(get_exports("%s"));' % (data, file)
         output.append(data)
 
     f.write(template % '\n'.join(output))
     f.close()
-
+    print 'built plate.js'
 
 if __name__ == '__main__':
     build(sys.argv[-1])
