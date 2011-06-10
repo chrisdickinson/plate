@@ -2,9 +2,9 @@ var plate = require('plate'),
     platoon = require('platoon'),
     platelib;
 
-try {  
+if(typeof window === 'undefined') {  
     platelib = require('plate/lib/libraries');
-} catch(err) {
+} else {
     platelib = require('plate/libraries');
 }
 

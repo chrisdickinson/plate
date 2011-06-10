@@ -3,10 +3,10 @@ var plate = require('plate'),
     platelib,
     nodes;
 
-try {
+if(typeof window === 'undefined'){
     platelib = require('plate/lib/libraries');
     nodes = require('plate/lib/nodes');
-} catch(err) {
+} else {
     platelib = require('plate/libraries');
     nodes = require('plate/nodes');
 }
@@ -60,9 +60,9 @@ exports.TestTemplateAPI = platoon.unit({},
             };
         lib.register(name, creationFunction);
         var tpl = new plate.Template("{% "+name+" %}", {tag_library:lib});
-        tpl.render({}, function(err, data) {
+        tpl.render({}, assert.async(function(err, data) {
             assert.equal(data, value);
-        });
+        }));
     },
     function(assert) {
         "Test that filter nodes render as expected.";
