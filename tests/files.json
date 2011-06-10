@@ -3,7 +3,6 @@
     "tests":{
         "plate_main":"tests/plate.js",
         "filters":"tests/filters.js",
-        "plugins":"tests/plugins.js",
         "tags":"tests/tags.js"
     }
 }

@@ -129,9 +129,9 @@ exports.TestTemplateMetaAPI = platoon.unit({},
         return new TestTag(); 
       };
 
-      plate.Template.Meta.registerTag('lolwut', TestTag);
+      plate.Template.Meta.registerTag('lolwut', TestTag.parse);
 
-      assert.doesNotThrow(Error, function() {
+      assert.doesNotThrow(function() {
         var tpl = new plate.Template('{% lolwut %}');
         tpl.render({}, assert.async(function(err, data) {
           assert.equal(data, ''+expected);
@@ -141,12 +141,12 @@ exports.TestTemplateMetaAPI = platoon.unit({},
     function(assert) {
       "Test that autoregistration of the filter library works as expected.";
       var expected = ~~(Math.random()*100);
-      var testFilter = function(value, ready) {
+      var testFilter = function(ready, input) {
         ready(null, ''+expected);
       };
       plate.Template.Meta.registerFilter('lolol', testFilter);
 
-      assert.doesNotThrow(Error, function() {
+      assert.doesNotThrow(function() {
         var tpl = new plate.Template('{{ anything|lolol }}');
 
         tpl.render({}, assert.async(function(err, data) {
@@ -174,7 +174,7 @@ exports.TestTemplateMetaAPI = platoon.unit({},
       };
       plate.Template.Meta.registerTag('test_plugin_tag', TestNode.parse);
 
-      assert.doesNotThrow(Error, function() {
+      assert.doesNotThrow(function() {
         var tpl = new plate.Template('{% test_plugin_tag %}');
         tpl.render({}, function(err, data) {
           assert.equal(data, ''+expected);

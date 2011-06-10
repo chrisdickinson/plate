@@ -1,6 +1,12 @@
 var plate = require('plate'),
-    platelib = require('plate/lib/libraries'), 
-    platoon = require('platoon');
+    platoon = require('platoon'),
+    platelib;
+
+try {  
+    platelib = require('plate/lib/libraries');
+} catch(err) {
+    platelib = require('plate/libraries');
+}
 
 exports.TestForTag = platoon.unit({},
     function(assert) {
@@ -369,6 +375,9 @@ exports.TestIncludeTag = platoon.unit({},
     },
     function(assert) {
         "Test that the loader plugin works with include";
+        if(typeof window !== 'undefined')
+          return;
+
         var loader = function(name, callback) {
                 setTimeout(function() {
                     callback(null, new plate.Template(name));
