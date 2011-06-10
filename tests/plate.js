@@ -1,5 +1,6 @@
 var plate = require('plate'),
-    platelib = require('plate/lib/libraries'), 
+    platelib = require('plate/lib/libraries'),
+    nodes = require('plate/lib/nodes'), 
     platoon = require('platoon');
 
 exports.TestTemplateAPI = platoon.unit({},
@@ -103,5 +104,75 @@ exports.TestTemplateAPI = platoon.unit({},
             assert.strictEqual(data, null);
             assert.isInstance(err, Error); 
         }));
+    }
+);
+
+exports.TestTemplateMetaAPI = platoon.unit({},
+    function(assert) {
+      "Test that autoregistration of the tag library works as expected.";
+      var expected = ~~(Math.random()*100);
+      var TestTag = nodes.Node.subclass('TestTag', {
+        init:function(){},
+        render:function(context, ready) {
+          ready(null, ''+expected);
+        }
+      }); 
+      TestTag.parse = function(contents, parser) {
+        return new TestTag(); 
+      };
+
+      plate.Template.Meta.registerTag('lolwut', TestTag);
+
+      assert.doesNotThrow(Error, function() {
+        var tpl = new plate.Template('{% lolwut %}');
+        tpl.render({}, assert.async(function(err, data) {
+          assert.equal(data, ''+expected);
+        }));
+      });
+    },
+    function(assert) {
+      "Test that autoregistration of the filter library works as expected.";
+      var expected = ~~(Math.random()*100);
+      var testFilter = function(value, ready) {
+        ready(null, ''+expected);
+      };
+      plate.Template.Meta.registerFilter('lolol', testFilter);
+
+      assert.doesNotThrow(Error, function() {
+        var tpl = new plate.Template('{{ anything|lolol }}');
+
+        tpl.render({}, assert.async(function(err, data) {
+          assert.equal(data, ''+expected);
+        }));
+      });
+    },
+    function(assert) {
+      "Test that autoregistration of the plugin library works as expected.";
+      var expected = ~~(Math.random()*100);
+      var plugin = function() {
+        return ''+expected;
+      };
+      plate.Template.Meta.registerPlugin('test_plugin', plugin);
+
+      var TestNode = nodes.Node.subclass('TestNode',{
+        init:function(test_plugin){ this.plugin = test_plugin; },
+        render:function(context, ready) {
+          ready(null, this.plugin());
+        }
+      });
+      TestNode.parse = function(contents, parser) {
+        var test_plugin = parser.pluginLibrary.lookup('test_plugin');
+        return new TestNode(test_plugin);
+      };
+      plate.Template.Meta.registerTag('test_plugin_tag', TestNode.parse);
+
+      assert.doesNotThrow(Error, function() {
+        var tpl = new plate.Template('{% test_plugin_tag %}');
+        tpl.render({}, function(err, data) {
+          assert.equal(data, ''+expected);
+        });
+      });
+
+
     }
 );
