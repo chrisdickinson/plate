@@ -311,7 +311,7 @@ exports.TestIfTag = platoon.unit({},
             expect = [
                 '<', '<=', '<=', '<',
                 '>=', '<=', '<=', '>=',
-                '>=', '<=', '<=', '>=',
+                '>=', '<=', '<=', '>='
             ].join('\n')+'\n';
 
         tpl.render(context, assert.async(function(err, data) {
