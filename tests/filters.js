@@ -495,7 +495,7 @@ exports.TestOfLJust = platoon.unit({},
         "{% for i in range %}{{ str|ljust:i }}\n{% endfor %}"
       ),
       makeRange = function() {
-        var out = [], len = ~~(Math.random()*100) + 1;
+        var out = [], len = ~~(Math.random()*20) + 1;
         while(out.length < len) { out.push(out.length+1); }
         return out;
       },
@@ -643,7 +643,7 @@ exports.TestOfRJust = platoon.unit({},
         "{% for i in range %}{{ str|rjust:i }}\n{% endfor %}"
       ),
       makeRange = function() {
-        var out = [], len = ~~(Math.random()*100) + 1;
+        var out = [], len = ~~(Math.random()*20) + 1;
         while(out.length < len) { out.push(out.length+1); }
         return out;
       },
