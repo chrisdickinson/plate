@@ -1,7 +1,15 @@
 var plate = require('plate'),
-    platelib = require('plate/lib/libraries'),
-    nodes = require('plate/lib/nodes'), 
-    platoon = require('platoon');
+    platoon = require('platoon'),
+    platelib,
+    nodes;
+
+try {
+    platelib = require('plate/lib/libraries');
+    nodes = require('plate/lib/nodes');
+} catch(err) {
+    platelib = require('plate/libraries');
+    nodes = require('plate/nodes');
+}
 
 exports.TestTemplateAPI = platoon.unit({},
     function(assert) {
