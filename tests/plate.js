@@ -37,12 +37,12 @@ exports.TestTemplateAPI = platoon.unit({},
         });
 
         tpl.render({}, function(err, data) {
-            assert.ok(!err);
+            assert.fail(err);
             assert.equal(tplstr, data);
         });
 
         tpl.render(new plate.Context({}), assert.async(function(err, data) {
-            assert.ok(!err);
+            assert.fail(err);
             assert.equal(data, tplstr);
         }));
     },
