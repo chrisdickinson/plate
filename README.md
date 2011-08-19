@@ -46,16 +46,16 @@ Contributing
 
 Got a feature you'd like to add? I'd love to see it. The workflow is pretty standard Github fare:
 
-*. Fork this repository.
-*. Create a branch -- title it descriptively, please :)
-*. Work, work, work. 
-*. Push your changes and submit a pull request.
+* Fork this repository.
+* Create a branch -- title it descriptively, please :)
+* Work, work, work. 
+* Push your changes and submit a pull request.
 
 The minimum requirements for a pull request to be merged are:
 
-*. You've added (passing) tests for your new code.
-*. The existing tests still pass.
-*. You've added (or changed, as appropriate) documentation to the `docs/` folder in Markdown format.
+* You've added (passing) tests for your new code.
+* The existing tests still pass.
+* You've added (or changed, as appropriate) documentation to the `docs/` folder in Markdown format.
 
 License
 -----------------
