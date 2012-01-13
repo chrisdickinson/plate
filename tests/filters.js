@@ -1,4 +1,4 @@
-var plate = plate || require('plate'),
+var plate = plate || require('../index'),
     platoon = platoon || require('platoon');
 
 exports.TestAddFilter = platoon.unit({},

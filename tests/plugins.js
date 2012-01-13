@@ -1,10 +1,10 @@
 
 if(typeof window === 'undefined') {
-  var plate = require('plate'),
+  var plate = require('../index'),
       path = require('path'),
       platoon = require('platoon'),
-      libraries = require('plate/lib/libraries'),
-      filesystem = require('plate/lib/plugins/loaders/filesystem');
+      libraries = require('../lib/libraries'),
+      filesystem = require('../lib/plugins/loaders/filesystem');
 
   exports.TestOfFilesystemLoader = platoon.unit({}, 
       function(assert) {

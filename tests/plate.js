@@ -1,11 +1,11 @@
-var plate = require('plate'),
+var plate = require('../index'),
     platoon = require('platoon'),
     platelib,
     nodes;
 
 if(typeof window === 'undefined'){
-    platelib = require('plate/lib/libraries');
-    nodes = require('plate/lib/nodes');
+    platelib = require('../lib/libraries');
+    nodes = require('../lib/nodes');
 } else {
     platelib = require('plate/libraries');
     nodes = require('plate/nodes');

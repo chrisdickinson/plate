@@ -57,6 +57,20 @@ The minimum requirements for a pull request to be merged are:
 * The existing tests still pass.
 * You've added (or changed, as appropriate) documentation to the `docs/` folder in Markdown format.
 
+Run the tests
+-------------
+
+````
+
+$ npm install -g platoon
+$ git clone git@github.com:chrisdickinson/plate.git
+$ cd plate
+$ platoon -s tests
+
+````
+
+
+
 License
 -----------------
 Licensed new BSD.
