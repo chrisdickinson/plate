@@ -803,6 +803,17 @@ exports.TestOfTruncateChars = platoon.unit({},
       tpl.render(context, assert.async(function(err, data) {
         assert.equal(data, 'This is a collection of words....');
       }));
+    },
+    function(assert) {
+      "Test that a busted number doesn't double call the callback.";
+      var input = 'This is a collection of words.';
+
+      var tpl = new plate.Template('{{ input|truncatechars:abc }}'),
+          context = {input:input};
+
+      tpl.render(context, assert.async(function(err, data) {
+        assert.equal(data, 'This is a collection of words.');
+      }));
     }
 );
 
@@ -830,6 +841,17 @@ exports.TestOfTruncateWords = platoon.unit({},
 
       tpl.render(context, assert.async(function(err, data) {
         assert.equal(data, 'This is a collection of words....');
+      }));
+    },
+    function(assert) {
+      "Test that a busted number doesn't double call the callback.";
+      var input = 'This is a collection of words.';
+
+      var tpl = new plate.Template('{{ input|truncatewords:abc }}'),
+          context = {input:input};
+
+      tpl.render(context, assert.async(function(err, data) {
+        assert.equal(data, 'This is a collection of words.');
       }));
     }
 );
