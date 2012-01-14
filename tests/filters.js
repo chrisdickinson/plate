@@ -738,6 +738,83 @@ exports.TestOfSlugify = platoon.unit({},
     }
 );
 
+exports.TestOfTimesince = platoon.unit({},
+  function(assert) {
+    "Test that timesince works as expected.";
+    var times = [
+          ['3 years', Date.now() - 31557600000 * 3]
+        , ['1 month', Date.now() - 2592000000 * 1]
+        , ['2 days', Date.now() - 86400000 * 2]
+        , ['23 hours', Date.now() - 3600000 * 23]
+        , ['30 minutes', Date.now() - 60000 * 30]
+      ]
+    , tpl = new plate.Template("{% for expected, time in times %}{{ time|timesince }}\n{% endfor %}")
+
+    tpl.render({times:times}, assert.async(function(err, data) {
+      assert.ok(!err)
+
+      data = data.split('\n').slice(0, -1)
+      for(var i = 0; i < data.length; ++i) {
+        assert.equal(data[i], times[i][0])
+      }
+    }))
+  },
+  function(assert) {
+    "Test that timesince may accept an input.";
+
+    var fake_now = +new Date() + ~~(Math.random() * 10000)
+    var times = [
+          ['3 years',     fake_now - 31557600000 * 3]
+        , ['1 month',     fake_now - 2592000000 * 1]
+        , ['2 days',      fake_now - 86400000 * 2]
+        , ['23 hours',    fake_now - 3600000 * 23]
+        , ['30 minutes',  fake_now - 60000 * 30]
+      ]
+    , tpl = new plate.Template("{% for expected, time in times %}{{ time|timesince:n }}\n{% endfor %}")
+
+    tpl.render({times:times, n:fake_now}, assert.async(function(err, data) {
+      assert.ok(!err)
+
+      data = data.split('\n').slice(0, -1)
+      for(var i = 0; i < data.length; ++i) {
+        assert.equal(data[i], times[i][0])
+      }
+    }))
+  },
+  function(assert) {
+    "Test that timesince may display multiple values.";
+    var times = [
+          ['3 years, 2 days, 1 minute',   Date.now() - (31557600000 * 3 + 86400000 * 2 + 60000)]
+        , ['1 month, 23 hours',           Date.now() - (2592000000 + 3600000 * 23)]
+        , ['1 year, 10 days, 20 minutes', Date.now() - (31557600000 + 10 * 86400000 + 20 * 60000)]
+      ]
+    , tpl = new plate.Template("{% for expected, time in times %}{{ time|timesince }}\n{% endfor %}")
+
+    tpl.render({times:times}, assert.async(function(err, data) {
+      assert.ok(!err)
+
+      data = data.split('\n').slice(0, -1)
+      for(var i = 0; i < data.length; ++i) {
+        assert.equal(data[i], times[i][0])
+      }
+    }))
+  },
+  function(assert) {
+    "Test that timesince displays '0 minutes' when time is in future, or when time is < 60 seconds away";
+    var t = new Date()
+      , n = t + 1000
+      , tpl = new plate.Template("{{ t|timesince:n }}")
+
+    tpl.render({t:t, n:n}, assert.async(function(err, data) {
+      assert.equal(data, '0 minutes')
+    }))
+
+    tpl.render({t:t, n:t}, assert.async(function(err, data) {
+      assert.equal(data, '0 minutes')
+    })) 
+  }
+)
+
 exports.TestOfTitle = platoon.unit({},
     function(assert) {
       "Test that title titlecases input.";

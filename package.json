@@ -8,6 +8,12 @@
     ],
     "author":"Chris Dickinson",
     "directories":{"lib":"./lib"},
+    "devDependencies":{
+        "platoon":"0.X.X"
+    },
+    "scripts":{
+        "test":"platoon -s tests"
+    },
     "license": [
         "New BSD License"
     ],
