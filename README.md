@@ -62,10 +62,8 @@ Run the tests
 
 ````
 
-$ npm install -g platoon
-$ git clone git@github.com:chrisdickinson/plate.git
-$ cd plate
-$ platoon -s tests
+$ npm install --dev plate
+$ npm test plate
 
 ````
 
