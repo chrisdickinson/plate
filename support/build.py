@@ -49,6 +49,8 @@ files = [
   'lib/filters/slugify.js',
   'lib/filters/striptags.js',
   'lib/filters/title.js',
+  'lib/filters/timesince.js',
+  'lib/filters/timeuntil.js',
   'lib/filters/truncatewords.js',
   'lib/filters/truncatechars.js',
   'lib/filters/unordered_list.js',
