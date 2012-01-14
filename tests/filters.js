@@ -22,7 +22,7 @@ exports.TestAddSlashesFilter = platoon.unit({},
             num = 1 + ~~(Math.random()*10);
 
         for(var i = 0; inp.push("'") < num; ++i) {};
-        
+
         inp = inp.join("asdf");
         ctxt.test = inp;
 
@@ -230,7 +230,7 @@ exports.TestOfFirstFilter = platoon.unit({},
                 while(accum.length < len) {
                     accum.push(~~(Math.random()*10));
                 }
-                return accum; 
+                return accum;
             })(~~(Math.random()*10)+1),
             template = new plate.Template("{{ items|first }}");
         template.render({items:items}, assert.async(function(err, data) {
@@ -337,7 +337,7 @@ exports.TestOfLast = platoon.unit({},
       ),
       context = {
         a_list:[1,2,3,3,4,556,6,76,7,5,4,6].sort(function(lhs, rhs) {
-          return Math.random() > 0.5; 
+          return Math.random() > 0.5;
         })
       };
       tpl.render(context, assert.async(function(err, data) {
@@ -545,7 +545,7 @@ exports.TestOfMakeList = platoon.unit({},
       assert.equal(bits.length, item.length);
       while(bits.length) {
         assert.equal(bits.pop(), item.pop());
-      }; 
+      };
     }));
   },
   function(assert) {
@@ -560,7 +560,7 @@ exports.TestOfMakeList = platoon.unit({},
       assert.equal(bits.length, item.length);
       while(bits.length) {
         assert.equal(bits.pop(), item.pop());
-      }; 
+      };
     }));
   },
   function(assert) {
@@ -575,7 +575,7 @@ exports.TestOfMakeList = platoon.unit({},
       assert.equal(bits.length, item.length);
       while(bits.length) {
         assert.equal(bits.pop(), item.pop());
-      }; 
+      };
     }));
   }
 );
@@ -697,7 +697,7 @@ exports.TestOfSlice = platoon.unit({},
         assert.equal(bits.length, expected.length);
         for(var i = 0, len = bits.length; i < len; ++i) {
           assert.equal(bits[i], expected[i]);
-        } 
+        }
       }));
     },
     function(assert) {
@@ -715,7 +715,7 @@ exports.TestOfSlice = platoon.unit({},
         assert.equal(bits.length, expected.length);
         for(var i = 0, len = bits.length; i < len; ++i) {
           assert.equal(bits[i], expected[i]);
-        } 
+        }
       }));
     }
 );
@@ -760,13 +760,13 @@ exports.TestOfTitle = platoon.unit({},
 exports.TestOfStripTags = platoon.unit({},
     function(assert) {
       "Test that striptags removes all HTML tags no matter how cool they are.";
-      var testData =[ 
-      '<div class="versionadded">', 
-      '<span class="title">New in Django 1.1.2:</span> <a class="reference internal" href="../../../releases/1.1.2/"><em>Please, see the release notes</em></a></div>', 
+      var testData =[
+      '<div class="versionadded">',
+      '<span class="title">New in Django 1.1.2:</span> <a class="reference internal" href="../../../releases/1.1.2/"><em>Please, see the release notes</em></a></div>',
       '<p>In the Django 1.1.X series, this is a no-op tag that returns an empty string for',
       'future compatibility purposes.  In Django 1.2 and later, it is used for CSRF',
       'protection, as described in the documentation for <a class="reference internal" href="../../contrib/csrf/"><em>Cross Site Request',
-      'Forgeries</em></a>.</p>', 
+      'Forgeries</em></a>.</p>',
       '</div>'
       ].join('\n');
       var tpl = new plate.Template('{{ text|striptags }}');
@@ -778,7 +778,84 @@ exports.TestOfStripTags = platoon.unit({},
     }
 );
 
-exports.TestOfTruncateWords = platoon.unit({});
+exports.TestOfTruncateChars = platoon.unit({},
+    function(assert) {
+      "Test that a string of characters gets truncated properly.";
+      var input = 'This is a collection of words.';
+
+      var tpl = new plate.Template('{{ input|truncatechars:8 }}'),
+          context = {input:input};
+
+      tpl.render(context, assert.async(function(err, data) {
+        assert.equal(data, 'This is ...');
+      }));
+
+      var tpl = new plate.Template('{{ input|truncatechars:20 }}'),
+          context = {input:input};
+
+      tpl.render(context, assert.async(function(err, data) {
+        assert.equal(data, 'This is a collection...');
+      }));
+
+      var tpl = new plate.Template('{{ input|truncatechars:200 }}'),
+          context = {input:input};
+
+      tpl.render(context, assert.async(function(err, data) {
+        assert.equal(data, 'This is a collection of words....');
+      }));
+    },
+    function(assert) {
+      "Test that a busted number doesn't double call the callback.";
+      var input = 'This is a collection of words.';
+
+      var tpl = new plate.Template('{{ input|truncatechars:abc }}'),
+          context = {input:input};
+
+      tpl.render(context, assert.async(function(err, data) {
+        assert.equal(data, 'This is a collection of words.');
+      }));
+    }
+);
+
+exports.TestOfTruncateWords = platoon.unit({},
+    function(assert) {
+      "Test that a string of words gets truncated properly.";
+      var input = 'This is a collection of words.';
+
+      var tpl = new plate.Template('{{ input|truncatewords:3 }}'),
+          context = {input:input};
+
+      tpl.render(context, assert.async(function(err, data) {
+        assert.equal(data, 'This is a...');
+      }));
+
+      var tpl = new plate.Template('{{ input|truncatewords:0 }}'),
+          context = {input:input};
+
+      tpl.render(context, assert.async(function(err, data) {
+        assert.equal(data, '...');
+      }));
+
+      var tpl = new plate.Template('{{ input|truncatewords:8 }}'),
+          context = {input:input};
+
+      tpl.render(context, assert.async(function(err, data) {
+        assert.equal(data, 'This is a collection of words....');
+      }));
+    },
+    function(assert) {
+      "Test that a busted number doesn't double call the callback.";
+      var input = 'This is a collection of words.';
+
+      var tpl = new plate.Template('{{ input|truncatewords:abc }}'),
+          context = {input:input};
+
+      tpl.render(context, assert.async(function(err, data) {
+        assert.equal(data, 'This is a collection of words.');
+      }));
+    }
+);
+
 exports.TestOfUnorderedList = platoon.unit({},
     function(assert) {
       "Test that unordered list... makes unordered lists. Awesome ones.";
@@ -806,7 +883,7 @@ exports.TestOfURLEncode = platoon.unit({},
 
       tpl.render({str:stringOfEverything}, assert.async(function(err, data) {
         assert.equal(data, escape(stringOfEverything));
-      })); 
+      }));
     }
 );
 
@@ -836,7 +913,7 @@ exports.TestOfWordCount = platoon.unit({},
 
       tpl.render({lorem:lorem}, assert.async(function(err, data) {
         assert.equal(data, count.toString());
-      })); 
+      }));
     }
 );
 
@@ -859,7 +936,7 @@ exports.TestOfWordWrap = platoon.unit({},
           }
           assert.ok(max <= values[i]);
         }
-      })); 
+      }));
     }
 );
 
