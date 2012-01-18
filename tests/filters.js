@@ -1,4 +1,5 @@
 var plate = plate || require('../index'),
+    utils = plate.utils || require('../lib/utils'),
     platoon = platoon || require('platoon');
 
 exports.TestAddFilter = platoon.unit({},
@@ -101,6 +102,46 @@ exports.TestCutFilter = platoon.unit({},
         while(len-- > 0) emitter(rand());
     }
 );
+
+exports.TestDateFilter = platoon.unit({},
+    function(assert) {
+        "Test that the date filter defaults to 'N j, Y'";
+
+        var tpl = new plate.Template("{{ test|date }}")
+          , dt
+          , now = utils.format(dt = new Date, "N j, Y")
+
+        tpl.render({test:dt}, assert.async(function(err, data) {
+            assert.equal(data, now)
+        }))
+    },
+    function(assert) {
+        "Test that the date filter accepts a format arg";
+
+        var tpl = new plate.Template("{{ test|date:'jS o\\f F' }}")
+          , dt
+          , now = utils.format(dt = new Date, "jS o\\f F")
+
+        tpl.render({test:dt}, assert.async(function(err, data) {
+            assert.equal(data, now)
+        }))
+    },
+    function(assert) {
+        "Test that the date filter accepts non-date arguments";
+
+        var tpl = new plate.Template("{{ test|date:'jS o\\f F' }}")
+          , dt
+          , now = utils.format(dt = new Date, "jS o\\f F")
+
+        tpl.render({test:+dt}, assert.async(function(err, data) {
+            assert.equal(data, now)
+        }))
+
+        tpl.render({test:''+dt}, assert.async(function(err, data) {
+            assert.equal(data, now)
+        }))
+    }
+)
 
 exports.TestDefaultFilter = platoon.unit({},
     function(assert) {

@@ -3,6 +3,7 @@ var exp = function(data) {
     exports[key] = data[key]
 }
 
+exp(require('./utils'))
 exp(require('./filters'))
 exp(require('./tags'))
 exp(require('./plugins'))
