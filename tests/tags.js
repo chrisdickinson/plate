@@ -1,4 +1,5 @@
 var plate = require('../index'),
+    format = require('../lib/utils').format,
     platoon = require('platoon'),
     platelib;
 
@@ -417,3 +418,29 @@ exports.TestCommentTag = platoon.unit({},
         }));
     }
 );
+
+exports.TestNowTag = platoon.unit({},
+    function(assert) {
+      "test that now defaults to now N y, J"
+
+      var tpl = new plate.Template('{% now %}')
+        , now = format(new Date, 'N j, Y')
+
+      tpl.render({}, assert.async(function(err, data) {
+        assert.equal(data, now)
+      })) 
+
+    },
+    function(assert) {
+      "test that now can be configured with another argument";
+
+      var tpl = new plate.Template('{% now "jS o\\f F" %}')
+        , now = format(new Date, 'jS o\\f F')
+
+      tpl.render({}, assert.async(function(err, data) {
+        assert.equal(data, now)
+      })) 
+
+    }
+);
+
