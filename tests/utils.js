@@ -190,4 +190,99 @@ exports.TestFormatMethods = platoon.unit({},
   , make_format_equiv('n', new Date(2010, 9, 1, 18, 3, 59, 888), '10')
   , make_format_equiv('n', new Date(2010,10, 1, 18, 3, 59, 888), '11')
   , make_format_equiv('n', new Date(2010,11, 1, 18, 3, 59, 888), '12')
+
+  // month, AP format.
+  , make_format_equiv('N', new Date(2010, 0, 1, 18, 3, 59, 888), 'Jan.')
+  , make_format_equiv('N', new Date(2010, 1, 1, 18, 3, 59, 888), 'Feb.')
+  , make_format_equiv('N', new Date(2010, 2, 1, 18, 3, 59, 888), 'March')
+  , make_format_equiv('N', new Date(2010, 3, 1, 18, 3, 59, 888), 'April')
+  , make_format_equiv('N', new Date(2010, 4, 1, 18, 3, 59, 888), 'May')
+  , make_format_equiv('N', new Date(2010, 5, 1, 18, 3, 59, 888), 'June')
+  , make_format_equiv('N', new Date(2010, 6, 1, 18, 3, 59, 888), 'July')
+  , make_format_equiv('N', new Date(2010, 7, 1, 18, 3, 59, 888), 'Aug.')
+  , make_format_equiv('N', new Date(2010, 8, 1, 18, 3, 59, 888), 'Sept.')
+  , make_format_equiv('N', new Date(2010, 9, 1, 18, 3, 59, 888), 'Oct.')
+  , make_format_equiv('N', new Date(2010,10, 1, 18, 3, 59, 888), 'Nov.')
+  , make_format_equiv('N', new Date(2010,11, 1, 18, 3, 59, 888), 'Dec.')
+
+  // difference to greenwich time in hours (+0200)
+  , make_format_equiv('O', {getTimezoneOffset:Function('return 0')}, '+0000')
+  , make_format_equiv('O', {getTimezoneOffset:Function('return -10')}, '+0010')
+  , make_format_equiv('O', {getTimezoneOffset:Function('return 10')}, '-0010')
+
+  // D, j M Y H:i:s O
+  , make_format_equiv('r', new Date(2010,11, 1, 18, 3, 59, 888), utils.format(new Date(2010,11, 1, 18, 3, 59, 888), 'D, j M Y H:i:s O'))
+
+  // ordinal suffix for day of month, 2 chars, st, nd, rd, th
+  , make_format_equiv('S', new Date(2010,11, 1, 18, 3, 59, 888), 'st')
+  , make_format_equiv('S', new Date(2010,11, 2, 18, 3, 59, 888), 'nd')
+  , make_format_equiv('S', new Date(2010,11, 3, 18, 3, 59, 888), 'rd')
+  , make_format_equiv('S', new Date(2010,11, 4, 18, 3, 59, 888), 'th')
+  , make_format_equiv('S', new Date(2010,11,11, 18, 3, 59, 888), 'th')
+  , make_format_equiv('S', new Date(2010,11,21, 18, 3, 59, 888), 'st')
+
+  // number of days in a given month
+  , make_format_equiv('t', new Date(2010, 0, 1, 18, 3, 59, 888), 31)
+  , make_format_equiv('t', new Date(2010, 1, 1, 18, 3, 59, 888), 28)
+  , make_format_equiv('t', new Date(2012, 1, 1, 18, 3, 59, 888), 29)  // <-- leap year!
+  , make_format_equiv('t', new Date(2010, 2, 1, 18, 3, 59, 888), 31)
+  , make_format_equiv('t', new Date(2010, 3, 1, 18, 3, 59, 888), 30)
+  , make_format_equiv('t', new Date(2010, 4, 1, 18, 3, 59, 888), 31)
+  , make_format_equiv('t', new Date(2010, 5, 1, 18, 3, 59, 888), 30)
+  , make_format_equiv('t', new Date(2010, 6, 1, 18, 3, 59, 888), 31)
+  , make_format_equiv('t', new Date(2010, 7, 1, 18, 3, 59, 888), 31)
+  , make_format_equiv('t', new Date(2010, 8, 1, 18, 3, 59, 888), 30)
+  , make_format_equiv('t', new Date(2010, 9, 1, 18, 3, 59, 888), 31)
+  , make_format_equiv('t', new Date(2010,10, 1, 18, 3, 59, 888), 30)
+  , make_format_equiv('t', new Date(2010,11, 1, 18, 3, 59, 888), 31)
+
+  // tzinfo
+  , make_format_equiv('T', new Date(2010,11, 1, 18, 3, 59, 888), new Date(2010,11, 1, 18, 3, 59, 888).tzinfo().abbr || '???')
+
+  // seconds since the unix epoch
+  , make_format_equiv('U', new Date(2010,11, 1, 18, 3, 59, 888), ~~(new Date(2010,11, 1, 18, 3, 59, 888)/1000))
+
+  // day of week, number, awesome
+  , make_format_equiv('w', new Date(2012, 0,15, 5, 3, 59, 888), 0)
+  , make_format_equiv('w', new Date(2012, 0,16, 5, 3, 59, 888), 1)
+  , make_format_equiv('w', new Date(2012, 0,17, 5, 3, 59, 888), 2)
+  , make_format_equiv('w', new Date(2012, 0,18, 5, 3, 59, 888), 3)
+  , make_format_equiv('w', new Date(2012, 0,19, 5, 3, 59, 888), 4)
+  , make_format_equiv('w', new Date(2012, 0,20, 5, 3, 59, 888), 5)
+  , make_format_equiv('w', new Date(2012, 0,21, 5, 3, 59, 888), 6)
+
+  // ISO-8601 week number of year
+  , function(assert) {
+      var first_day = +new Date(2012, 0, 1, 12, 30)
+        , week = 1000 * 60 * 60 * 24 * 7
+
+
+      for(var i = 0; i < 52; ++i) {
+        assert.equal(utils.format(new Date(first_day + week * i), 'W'), i+1)
+      }
+    }
+
+
+  // year, 2 digits
+  , make_format_equiv('y', new Date(1986, 0, 3, 5, 3, 59, 888), 86)
+  , make_format_equiv('y', new Date(2000, 0, 3, 5, 3, 59, 888), '00')
+  , make_format_equiv('y', new Date(2012, 0, 3, 5, 3, 59, 888), 12)
+
+  // year, 4 digits
+  , make_format_equiv('Y', new Date(1986, 0, 3, 5, 3, 59, 888), 1986)
+  , make_format_equiv('Y', new Date(2000, 0, 3, 5, 3, 59, 888), 2000)
+  , make_format_equiv('Y', new Date(2012, 0, 3, 5, 3, 59, 888), 2012)
+
+  // day of year, 0-365
+  , function(assert) {
+    var year = +new Date(new Date().getFullYear(), 0, 1, 0, 0)
+      , day = 1000 * 60 * 60 * 24
+
+    for(var i = 0; i < 365; ++i) { 
+      assert.equal(utils.format(new Date(year + (day * i) + 1000), 'z'), i + 1)
+    }
+  }
+
+  // timezone offset in seconds (-43200 to 43200)
+  , make_format_equiv('Z', new Date(2012, 0, 3, 5, 3, 59, 888), new Date(2012, 0, 3, 5, 3, 59, 888).getTimezoneOffset() * -60)
 )
