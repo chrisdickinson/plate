@@ -6,7 +6,4 @@ try {
 
   module.exports.compile = require('./lib/express-shim')
 } catch(err) {
-  console.error(err)
-
-  // do nothing
 }
