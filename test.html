@@ -2797,13 +2797,19 @@ Function.prototype.bind = Function.prototype.bind || function(obj) {
   }
 }
 
+Array.prototype.forEach = [].forEach || function(fn) {
+  for(var i = 0, len = this.length; i < len; ++i) {
+    fn(this[i], i, this)
+  }
+}
+
 function make_format_equiv(method, for_date, should_equal) {
 
   return new Function('test', 'assert', (function () {
     NAME;
 
     test(assert)
-  }+'').replace('NAME', JSON.stringify('test of '+method)).slice('function () {'.length, -1))
+  }+'').replace('NAME', '"test of '+method+'"').slice('function () {'.length, -1))
     .bind(null, function(assert) {
       var fmt = new utils.DateFormat(for_date)
       assert.equal(fmt[method](), should_equal)
