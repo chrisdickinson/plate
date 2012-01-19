@@ -2778,6 +2778,9 @@ if(typeof module !== 'undefined') {
 })(typeof window === 'undefined' ? exports : (window.platoon = {}));
 </script>
     <script>(function(testrunner) {;(function (require, exports) {
+
+return;
+
     ;if(typeof window === 'undefined') {
   var plate = require('../index')
     , utils = require('../lib/utils')
@@ -2805,19 +2808,15 @@ Array.prototype.forEach = [].forEach || function(fn) {
 
 function make_format_equiv(method, for_date, should_equal) {
 
-  try {
   return new Function('test', 'assert', (function () {
     NAME;
 
     test(assert)
   }+'').replace('NAME', '"test of '+method+'"').slice('function () {'.length, -1))
     .bind(null, function(assert) {
-      try {
       var fmt = new utils.DateFormat(for_date)
       assert.equal(fmt[method](), should_equal)
-      } catch(err) { alert("INNER ERROR ON "+method) }
     })
-  } catch(err) { alert("ERROR ON "+method) }
 }
 
 exports.TestFormatter = platoon.unit({},
@@ -2829,12 +2828,9 @@ exports.TestFormatter = platoon.unit({},
       , formatter = new utils.DateFormat(datetime)
 
     result = result.split('\n')
-
-    try { 
     result.forEach(function(item, idx) {
       assert.equal(item, ''+formatter[format[idx]]())
     })
-    } catch(err) { alert("IE ERR") }
   }
 );
 
