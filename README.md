@@ -60,14 +60,50 @@ The minimum requirements for a pull request to be merged are:
 Run the tests
 -------------
 
+In node:
+
 ````
 
-$ npm install --dev plate
+$ npm install plate
 $ npm test plate
 
 ````
 
+### In browser:
 
+* [Your current browser](http://chrisdickinson.github.com/plate/test.html)
+
+### Using Browserling:
+
+* **Internet Explorer**
+  * [IE7](http://browserling.com/explorer/7.0/http%3A//chrisdickinson.github.com/plate/test.html)
+  * [IE8](http://browserling.com/explorer/8.0/http%3A//chrisdickinson.github.com/plate/test.html)
+  * [IE9](http://browserling.com/explorer/9.0/http%3A//chrisdickinson.github.com/plate/test.html)
+* **Firefox**
+  * [3.6](http://browserling.com/firefox/3.6/http%3A//chrisdickinson.github.com/plate/test.html)
+  * [8.0](http://browserling.com/firefox/8.0/http%3A//chrisdickinson.github.com/plate/test.html)
+  * [nightly](http://browserling.com/firefox/nightly/http%3A//chrisdickinson.github.com/plate/test.html)
+* **Chrome**
+  * [10](http://browserling.com/chrome/10.0/http%3A//chrisdickinson.github.com/plate/test.html)
+  * [latest](http://browserling.com/chrome/canary/http%3A//chrisdickinson.github.com/plate/test.html)
+* **Safari**
+  * [4.0](http://browserling.com/safari/4.0/http%3A//chrisdickinson.github.com/plate/test.html)
+  * [5.0](http://browserling.com/safari/5.1/http%3A//chrisdickinson.github.com/plate/test.html)
+* **Opera**
+  * [10.0](http://browserling.com/opera/10.0/http%3A//chrisdickinson.github.com/plate/test.html)
+  * [11.0](http://browserling.com/opera/11.0/http%3A//chrisdickinson.github.com/plate/test.html)
+
+### Locally, in browser:
+
+````bash
+
+$ git clone git@github.com:chrisdickinson/plate.git
+$ cd plate
+$ make browsertest
+$ python -m SimpleHTTPServer &
+$ open http://localhost:8000/test.html
+
+````
 
 License
 -----------------
