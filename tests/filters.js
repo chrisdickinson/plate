@@ -865,11 +865,11 @@ exports.TestOfTimesince = platoon.unit({},
   function(assert) {
     "Test that timesince works as expected.";
     var times = [
-          ['3 years', Date.now() - 31557600000 * 3]
-        , ['1 month', Date.now() - 2592000000 * 1]
-        , ['2 days', Date.now() - 86400000 * 2]
-        , ['23 hours', Date.now() - 3600000 * 23]
-        , ['30 minutes', Date.now() - 60000 * 30]
+          ['3 years', (+new Date) - 31557600000 * 3]
+        , ['1 month', (+new Date) - 2592000000 * 1]
+        , ['2 days', (+new Date) - 86400000 * 2]
+        , ['23 hours', (+new Date) - 3600000 * 23]
+        , ['30 minutes', (+new Date) - 60000 * 30]
       ]
     , tpl = new plate.Template("{% for expected, time in times %}{{ time|timesince }}\n{% endfor %}")
 
@@ -907,9 +907,9 @@ exports.TestOfTimesince = platoon.unit({},
   function(assert) {
     "Test that timesince displays the largest and second largest bit of multiple time values.";
     var times = [
-          ['3 years, 2 days',   Date.now() - (31557600000 * 3 + 86400000 * 2 + 60000)]
-        , ['1 month, 23 hours',           Date.now() - (2592000000 + 3600000 * 23)]
-        , ['1 year, 10 days', Date.now() - (31557600000 + 10 * 86400000 + 20 * 60000)]
+          ['3 years, 2 days',   (+new Date) - (31557600000 * 3 + 86400000 * 2 + 60000)]
+        , ['1 month, 23 hours',           (+new Date) - (2592000000 + 3600000 * 23)]
+        , ['1 year, 10 days', (+new Date) - (31557600000 + 10 * 86400000 + 20 * 60000)]
       ]
     , tpl = new plate.Template("{% for expected, time in times %}{{ time|timesince }}\n{% endfor %}")
 
