@@ -1,14 +1,14 @@
-var plate = require('../index'),
-    platoon = require('platoon'),
-    platelib,
-    nodes;
-
-if(typeof window === 'undefined'){
-    platelib = require('../lib/libraries');
-    nodes = require('../lib/nodes');
+if(typeof window === 'undefined') {
+  var plate = require('../index')
+    , utils = require('../lib/utils')
+    , platelib = require('../lib/libraries')
+    , nodes = require('../lib/nodes')
+    , platoon = require('platoon')
 } else {
-    platelib = require('plate/libraries');
-    nodes = require('plate/nodes');
+  var plate = window.plate
+    , platoon = window.platoon
+  var platelib = plate.libraries
+    , nodes = plate.nodes
 }
 
 exports.TestTemplateAPI = platoon.unit({},

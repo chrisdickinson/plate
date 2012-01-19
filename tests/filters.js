@@ -1,6 +1,12 @@
-var plate = plate || require('../index'),
-    utils = plate.utils || require('../lib/utils'),
-    platoon = platoon || require('platoon');
+if(typeof window === 'undefined') {
+  var plate = require('../index')
+    , utils = require('../lib/utils')
+    , platoon = require('platoon')
+} else {
+  var plate = window.plate
+    , platoon = window.platoon
+    , utils = plate.utils
+}
 
 exports.TestAddFilter = platoon.unit({},
     function(assert) {

@@ -1,6 +1,12 @@
-var plate = plate || require('../index'),
-    platoon = platoon || require('platoon'),
-    utils = plate.utils || require('../lib/utils')
+if(typeof window === 'undefined') {
+  var plate = require('../index')
+    , utils = require('../lib/utils')
+    , platoon = require('platoon')
+} else {
+  var plate = window.plate
+    , platoon = window.platoon
+  var utils = plate.utils
+}
 
 function make_format_equiv(method, for_date, should_equal) {
   return new Function('test', 'assert', (function () {
@@ -237,7 +243,7 @@ exports.TestFormatMethods = platoon.unit({},
   , make_format_equiv('t', new Date(2010,11, 1, 18, 3, 59, 888), 31)
 
   // tzinfo
-  , make_format_equiv('T', new Date(2010,11, 1, 18, 3, 59, 888), new Date(2010,11, 1, 18, 3, 59, 888).tzinfo().abbr || '???')
+  , make_format_equiv('T', new Date(2010,11, 1, 18, 3, 59, 888), Date.prototype.tzinfo ? new Date(2010,11, 1, 18, 3, 59, 888).tzinfo().abbr || '???' : '???')
 
   // seconds since the unix epoch
   , make_format_equiv('U', new Date(2010,11, 1, 18, 3, 59, 888), ~~(new Date(2010,11, 1, 18, 3, 59, 888)/1000))

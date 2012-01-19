@@ -1,13 +1,16 @@
-var plate = require('../index'),
-    format = require('../lib/utils').format,
-    platoon = require('platoon'),
-    platelib;
-
-if(typeof window === 'undefined') {  
-    platelib = require('../lib/libraries');
+if(typeof window === 'undefined') {
+  var plate = require('../index')
+    , utils = require('../lib/utils')
+    , platelib = require('../lib/libraries')
+    , platoon = require('platoon')
 } else {
-    platelib = require('plate/libraries');
+  var plate = window.plate
+    , platoon = window.platoon
+  var platelib = plate.libraries
+    , utils = plate.utils
 }
+
+var format = utils.format
 
 exports.TestForTag = platoon.unit({},
     function(assert) {

@@ -1,8 +1,0 @@
-{
-    "testing":{"plate":"plate.js"},
-    "tests":{
-        "plate_main":"tests/plate.js",
-        "filters":"tests/filters.js",
-        "tags":"tests/tags.js"
-    }
-}
