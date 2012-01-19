@@ -1,0 +1,2763 @@
+
+    <!doctype html>
+    <meta charset="utf8">
+    <title>platoon tests</title>
+    <div id="target"></div>
+    <script>if(typeof window === 'undefined') {
+  var plate = require('../index')
+    , utils = require('../lib/utils')
+    , platelib = require('../lib/libraries')
+    , nodes = require('../lib/nodes')
+    , platoon = require('platoon')
+} else {
+  var plate = window.plate
+    , platoon = window.platoon
+  var platelib = plate.libraries
+    , nodes = plate.nodes
+}
+
+exports.TestTemplateAPI = platoon.unit({},
+    function(assert) {
+        "Test the exception cases of plate.Template.";
+        assert.throws(TypeError, function() {
+            var tpl = new plate.Template(2);
+        });
+        assert.throws(TypeError, function() {
+            var tpl = new plate.Template();
+        });
+        
+        var tplstr = "random-"+Math.random(),
+            tpl = new plate.Template(tplstr);
+
+        assert.throws(TypeError, function() {
+            tpl.render();
+        });
+
+        assert.throws(TypeError, function() {
+            tpl.render("");
+        });
+
+        assert.throws(TypeError, function() {
+            tpl.render(Math.random());
+        });
+
+        tpl.render({}, function(err, data) {
+            assert.fail(err);
+            assert.equal(tplstr, data);
+        });
+
+        tpl.render(new plate.Context({}), assert.async(function(err, data) {
+            assert.fail(err);
+            assert.equal(data, tplstr);
+        }));
+    },
+    function(assert) {
+        "Test that encountering a {% tag %} will lookup that tag in the provided library";
+        var lib = new platelib.Library(),
+            name = "random_"+~~Math.random(),
+            value = Math.random().toString(),
+            creationFunction = function(token, parser) {
+                return {
+                    render:function(context, callback) {
+                        callback(null, value);
+                    }
+                };
+            };
+        lib.register(name, creationFunction);
+        var tpl = new plate.Template("{% "+name+" %}", {tag_library:lib});
+        tpl.render({}, assert.async(function(err, data) {
+            assert.equal(data, value);
+        }));
+    },
+    function(assert) {
+        "Test that filter nodes render as expected.";
+        var testContext = {
+            value:Math.random().toString(),
+            deep:{
+                value:Math.random().toString(),
+                method:function(callback) {
+                    return "lobsters";
+                },
+                delayed:function(callback) {
+                    setTimeout(function() {
+                        callback(null, "delayed");
+                    }, 10);
+                }
+            }
+        };
+        var tplValue = new plate.Template("{{ value }}"),
+            tplDeep = new plate.Template("{{ deep.value }}"),
+            tplMethod = new plate.Template("{{ deep.method }}");
+            tplDelayed = new plate.Template("{{ deep.delayed }}");
+
+        tplValue.render(testContext, function(err, data) {
+            assert.equal(err, null);
+            assert.equal(data, testContext.value);
+        });
+
+        tplDeep.render(testContext, function(err, data) {
+            assert.equal(err, null);
+            assert.equal(data, testContext.deep.value);
+        });
+
+        tplMethod.render(testContext, function(err, data) {
+            assert.equal(err, null);
+            assert.equal(data, testContext.deep.method());
+        });
+
+        tplDelayed.render(testContext, assert.async(function(err, data) {
+            assert.equal(err, null);
+            assert.equal('delayed', data);
+        }));
+    },
+    function(assert) {
+        "Test that hitting an unknown tag triggers an error.";
+        var tpl = new plate.Template("{% lol dne %}");
+        tpl.render({}, assert.async(function(err, data) {
+            assert.strictEqual(data, null);
+            assert.isInstance(err, Error); 
+        }));
+    }
+);
+
+exports.TestTemplateMetaAPI = platoon.unit({},
+    function(assert) {
+      "Test that autoregistration of the tag library works as expected.";
+      var expected = ~~(Math.random()*100);
+      var tag = {
+        render:function(context, ready) {
+          ready(null, ''+expected);
+        }
+      }; 
+      plate.Template.Meta.registerTag('lolwut', function() { return tag; });
+
+      assert.doesNotThrow(function() {
+        var tpl = new plate.Template('{% lolwut %}');
+        tpl.render({}, assert.async(function(err, data) {
+          assert.equal(data, ''+expected);
+        }));
+      });
+    },
+    function(assert) {
+      "Test that autoregistration of the filter library works as expected.";
+      var expected = ~~(Math.random()*100);
+      var testFilter = function(ready, input) {
+        ready(null, ''+expected);
+      };
+      plate.Template.Meta.registerFilter('lolol', testFilter);
+
+      assert.doesNotThrow(function() {
+        var tpl = new plate.Template('{{ anything|lolol }}');
+
+        tpl.render({}, assert.async(function(err, data) {
+          assert.equal(data, ''+expected);
+        }));
+      });
+    },
+    function(assert) {
+      "Test that autoregistration of the plugin library works as expected.";
+      var expected = ~~(Math.random()*100);
+      var plugin = function() {
+        return ''+expected;
+      };
+      plate.Template.Meta.registerPlugin('test_plugin', plugin);
+
+      var TestNode = function(test_plugin){ this.plugin = test_plugin; };
+      TestNode.prototype = new nodes.Node;
+
+      TestNode.prototype.render = function(context, ready) {
+        ready(null, this.plugin());
+      };
+      TestNode.parse = function(contents, parser) {
+        var test_plugin = parser.pluginLibrary.lookup('test_plugin');
+        return new TestNode(test_plugin);
+      };
+      plate.Template.Meta.registerTag('test_plugin_tag', TestNode.parse);
+
+      assert.doesNotThrow(function() {
+        var tpl = new plate.Template('{% test_plugin_tag %}');
+        tpl.render({}, function(err, data) {
+          assert.equal(data, ''+expected);
+        });
+      });
+
+
+    }
+);
+</script>
+<script>;(function() {
+
+// so, the only way we (reliably) get access to DST in javascript
+// is via `Date#getTimezoneOffset`.
+//
+// this value will switch for a given date based on the presence or absence
+// of DST at that date.
+
+function find_dst_threshold (near, far) {
+  var near_date = new Date(near)
+    , far_date = new Date(far)
+    , near_offs = near_date.getTimezoneOffset()
+    , far_offs = far_date.getTimezoneOffset()
+
+  if(near_offs === far_offs) return 0
+
+  if(Math.abs(near_date - far_date) < 1000) return near_date
+
+  return find_dst_threshold(near, near+(far-near)/2) || find_dst_threshold(near+(far-near)/2, far)
+}
+
+
+function find_dst_thresholds() {
+  var d = new Date()
+    , d = new Date(d.getFullYear(), 0, 1)
+    , f = new Date(d.getFullYear(), 11, 31)
+    , x
+    , first
+    , second
+
+  x = (f - d) / -2
+  first = find_dst_threshold(+d, d - x)
+  second = find_dst_threshold(d - x, +f)
+
+  return {
+    spring_forward  : first ? (first.getTimezoneOffset() < second.getTimezoneOffset() ? second : first) - new Date(d.getFullYear(), 0, 1, 0, 0) : 0
+  , fall_back       : first ? (first.getTimezoneOffset() < second.getTimezoneOffset() ? first : second) - new Date(d.getFullYear(), 0, 1, 0, 0) : 0
+  }
+}
+
+var THRESHOLDS = find_dst_thresholds()
+
+function is_dst(datetime, thresholds) {
+
+  thresholds = thresholds || THRESHOLDS
+
+  if(thresholds.spring_forward === thresholds.fall_back)
+    return false
+
+  var offset = datetime - new Date(datetime.getFullYear(), 0, 1, 0, 0)
+    , dst_is_reversed = thresholds.spring_forward > thresholds.fall_back
+    , max = Math.max(thresholds.fall_back, thresholds.spring_forward)
+    , min = Math.min(thresholds.fall_back, thresholds.spring_forward)
+
+  if(min < offset && offset < max)
+    return !dst_is_reversed
+  return dst_is_reversed
+}
+
+Date.prototype.isDST = function(thresholds) {
+  return is_dst(this, thresholds) 
+}
+
+is_dst.find_thresholds = find_dst_thresholds
+
+if(typeof module !== 'undefined') {
+  module.exports = is_dst
+} else {
+  window.is_dst = is_dst 
+}
+
+})()
+</script>
+    <script>(function(global) {
+    var TestCase = function(name, setup, teardown, testFns) {
+        this.name = name;
+        this.setUp = setup || function(cb) { cb() };
+        this.tearDown = teardown || function(cb) { cb() };
+        this.testFns = testFns;
+    };
+
+    // if a test waits for >30s, we abort it.
+    TestCase.TIMEOUT = 30000;
+    var Fail = {};
+
+    var AssertionSet = function(name, fn, against) {
+        this.name = name;
+        this.fn = fn;
+
+        this.against = against || {};
+        this.pending = 0;
+        this.passes = [];
+        this.failures = [];
+        this.errors = [];
+    };
+
+    AssertionSet.prototype.passed = function() {
+      return this.failures.length === 0 && this.errors.length === 0;
+    };
+
+    AssertionSet.prototype.throwFail = function(fail) {
+      this.failures.push(fail);
+      throw Fail;
+    };
+
+    AssertionSet.prototype.execute = function(callback) {
+        var self = this,
+            started = +new Date,
+            timeout = function () {
+                if(self.pending > 0) {
+                  if((+new Date)-started < TestCase.TIMEOUT)
+                    setTimeout(timeout, 0);
+                  else {
+                    self.errors.push(['timed out', [], new Error()]);
+                  }
+                } else {
+                    callback();
+                }
+            };
+        try {
+            self.fn.apply(self.against, [self]);
+        } catch(err) {
+            if(err !== Fail)
+              self.errors.push(err);
+        }
+        setTimeout(timeout, 0);
+    };
+
+    AssertionSet.prototype.async = function(callback) {
+        ++this.pending;
+        var self = this,
+            currentAgainst = self.against;
+        return function() {
+            --self.pending;
+            try {
+              return callback.apply(self.against, [].slice.call(arguments));
+            } catch(err) {
+              if(err !== Fail)
+                self.errors.push(err);
+            }
+        };
+    };
+
+    AssertionSet.prototype.deepEqual = function(lhs, rhs, reentrant) {
+        reentrant = reentrant !== undefined;
+        var lhsKeys = [],
+            rhsKeys = [],
+            name = null;
+        for(name in lhs) if(lhs.hasOwnProperty(name)) {
+            lhsKeys.push(name);
+        }
+        for(name in rhs) if(rhs.hasOwnProperty(name)) {
+            rhsKeys.push(name);
+        }
+        if(rhsKeys.length !== lhsKeys.length) {
+            this.throwFail(['should deep equal', [lhs, rhs], new Error()]);
+        } else {
+            var failureLength = this.failures.length;
+            for(var i = 0, len = lhsKeys.length; i < len; ++i) {
+                var lhsObject = lhs[lhsKeys[i]],
+                    rhsObject = rhs[rhsKeys[i]];
+                if(lhsObject == rhsObject) {
+                    continue;
+                } else {
+                    if(lhsObject instanceof Object && rhsObject instanceof Object) {
+                        arguments.callee.apply(this, [lhsObject, rhsObject, true]);
+                        if(failureLength !== this.failures.length) {
+                            break;
+                        }
+                    } else {
+                        this.throwFail(['should deep equal', [lhs, rhs], new Error()]);
+                        break;
+                    }
+                }
+            }
+            if(failureLength === this.failures.length && !reentrant) {
+                this.passes.push(['should deep equal', [lhs, rhs], new Error()]);
+            }
+        }
+    };
+
+    AssertionSet.prototype.ok = function(rhs) {
+        var msg = ['should be truth-y', [rhs], new Error()];
+        (rhs) ?
+            this.passes.push(msg) :
+            this.throwFail(msg);
+    };
+
+    AssertionSet.prototype.fail = function(rhs) {
+        var msg = ['should be false-y', [rhs], new Error()];
+        (rhs) ?
+            this.throwFail(msg) : 
+            this.passes.push(msg);
+    };
+
+    AssertionSet.prototype.equal = function(lhs, rhs) {
+        var msg = ['should ==', [lhs, rhs], new Error()];
+        (rhs == lhs) ?
+            this.passes.push(msg) :
+            this.throwFail(msg);
+    };
+
+    AssertionSet.prototype.notEqual = function(lhs, rhs) {
+        var msg = ['should !=', [lhs, rhs], new Error()];
+        (rhs == lhs) ?
+            this.throwFail(msg) : 
+            this.passes.push(msg);
+    };
+
+    AssertionSet.prototype.strictEqual = function(lhs, rhs) {
+        var msg = ['should ===', [lhs, rhs], new Error()];
+        (rhs === lhs) ?
+            this.passes.push(msg) :
+            this.throwFail(msg);
+    };
+
+    AssertionSet.prototype.strictNotEqual = function(lhs, rhs) {
+        var msg = ['should !==', [lhs, rhs], new Error()];
+        (rhs === lhs) ?
+            this.throwFail(msg) :
+            this.passes.push(msg);
+    };
+
+    AssertionSet.prototype.isInstance = function(lhs, class_list) {
+        if(!(class_list instanceof Array)) {
+            class_list = [class_list];
+        }
+        for(var i = 0, len = class_list.length; i < len; ++i) {
+            if(lhs instanceof class_list[i]) {
+                this.passes.push(['should instanceof', [lhs, class_list]]);
+                return;
+            }
+        }
+        this.throwFail(['should instanceof', [lhs, class_list], new Error()]);
+    };
+
+    AssertionSet.prototype.throws = function(error_class, fn) {
+        if(!(error_class instanceof Array)) {
+            error_class = [error_class];
+        }
+        try {
+            fn.apply(arguments[2], [].slice.call(arguments, 2));
+            this.throwFail(['should throw', [error_class, fn], new Error()]);
+        } catch(err) {
+            for(var i = 0, len = error_class.length; i < len; ++i) {
+                if(err instanceof error_class[i]) {
+                    this.passes.push(['should throw', [error_class, fn, err]]);
+                    return;
+                }
+            }
+            this.throwFail(['should throw', error_class.concat([fn]), new Error()]);
+        }
+    };
+
+    AssertionSet.prototype.doesNotThrow = function(fn) {
+        try {
+            fn.apply(arguments[1], [].slice.call(arguments, 1));
+            this.passes.push(['should not throw', [fn, null]]);
+        } catch(err) {
+            this.throwFail(['should not throw', [fn, err], new Error()]);
+        }
+    };
+
+    TestCase.prototype.runTests = function(against, callback) {
+        var self = this,
+            i = -1,
+            len = self.testFns.length,
+            assertionSets = [],
+            recurseTests = function() {
+                ++i;
+                var currentFunction = self.testFns[i];
+                if(i >= len) {
+                    return;
+                }
+                self.setUp(function() {
+                    var assertionSet = new AssertionSet(self.getDocString(currentFunction), currentFunction, against);
+                    assertionSet.execute(function() {
+                        self.tearDown(function() {
+                            assertionSets.push(assertionSet);
+                            recurseTests();
+                        });
+                    });
+                });
+            },
+            timeoutFunction = function() {
+                if(assertionSets.length !== self.testFns.length) {
+                    setTimeout(arguments.callee, 0);
+                } else {
+                    callback(self, assertionSets);
+                }
+            };
+        recurseTests();
+        setTimeout(timeoutFunction, 0);
+    };
+
+    TestCase.prototype.getDocString = function(fn) {
+        if(fn.__doc__) return fn.__doc__;
+
+        var re = /function\s*(.*?)\s*{\s*('(.*?)'|"(.*?)")/;
+        var match = re.exec(fn.toSource ? fn.toSource() : fn.toString()),
+            docstring = match ? match[2].slice(1, -1) : null;
+        re.lastIndex = 0;
+        fn.name = docstring;
+        return docstring;
+    };
+
+
+    global.unit = function(opts) {
+        var testFns = [].slice.call(arguments, 1),
+            test = function(name) {
+            return new TestCase(name, opts.setup, opts.teardown, testFns);
+        };
+        test.classname = 'platoon.TestCase';
+        return test;
+    };
+
+
+    function HTMLTestRunner() {
+      this.tests = {}
+      this.target = document.getElementById('target')
+      this.target.appendChild(this.pre = document.createElement('pre'))
+    }
+
+    var proto = HTMLTestRunner.prototype
+
+    proto.make = function(name) {
+      return (this.tests[name] = (this.tests[name] || {}))
+    }
+
+    proto.write = function(what) {
+      var text = this.pre.innerHTML
+        , last
+        , lines
+      text += what
+
+
+      lines = text.split('\n')
+      last = lines[lines.length-1]
+
+
+      lines[lines.length - 1] =
+        last.length > 80
+          ? last.slice(0, 79) + '\n' + last.slice(79)
+          : last
+      this.pre.innerHTML = lines.join('\n')
+    }
+
+    proto.run = function() {
+      var self = this
+        , tests = []
+        , finished = []
+        , make_test = function(instance) {
+            ret.instance = instance
+
+            return ret
+            function ret(ready) {
+              instance.runTests({}, ready)
+            }
+          }
+      for(var file in this.tests) {
+        for(var unit in this.tests[file]) {
+          tests.push(make_test(this.tests[file][unit](file + ': '+unit)))
+        }
+      }
+
+      function accumulate(testcase, assertionset, next) {
+        if(testcase) {
+          for(var i = 0, set; set = assertionset[i]; ++i) {
+            if(set.errors.length) self.write('E')
+            else if(set.failures.length) self.write('F')
+            else self.write('.')
+          }
+          finished.push({
+              'testcase':testcase
+            , 'assertionset':assertionset
+          })
+        }
+
+        next = tests.shift()
+        if(next) {
+            return setTimeout(function() { next(accumulate) }, 0)
+        }
+        finish()
+      }
+
+      function finish() {
+        for(var i = 0, len = finished.length; i < len; ++i) {
+          var test = finished[i].testcase
+            , sets = finished[i].assertionset
+
+          for(var j = 0, set; set = sets[j]; ++j) {
+            if(set.errors.length || set.failures.length) {
+              self.write('\n in '+test.name+': '+set.name+'\n')
+            }
+
+            for(var x = 0, err; err = set.errors[x]; ++x) {
+              self.write(err.stack ? err + '\n' + err.stack : err)
+            }
+            for(var x = 0, err; err = set.failures[x]; ++x) {
+              self.write(err.stack ? err + '\n' + err.stack : err)
+            }
+
+          }
+        }
+      }
+      platoon.beforeStart(accumulate)
+    }
+
+
+    global.makeHTMLTestRunner = function() {
+      return new HTMLTestRunner()
+    }
+
+    global.beforeStart = function(ready) { ready(); };
+    global.beforeFinish = function(ready) { ready(); };
+
+    global.setBeforeStart = function(fn) { global.beforeStart = fn; };
+    global.setBeforeFinish = function(fn) { global.beforeFinish = fn; };
+
+    global.test = function(name, fn) {
+        fn.__doc__ = name;
+        return fn;
+    };
+    global.TestCase = TestCase;
+    global.AssertionSet = AssertionSet;
+})(typeof window === 'undefined' ? exports : (window.platoon = {}));
+</script>
+    <script>(function(testrunner) {;(function (require, exports) {
+    ;if(typeof window === 'undefined') {
+  var plate = require('../index')
+    , utils = require('../lib/utils')
+    , platoon = require('platoon')
+} else {
+  var plate = window.plate
+    , platoon = window.platoon
+  var utils = plate.utils
+}
+
+function make_format_equiv(method, for_date, should_equal) {
+  return new Function('test', 'assert', (function () {
+    NAME;
+
+    test(assert)
+  }+'').replace('NAME', JSON.stringify('test of '+method)).slice('function () {'.length, -1))
+    .bind(null, function(assert) {
+      var fmt = new utils.DateFormat(for_date)
+      assert.equal(fmt[method](), should_equal)
+    })
+}
+
+exports.TestFormatter = platoon.unit({},
+  function(assert) {
+    "test that the formatter works as expected"
+    var format    = [].slice.call("aAbcdDEfFgGhHiIjlLmMnNOPrsStTUuwWyYzZ")
+      , datetime  = new Date
+      , result    = utils.format(datetime, format.join('\n'))
+      , formatter = new utils.DateFormat(datetime)
+
+    result = result.split('\n')
+    result.forEach(function(item, idx) {
+      assert.equal(item, ''+formatter[format[idx]]())
+    })
+  }
+);
+
+exports.TestFormatMethods = platoon.unit({},
+
+  // a.m. / p.m. format
+    make_format_equiv('a', new Date(2010, 0, 1, 23, 0),   'p.m.')
+  , make_format_equiv('a', new Date(2010, 0, 1, 1, 0),    'a.m.')
+
+  // AM / PM format
+  , make_format_equiv('A', new Date(2010, 0, 1, 1, 0),    'AM')
+  , make_format_equiv('A', new Date(2010, 0, 1, 23, 0),   'PM')
+
+  // time in 12-hour, omit minutes if 0
+  , make_format_equiv('f', new Date(2010, 0, 1, 23, 0),   '11')
+  , make_format_equiv('f', new Date(2010, 0, 1, 11, 0),   '11')
+  , make_format_equiv('f', new Date(2010, 0, 1, 18, 30),  '6:30')
+  , make_format_equiv('f', new Date(2010, 0, 1, 8, 30),   '8:30')
+
+  // 12-hour format, no leading zeros
+  , make_format_equiv('g', new Date(2010, 0, 1, 23, 0),   '11')
+  , make_format_equiv('g', new Date(2010, 0, 1, 11, 0),   '11')
+  , make_format_equiv('g', new Date(2010, 0, 1, 18, 30),  '6')
+  , make_format_equiv('g', new Date(2010, 0, 1, 8, 30),   '8')
+
+  // hour, 24 hour format, no leading zeros
+  , make_format_equiv('G', new Date(2010, 0, 1, 18, 30),  '18')
+  , make_format_equiv('G', new Date(2010, 0, 1, 8, 30),   '8')
+
+  // hour, 12-hour format, leading zeros
+  , make_format_equiv('h', new Date(2010, 0, 1, 18, 30),  '06')
+  , make_format_equiv('h', new Date(2010, 0, 1, 8, 30),   '08')
+
+  // hour, 24-hour format, leading zeros
+  , make_format_equiv('H', new Date(2010, 0, 1, 18, 30),  '18')
+  , make_format_equiv('H', new Date(2010, 0, 1, 8, 30),   '08')
+
+  // minutes, leading zeros
+  , make_format_equiv('i', new Date(2010, 0, 1, 18, 5),   '05')
+  , make_format_equiv('i', new Date(2010, 0, 1, 8, 30),   '30')
+
+  // time, 12 hours, minutes, 'a.m.', 'p.m.', sans minutes if zero, midnight or noon if appropriate
+  , make_format_equiv('P', new Date(2010, 0, 1, 12, 0),   'noon')
+  , make_format_equiv('P', new Date(2010, 0, 0, 0, 0),    'midnight')
+  , make_format_equiv('P', new Date(2010, 0, 1, 8, 30),   '8:30 a.m.')
+  , make_format_equiv('P', new Date(2010, 0, 1, 18, 3),   '6:03 p.m.')
+  , make_format_equiv('P', new Date(2010, 0, 1, 18, 0),   '6 p.m.')
+
+  // seconds, 00-59
+  , make_format_equiv('s', new Date(2010, 0, 1, 18, 3, 0),  '00')
+  , make_format_equiv('s', new Date(2010, 0, 1, 18, 3, 3),  '03')
+  , make_format_equiv('s', new Date(2010, 0, 1, 18, 3, 30), '30')
+  , make_format_equiv('s', new Date(2010, 0, 1, 18, 3, 59), '59')
+
+  // milliseconds
+  , make_format_equiv('u', new Date(2010, 0, 1, 18, 3, 59, 888), '888')
+  , make_format_equiv('u', new Date(2010, 0, 1, 18, 3, 59, 5), '5')
+
+  // month, 3 letters, lowercase
+  , make_format_equiv('b', new Date(2010, 0, 1, 18, 3, 59, 888), 'jan')
+  , make_format_equiv('b', new Date(2010, 1, 1, 18, 3, 59, 888), 'feb')
+  , make_format_equiv('b', new Date(2010, 2, 1, 18, 3, 59, 888), 'mar')
+  , make_format_equiv('b', new Date(2010, 3, 1, 18, 3, 59, 888), 'apr')
+  , make_format_equiv('b', new Date(2010, 4, 1, 18, 3, 59, 888), 'may')
+  , make_format_equiv('b', new Date(2010, 5, 1, 18, 3, 59, 888), 'jun')
+  , make_format_equiv('b', new Date(2010, 6, 1, 18, 3, 59, 888), 'jul')
+  , make_format_equiv('b', new Date(2010, 7, 1, 18, 3, 59, 888), 'aug')
+  , make_format_equiv('b', new Date(2010, 8, 1, 18, 3, 59, 888), 'sep')
+  , make_format_equiv('b', new Date(2010, 9, 1, 18, 3, 59, 888), 'oct')
+  , make_format_equiv('b', new Date(2010,10, 1, 18, 3, 59, 888), 'nov')
+  , make_format_equiv('b', new Date(2010,11, 1, 18, 3, 59, 888), 'dec')
+
+  // iso format
+  , make_format_equiv('c', new Date(2010,11, 1, 18, 3, 59, 888), (new Date(2010,11, 1, 18, 3, 59, 888)).toISOString())
+
+  // day of month, 2 digits, leading zeros
+  , make_format_equiv('d', new Date(2010,11, 2, 5, 3, 59, 888), '02')
+  , make_format_equiv('d', new Date(2010,11,22, 5, 3, 59, 888), '22')
+
+  // day of week, three letters, capfirst
+  , make_format_equiv('D', new Date(2012, 0,15, 5, 3, 59, 888), 'Sun')
+  , make_format_equiv('D', new Date(2012, 0,16, 5, 3, 59, 888), 'Mon')
+  , make_format_equiv('D', new Date(2012, 0,17, 5, 3, 59, 888), 'Tue')
+  , make_format_equiv('D', new Date(2012, 0,18, 5, 3, 59, 888), 'Wed')
+  , make_format_equiv('D', new Date(2012, 0,19, 5, 3, 59, 888), 'Thu')
+  , make_format_equiv('D', new Date(2012, 0,20, 5, 3, 59, 888), 'Fri')
+  , make_format_equiv('D', new Date(2012, 0,21, 5, 3, 59, 888), 'Sat')
+
+  // month, long, capfirst
+  , make_format_equiv('F', new Date(2010, 0, 1, 18, 3, 59, 888), 'January')
+  , make_format_equiv('F', new Date(2010, 1, 1, 18, 3, 59, 888), 'February')
+  , make_format_equiv('F', new Date(2010, 2, 1, 18, 3, 59, 888), 'March')
+  , make_format_equiv('F', new Date(2010, 3, 1, 18, 3, 59, 888), 'April')
+  , make_format_equiv('F', new Date(2010, 4, 1, 18, 3, 59, 888), 'May')
+  , make_format_equiv('F', new Date(2010, 5, 1, 18, 3, 59, 888), 'June')
+  , make_format_equiv('F', new Date(2010, 6, 1, 18, 3, 59, 888), 'July')
+  , make_format_equiv('F', new Date(2010, 7, 1, 18, 3, 59, 888), 'August')
+  , make_format_equiv('F', new Date(2010, 8, 1, 18, 3, 59, 888), 'September')
+  , make_format_equiv('F', new Date(2010, 9, 1, 18, 3, 59, 888), 'October')
+  , make_format_equiv('F', new Date(2010,10, 1, 18, 3, 59, 888), 'November')
+  , make_format_equiv('F', new Date(2010,11, 1, 18, 3, 59, 888), 'December')
+
+  // 1 if DST, 0 if not
+  , make_format_equiv('I', new Date(2010,1, 1, 18, 3, 59, 888), '0')
+  , make_format_equiv('I', new Date(2010,8, 1, 18, 3, 59, 888), '1')
+
+  // day of month, no leading zeros
+  , make_format_equiv('j', new Date(2010,8, 5, 18, 3, 59, 888), '5')
+  , make_format_equiv('j', new Date(2010,8,30, 18, 3, 59, 888), '30')
+
+  // day of the week, textual, long
+  , make_format_equiv('l', new Date(2012, 0,15, 5, 3, 59, 888), 'Sunday')
+  , make_format_equiv('l', new Date(2012, 0,16, 5, 3, 59, 888), 'Monday')
+  , make_format_equiv('l', new Date(2012, 0,17, 5, 3, 59, 888), 'Tuesday')
+  , make_format_equiv('l', new Date(2012, 0,18, 5, 3, 59, 888), 'Wednesday')
+  , make_format_equiv('l', new Date(2012, 0,19, 5, 3, 59, 888), 'Thursday')
+  , make_format_equiv('l', new Date(2012, 0,20, 5, 3, 59, 888), 'Friday')
+  , make_format_equiv('l', new Date(2012, 0,21, 5, 3, 59, 888), 'Saturday')
+
+  // is leap year
+  , make_format_equiv('L', new Date(2012, 0,20, 5, 3, 59, 888), 1)
+  , make_format_equiv('L', new Date(2011, 0,21, 5, 3, 59, 888), 0)
+
+  // month, digit, leading zeros
+  , make_format_equiv('m', new Date(2010, 0, 1, 18, 3, 59, 888), '01')
+  , make_format_equiv('m', new Date(2010, 1, 1, 18, 3, 59, 888), '02')
+  , make_format_equiv('m', new Date(2010, 2, 1, 18, 3, 59, 888), '03')
+  , make_format_equiv('m', new Date(2010, 3, 1, 18, 3, 59, 888), '04')
+  , make_format_equiv('m', new Date(2010, 4, 1, 18, 3, 59, 888), '05')
+  , make_format_equiv('m', new Date(2010, 5, 1, 18, 3, 59, 888), '06')
+  , make_format_equiv('m', new Date(2010, 6, 1, 18, 3, 59, 888), '07')
+  , make_format_equiv('m', new Date(2010, 7, 1, 18, 3, 59, 888), '08')
+  , make_format_equiv('m', new Date(2010, 8, 1, 18, 3, 59, 888), '09')
+  , make_format_equiv('m', new Date(2010, 9, 1, 18, 3, 59, 888), '10')
+  , make_format_equiv('m', new Date(2010,10, 1, 18, 3, 59, 888), '11')
+  , make_format_equiv('m', new Date(2010,11, 1, 18, 3, 59, 888), '12')
+
+  // month, 3 letters, capfirst
+  , make_format_equiv('M', new Date(2010, 0, 1, 18, 3, 59, 888), 'Jan')
+  , make_format_equiv('M', new Date(2010, 1, 1, 18, 3, 59, 888), 'Feb')
+  , make_format_equiv('M', new Date(2010, 2, 1, 18, 3, 59, 888), 'Mar')
+  , make_format_equiv('M', new Date(2010, 3, 1, 18, 3, 59, 888), 'Apr')
+  , make_format_equiv('M', new Date(2010, 4, 1, 18, 3, 59, 888), 'May')
+  , make_format_equiv('M', new Date(2010, 5, 1, 18, 3, 59, 888), 'Jun')
+  , make_format_equiv('M', new Date(2010, 6, 1, 18, 3, 59, 888), 'Jul')
+  , make_format_equiv('M', new Date(2010, 7, 1, 18, 3, 59, 888), 'Aug')
+  , make_format_equiv('M', new Date(2010, 8, 1, 18, 3, 59, 888), 'Sep')
+  , make_format_equiv('M', new Date(2010, 9, 1, 18, 3, 59, 888), 'Oct')
+  , make_format_equiv('M', new Date(2010,10, 1, 18, 3, 59, 888), 'Nov')
+  , make_format_equiv('M', new Date(2010,11, 1, 18, 3, 59, 888), 'Dec')
+
+  // month, digit, no leading zeros
+  , make_format_equiv('n', new Date(2010, 0, 1, 18, 3, 59, 888), '1')
+  , make_format_equiv('n', new Date(2010, 1, 1, 18, 3, 59, 888), '2')
+  , make_format_equiv('n', new Date(2010, 2, 1, 18, 3, 59, 888), '3')
+  , make_format_equiv('n', new Date(2010, 3, 1, 18, 3, 59, 888), '4')
+  , make_format_equiv('n', new Date(2010, 4, 1, 18, 3, 59, 888), '5')
+  , make_format_equiv('n', new Date(2010, 5, 1, 18, 3, 59, 888), '6')
+  , make_format_equiv('n', new Date(2010, 6, 1, 18, 3, 59, 888), '7')
+  , make_format_equiv('n', new Date(2010, 7, 1, 18, 3, 59, 888), '8')
+  , make_format_equiv('n', new Date(2010, 8, 1, 18, 3, 59, 888), '9')
+  , make_format_equiv('n', new Date(2010, 9, 1, 18, 3, 59, 888), '10')
+  , make_format_equiv('n', new Date(2010,10, 1, 18, 3, 59, 888), '11')
+  , make_format_equiv('n', new Date(2010,11, 1, 18, 3, 59, 888), '12')
+
+  // month, AP format.
+  , make_format_equiv('N', new Date(2010, 0, 1, 18, 3, 59, 888), 'Jan.')
+  , make_format_equiv('N', new Date(2010, 1, 1, 18, 3, 59, 888), 'Feb.')
+  , make_format_equiv('N', new Date(2010, 2, 1, 18, 3, 59, 888), 'March')
+  , make_format_equiv('N', new Date(2010, 3, 1, 18, 3, 59, 888), 'April')
+  , make_format_equiv('N', new Date(2010, 4, 1, 18, 3, 59, 888), 'May')
+  , make_format_equiv('N', new Date(2010, 5, 1, 18, 3, 59, 888), 'June')
+  , make_format_equiv('N', new Date(2010, 6, 1, 18, 3, 59, 888), 'July')
+  , make_format_equiv('N', new Date(2010, 7, 1, 18, 3, 59, 888), 'Aug.')
+  , make_format_equiv('N', new Date(2010, 8, 1, 18, 3, 59, 888), 'Sept.')
+  , make_format_equiv('N', new Date(2010, 9, 1, 18, 3, 59, 888), 'Oct.')
+  , make_format_equiv('N', new Date(2010,10, 1, 18, 3, 59, 888), 'Nov.')
+  , make_format_equiv('N', new Date(2010,11, 1, 18, 3, 59, 888), 'Dec.')
+
+  // difference to greenwich time in hours (+0200)
+  , make_format_equiv('O', {getTimezoneOffset:Function('return 0')}, '+0000')
+  , make_format_equiv('O', {getTimezoneOffset:Function('return -10')}, '+0010')
+  , make_format_equiv('O', {getTimezoneOffset:Function('return 10')}, '-0010')
+
+  // D, j M Y H:i:s O
+  , make_format_equiv('r', new Date(2010,11, 1, 18, 3, 59, 888), utils.format(new Date(2010,11, 1, 18, 3, 59, 888), 'D, j M Y H:i:s O'))
+
+  // ordinal suffix for day of month, 2 chars, st, nd, rd, th
+  , make_format_equiv('S', new Date(2010,11, 1, 18, 3, 59, 888), 'st')
+  , make_format_equiv('S', new Date(2010,11, 2, 18, 3, 59, 888), 'nd')
+  , make_format_equiv('S', new Date(2010,11, 3, 18, 3, 59, 888), 'rd')
+  , make_format_equiv('S', new Date(2010,11, 4, 18, 3, 59, 888), 'th')
+  , make_format_equiv('S', new Date(2010,11,11, 18, 3, 59, 888), 'th')
+  , make_format_equiv('S', new Date(2010,11,21, 18, 3, 59, 888), 'st')
+
+  // number of days in a given month
+  , make_format_equiv('t', new Date(2010, 0, 1, 18, 3, 59, 888), 31)
+  , make_format_equiv('t', new Date(2010, 1, 1, 18, 3, 59, 888), 28)
+  , make_format_equiv('t', new Date(2012, 1, 1, 18, 3, 59, 888), 29)  // <-- leap year!
+  , make_format_equiv('t', new Date(2010, 2, 1, 18, 3, 59, 888), 31)
+  , make_format_equiv('t', new Date(2010, 3, 1, 18, 3, 59, 888), 30)
+  , make_format_equiv('t', new Date(2010, 4, 1, 18, 3, 59, 888), 31)
+  , make_format_equiv('t', new Date(2010, 5, 1, 18, 3, 59, 888), 30)
+  , make_format_equiv('t', new Date(2010, 6, 1, 18, 3, 59, 888), 31)
+  , make_format_equiv('t', new Date(2010, 7, 1, 18, 3, 59, 888), 31)
+  , make_format_equiv('t', new Date(2010, 8, 1, 18, 3, 59, 888), 30)
+  , make_format_equiv('t', new Date(2010, 9, 1, 18, 3, 59, 888), 31)
+  , make_format_equiv('t', new Date(2010,10, 1, 18, 3, 59, 888), 30)
+  , make_format_equiv('t', new Date(2010,11, 1, 18, 3, 59, 888), 31)
+
+  // tzinfo
+  , make_format_equiv('T', new Date(2010,11, 1, 18, 3, 59, 888), Date.prototype.tzinfo ? new Date(2010,11, 1, 18, 3, 59, 888).tzinfo().abbr || '???' : '???')
+
+  // seconds since the unix epoch
+  , make_format_equiv('U', new Date(2010,11, 1, 18, 3, 59, 888), ~~(new Date(2010,11, 1, 18, 3, 59, 888)/1000))
+
+  // day of week, number, awesome
+  , make_format_equiv('w', new Date(2012, 0,15, 5, 3, 59, 888), 0)
+  , make_format_equiv('w', new Date(2012, 0,16, 5, 3, 59, 888), 1)
+  , make_format_equiv('w', new Date(2012, 0,17, 5, 3, 59, 888), 2)
+  , make_format_equiv('w', new Date(2012, 0,18, 5, 3, 59, 888), 3)
+  , make_format_equiv('w', new Date(2012, 0,19, 5, 3, 59, 888), 4)
+  , make_format_equiv('w', new Date(2012, 0,20, 5, 3, 59, 888), 5)
+  , make_format_equiv('w', new Date(2012, 0,21, 5, 3, 59, 888), 6)
+
+  // ISO-8601 week number of year
+  , function(assert) {
+      var first_day = +new Date(2012, 0, 1, 12, 30)
+        , week = 1000 * 60 * 60 * 24 * 7
+
+
+      for(var i = 0; i < 52; ++i) {
+        assert.equal(utils.format(new Date(first_day + week * i), 'W'), i+1)
+      }
+    }
+
+
+  // year, 2 digits
+  , make_format_equiv('y', new Date(1986, 0, 3, 5, 3, 59, 888), 86)
+  , make_format_equiv('y', new Date(2000, 0, 3, 5, 3, 59, 888), '00')
+  , make_format_equiv('y', new Date(2012, 0, 3, 5, 3, 59, 888), 12)
+
+  // year, 4 digits
+  , make_format_equiv('Y', new Date(1986, 0, 3, 5, 3, 59, 888), 1986)
+  , make_format_equiv('Y', new Date(2000, 0, 3, 5, 3, 59, 888), 2000)
+  , make_format_equiv('Y', new Date(2012, 0, 3, 5, 3, 59, 888), 2012)
+
+  // day of year, 0-365
+  , function(assert) {
+    var year = +new Date(new Date().getFullYear(), 0, 1, 0, 0)
+      , day = 1000 * 60 * 60 * 24
+
+    for(var i = 0; i < 365; ++i) { 
+      assert.equal(utils.format(new Date(year + (day * i) + 1000), 'z'), i + 1)
+    }
+  }
+
+  // timezone offset in seconds (-43200 to 43200)
+  , make_format_equiv('Z', new Date(2012, 0, 3, 5, 3, 59, 888), new Date(2012, 0, 3, 5, 3, 59, 888).getTimezoneOffset() * -60)
+)
+
+  })(Function(), testrunner.make("./tests/utils.js"));(function (require, exports) {
+    ;if(typeof window === 'undefined') {
+  var plate = require('../index')
+    , utils = require('../lib/utils')
+    , platoon = require('platoon')
+} else {
+  var plate = window.plate
+    , platoon = window.platoon
+    , utils = plate.utils
+}
+
+exports.TestAddFilter = platoon.unit({},
+    function(assert) {
+        "Test that the add filter works as expected";
+        var tpl = new plate.Template("{{ test|add:3 }}"),
+            rnd = ~~(Math.random()*10);
+
+        tpl.render({'test':rnd}, assert.async(function(err, data) {
+            assert.equal((rnd+3), parseInt(data, 10));
+        }));
+    }
+);
+
+exports.TestAddSlashesFilter = platoon.unit({},
+    function(assert) {
+        "Test that the addslashes filter works as expected";
+        var tpl = new plate.Template("{{ test|addslashes }}"),
+            ctxt = {},
+            inp = [],
+            num = 1 + ~~(Math.random()*10);
+
+        for(var i = 0; inp.push("'") < num; ++i) {};
+
+        inp = inp.join("asdf");
+        ctxt.test = inp;
+
+        tpl.render(ctxt, assert.async(function(err, data) {
+            assert.equal(data.split('\\').length, num+1);
+        }));
+    }
+);
+
+exports.TestCapFirstFilter = platoon.unit({},
+    function(assert) {
+        "Test that the capfirst filter works as expected";
+        var corpus = ['a', 'fluffy bunny', '99 times', 'lol', '', 3.2, {'toString':function(){return 'lol';}}],
+            template = new plate.Template("{{ test|capfirst }}"),
+            emitter = function(item) {
+                var ctxt = { 'test':item };
+                template.render(ctxt, assert.async(function(err, data) {
+                    assert.equal(data.charAt(0), item.toString().charAt(0).toUpperCase());
+                }));
+            };
+        for(var i = 0; i < corpus.length; ++i) {
+            emitter(corpus[i]);
+        }
+    }
+);
+
+exports.TestCenterFilter = platoon.unit({},
+    function(assert) {
+        "Test that the center filter works as expected.";
+        var corpus = ['a', 'bunny', 'rode', 'firmly', 'through', 'the', 'wood'],
+            template = new plate.Template("{{ test|center:centernum }}"),
+            emitter = function(item, len) {
+                template.render({'test':item, 'centernum':len}, assert.async(function(err, data) {
+                    if(item.length >= len) {
+                        assert.equal(data.length, data.length);
+                    } else {
+                        assert.equal(data.length, len);
+                        var parts = data.split(item),
+                            wlen = len - item.length,
+                            strong_side = item.length % 2 == 0 ? 0 : 1,
+                            testlen = Math.floor(wlen/2.0),
+                            uneven = (wlen/2.0) - Math.floor(wlen/2.0) > 0.0;
+
+                        if(uneven) {
+                            assert.equal(parts[strong_side].length, testlen+1);
+                            assert.equal(parts[0+!strong_side].length, testlen);
+                        } else {
+                            assert.equal(parts[strong_side].length, testlen);
+                            assert.equal(parts[0+strong_side].length, testlen);
+                        }
+                    }
+                }));
+            },
+            item = null;
+        while(corpus.length > 0) {
+            item = corpus.shift();
+            emitter(item, ~~(Math.random() * 10) + 2);
+        }
+    }
+);
+
+exports.TestCutFilter = platoon.unit({},
+    function(assert) {
+        "Test that the cut filter works as expected";
+        var corpus = 'abcdefghijklmnopqrstuvwxyz',
+            template = new plate.Template("{{ test|cut:val }}"),
+            rand = function() {
+                return String.fromCharCode(~~(Math.random() * ('z'.charCodeAt(0) - 'a'.charCodeAt(0))) + 'a'.charCodeAt(0));
+            },
+            emitter = function(item) {
+                template.render({'test':corpus, 'val':item}, assert.async(function(err, data) {
+                    assert.equal(data.indexOf(item), -1);
+                }));
+            };
+        var len = ~~(Math.random() * 10);
+        while(len-- > 0) emitter(rand());
+    }
+);
+
+exports.TestDateFilter = platoon.unit({},
+    function(assert) {
+        "Test that the date filter defaults to 'N j, Y'";
+
+        var tpl = new plate.Template("{{ test|date }}")
+          , dt
+          , now = utils.format(dt = new Date, "N j, Y")
+
+        tpl.render({test:dt}, assert.async(function(err, data) {
+            assert.equal(data, now)
+        }))
+    },
+    function(assert) {
+        "Test that the date filter accepts a format arg";
+
+        var tpl = new plate.Template("{{ test|date:'jS o\\f F' }}")
+          , dt
+          , now = utils.format(dt = new Date, "jS o\\f F")
+
+        tpl.render({test:dt}, assert.async(function(err, data) {
+            assert.equal(data, now)
+        }))
+    },
+    function(assert) {
+        "Test that the date filter accepts non-date arguments";
+
+        var tpl = new plate.Template("{{ test|date:'jS o\\f F' }}")
+          , dt
+          , now = utils.format(dt = new Date, "jS o\\f F")
+
+        tpl.render({test:+dt}, assert.async(function(err, data) {
+            assert.equal(data, now)
+        }))
+
+        tpl.render({test:''+dt}, assert.async(function(err, data) {
+            assert.equal(data, now)
+        }))
+    }
+)
+
+exports.TestDefaultFilter = platoon.unit({},
+    function(assert) {
+        "Test that the default filter works as expected";
+        var random = ~~(Math.random() * 10),
+            template = new plate.Template("{{ test|default:default }}"),
+            corpus = ['truthy', 0, null, false, undefined, NaN, {'toString':function(){return'lol';}}],
+            emitter = function(item) {
+                template.render({'test':item, 'default':random}, assert.async(function(err, data) {
+                    if(item) assert.equal(data, item.toString());
+                    else     assert.equal(data, random);
+                }));
+            }
+        while(corpus.length) {
+            emitter(corpus.shift());
+        }
+    }
+);
+
+exports.TestDictSortFilter = platoon.unit({},
+    function(assert) {
+        "Test that the dictsort filter works as expected";
+        var F = function() {
+                var self = this;
+                this.value = ~~(Math.random() * 10);
+                this.toString = function() {
+                    return self.value;
+                };
+            },
+            len = ~~(Math.random() * 10) + 1,
+            arr = [],
+            sorted = null,
+            template = new plate.Template("{% for i in items|dictsort:\"value\" %}{{ i }}\n{% endfor %}");
+        while(len--) {
+            arr.push(new F());
+        }
+        sorted = arr.slice().sort(function(x, y) {
+            if(x.value < y.value) return -1;
+            if(x.value > y.value) return 1;
+            return 0;
+        });
+        template.render({'items':arr}, assert.async(function(err, data) {
+            var split = data.split('\n').slice(0,-1);
+            while(split.length > 0) {
+                assert.equal(split.shift(), sorted.shift().toString());
+            }
+        }));
+    },
+    function(assert) {
+        "Test that the dictsortreversed filter works as expected";
+        var F = function() {
+                var self = this;
+                this.value = ~~(Math.random() * 10);
+                this.toString = function() {
+                    return self.value;
+                };
+            },
+            len = ~~(Math.random() * 10) + 1,
+            arr = [],
+            sorted = null,
+            template = new plate.Template("{% for i in items|dictsortreversed:\"value\" %}{{ i }}\n{% endfor %}");
+        while(len--) {
+            arr.push(new F());
+        }
+        sorted = arr.slice().sort(function(x, y) {
+            if(x.value < y.value) return -1;
+            if(x.value > y.value) return 1;
+            return 0;
+        }).reverse();
+        template.render({'items':arr}, assert.async(function(err, data) {
+            var split = data.split('\n').slice(0,-1);
+            while(split.length > 0) {
+                assert.equal(split.shift(), sorted.shift().toString());
+            }
+        }));
+    }
+);
+
+exports.TestOfDivisibleByFilter = platoon.unit({},
+    function(assert) {
+        "Test that the divisibleby filter works as expected";
+        var pairs = (function(num) {
+            var accum = [];
+            for(;accum.length < num; accum.push([~~(Math.random()*10), ~~(Math.random()*10)]));
+            return accum;
+        })(~~(Math.random() * 10) + 2),
+        template = new plate.Template("{% for x,y in pairs %}{% if x|divisibleby:y %}y{% else %}n{% endif %}\n{% endfor %}");
+        template.render({pairs:pairs}, assert.async(function(err, data) {
+            var bits = data.split('\n').slice(0, -1);
+            for(var i = 0, len = bits.length; i < len; ++i) {
+                assert.equal(pairs[i][0] % pairs[i][1] == 0 ? 'y' : 'n', bits[i]);
+            }
+        }));
+    }
+);
+
+exports.TestOfFilesizeFormatFilter = platoon.unit({},
+    function(assert) {
+        "Test that the filesizeformat filter works as expected";
+        var items = [],
+            template = new plate.Template("{{ i|filesizeformat }}");
+
+        for(var i = 2, len = (1024*1024*1024*1024); i < len; i = Math.pow(i, 2)) {
+            (function(item) {
+                template.render({i:item}, assert.async(function(err, data) {
+                    var words = data.split(/\s+/);
+                    if(item < 1024) {
+                        assert.equal(words.slice(-1)[0], 'bytes');
+                    } else if(item < (1024*1024)) {
+                        assert.equal(words.slice(-1)[0], 'KB');
+                    } else if(item < (1024*1024*1024)) {
+                        assert.equal(words.slice(-1)[0], 'MB');
+                    } else {
+                        assert.equal(words.slice(-1)[0], 'GB');
+                    }
+                }));
+            })(i);
+        }
+    }
+);
+
+exports.TestOfFirstFilter = platoon.unit({},
+    function(assert) {
+        "Test that the first filter works as expected";
+        var items = (function(len) {
+                var accum = [];
+                while(accum.length < len) {
+                    accum.push(~~(Math.random()*10));
+                }
+                return accum;
+            })(~~(Math.random()*10)+1),
+            template = new plate.Template("{{ items|first }}");
+        template.render({items:items}, assert.async(function(err, data) {
+            assert.equal(data, items[0].toString());
+        }));
+    }
+);
+
+exports.TestOfFloatFormatFilter = platoon.unit({},
+    function(assert) {
+        "Test that the floatformat filter works as expected";
+        var tpl = new plate.Template(
+                "{% for x,y in values %}{{ forloop.counter0 }}:{{ x|floatformat:y }}\n{% endfor %}"
+            ),
+            context = {
+                'values':[]
+            };
+
+        while(context.values.length < 10) {
+            context.values.push([
+                (Math.random() * 10),
+                (~~(Math.random()*10)-5)
+            ]);
+        }
+
+        tpl.render(context, assert.async(function(err, data) {
+            var lines = data.split('\n').slice(0, -1),
+                line_split,
+                idx,
+                val,
+                val_split,
+                decimal;
+            while(lines.length) {
+                line_split = lines.shift().split(':');
+                idx = line_split[0];
+                val = line_split[1];
+                val_split = val.split('.');
+                decimal = val_split.length > 1 ? val_split[1] : '';
+
+
+                if(context.values[idx][1] < 1) {
+                    assert.ok(decimal.length <= parseInt(Math.abs(context.values[idx][1])));
+                } else {
+                    assert.ok(decimal.length == parseInt(context.values[idx][1]));
+                }
+            }
+        }));
+    }
+);
+
+exports.TestOfGetDigit = platoon.unit({},
+    function(assert) {
+      "Test that the get_digit filter works as expected.";
+      var tpl = new plate.Template(
+        "{% for x in digit|make_list %}{{ digit|get_digit:forloop.counter }}\n{% endfor %}"
+      ),
+      context = {
+        'digit':~~(Math.random()*1000)
+      };
+      tpl.render(context, assert.async(function(err, data) {
+        var bits = data.split('\n').slice(0, -1),
+            num = context.digit.toString();
+
+        assert.equal(bits.reverse().join(''), num);
+      }));
+    },
+    function(assert) {
+      "Test that get_digit returns the original input when given a bad digit";
+      var tpl = new plate.Template(
+          "{{ digit|get_digit:badfood }}"
+        ),
+        context = {
+          'digit':~~(Math.random()*1000),
+          'badfood':'asdf'
+        };
+
+      tpl.render(context, assert.async(function(err, data) {
+        assert.equal(data, context.digit.toString());
+      }));
+    }
+);
+
+exports.TestOfJoin = platoon.unit({},
+    function(assert) {
+      "Test that the join filter works as expected.";
+      var tpl = new plate.Template(
+          "{{ a_list|join:value }}"
+        ),
+        context = {
+          a_list:[1,2,3,4,5],
+          value:~~(Math.random()*100)
+        };
+      tpl.render(context, assert.async(function(err, data) {
+        assert.equal(data, context.a_list.join(context.value));
+      }));
+    }
+);
+
+exports.TestOfLast = platoon.unit({},
+    function(assert) {
+      "Test that last grabs the last element of a list.";
+      var tpl = new plate.Template(
+        "{{ a_list|last }}"
+      ),
+      context = {
+        a_list:[1,2,3,3,4,556,6,76,7,5,4,6].sort(function(lhs, rhs) {
+          return Math.random() > 0.5;
+        })
+      };
+      tpl.render(context, assert.async(function(err, data) {
+        assert.equal(data, context.a_list[context.a_list.length-1]);
+      }));
+    }
+);
+
+exports.TestOfLength = platoon.unit({},
+    function(assert) {
+      "Test that length works with simple arrays.";
+      var tpl = new plate.Template(
+        "{{ a_list|length }}"
+      ),
+      random_array = function() {
+        var len = 1+~~(Math.random()*100),
+            out = [];
+        while(out.length < len) out.push(Math.random());
+        return out;
+      },
+      context = {
+        a_list:random_array()
+      };
+      tpl.render(context, assert.async(function(err, data) {
+        assert.equal(context.a_list.length, data);
+      }));
+    },
+    function(assert) {
+      "Test that length works with complex objects.";
+      var randLen = ~~(Math.random()*10) + 1,
+          lenFn = function(callback) {
+            setTimeout(assert.async(function() {
+              callback(null, randLen);
+            }), 1);
+          },
+          tpl = new plate.Template(
+              "{{ a_list|length }}"
+          ),
+          context = {
+            a_list:{length:lenFn}
+          };
+
+      tpl.render(context, assert.async(function(err, data) {
+          assert.equal(data, randLen);
+      }));
+    }
+);
+
+exports.TestOfLengthIs = platoon.unit({},
+    function(assert) {
+      "Test that length_is works with simple arrays.";
+      var tpl = new plate.Template(
+        "{{ a_list|length_is:a_list.length }}\n{{ a_list|length_is:0 }}"
+      ),
+      random_array = function() {
+        var len = 1+~~(Math.random()*100),
+            out = [];
+        while(out.length < len) out.push(Math.random());
+        return out;
+      },
+      context = {
+        a_list:random_array()
+      };
+      tpl.render(context, assert.async(function(err, data) {
+        assert.equal('true\nfalse', data);
+      }));
+    },
+    function(assert) {
+      "Test that length_is works with complex objects.";
+      var randLen = ~~(Math.random()*10) + 1,
+          lenFn = function(callback) {
+            setTimeout(assert.async(function() {
+              callback(null, randLen);
+            }), 1);
+          },
+          tpl = new plate.Template(
+              "{% with a_list.length as len %}{{ a_list|length_is:len }}\n{{ a_list|length_is:0 }}{% endwith %}"
+          ),
+          context = {
+            a_list:{length:lenFn}
+          };
+
+      tpl.render(context, assert.async(function(err, data) {
+          assert.equal(data, "true\nfalse");
+      }));
+    }
+);
+
+exports.TestOfLineBreaks = platoon.unit({},
+    function(assert) {
+      "Test that linebreaks wraps all double-spaced elements in <p> tags.";
+      var text = "Hi there\n\nI am new to world\n\nEnjoying time very much.",
+          tpl = new plate.Template(
+            "{{ text|linebreaks }}"
+          ),
+          context = { text: text };
+
+      tpl.render(context, assert.async(function(err, data) {
+        assert.equal(data, "<p>Hi there</p><p>I am new to world</p><p>Enjoying time very much.</p>");
+      }));
+    },
+    function(assert) {
+      "Test that linebreaks creates <br /> tags for all single newline characters.";
+      var text = "Hi there\nI am new to world\nEnjoying time very much.",
+          tpl = new plate.Template(
+            "{{ text|linebreaks }}"
+          ),
+          context = { text: text };
+
+      tpl.render(context, assert.async(function(err, data) {
+        assert.equal(data, "<p>Hi there<br />I am new to world<br />Enjoying time very much.</p>");
+      }));
+    }
+);
+
+exports.TestOfLineBreaksBr = platoon.unit({},
+    function(assert) {
+      "Test that linebreaksbr converts all newlines to br elements";
+      var text = "Hi there\n\nI am new\n to world\n\nEnjoying time very much.",
+          tpl = new plate.Template(
+            "{{ text|linebreaksbr }}"
+          ),
+          context = { text: text };
+
+      tpl.render(context, assert.async(function(err, data) {
+        assert.equal(data, text.replace(/\n/g, '<br />'));
+      }));
+    }
+);
+
+exports.TestOfLineNumbers = platoon.unit({},
+    function(assert) {
+      "Test that linenumbers prepends line numbers to each line of input text.";
+      var text = "Yes\nI\nLike\nJavascript\nIs\nVery\nGood",
+          tpl = new plate.Template(
+            "{{ text|linenumbers }}"
+          ),
+          context = { text: text };
+
+      tpl.render(context, assert.async(function(err, data) {
+        var expected = text.split('\n');
+        for(var i = 0, len = expected.length; i < len; ++i) {
+          expected[i] = (i+1)+'. '+expected[i];
+        }
+        expected = expected.join('\n');
+        assert.equal(data, expected);
+      }));
+    }
+);
+
+exports.TestOfLJust = platoon.unit({},
+    function(assert) {
+      "Test that ljust left justifies as expected.";
+      var tpl = new plate.Template(
+        "{% for i in range %}{{ str|ljust:i }}\n{% endfor %}"
+      ),
+      makeRange = function() {
+        var out = [], len = ~~(Math.random()*20) + 1;
+        while(out.length < len) { out.push(out.length+1); }
+        return out;
+      },
+      context = {
+        'str':'hi',
+        'range':makeRange()
+      };
+
+      tpl.render(context, assert.async(function(err, data) {
+        var bits = data.split('\n').slice(0, -1);
+        while(bits.length) {
+          var idx = context.range.length - bits.length
+              bit = bits.shift();
+
+          if(bit.length > context.str.length) {
+            assert.equal(bit.length, context.range[idx]);
+            assert.ok((/\s+$/g).test(bit));
+          } else {
+            assert.strictEqual(bit.length, context.str.length);
+          }
+        }
+      }));
+    }
+);
+
+exports.TestOfLower = platoon.unit({},
+    function(assert) {
+      "Test that lower works.";
+      var tpl = new plate.Template(
+        "{% for word in words %}{{ word|lower }}{% endfor %}"
+      );
+      tpl.render({words:['Asdf', '1ST', 'YEAHHHH']}, assert.async(function(err, data) {
+        assert.fail((/[A-Z]+/g).test(data));
+      }));
+    }
+);
+
+exports.TestOfMakeList = platoon.unit({},
+  function(assert) {
+    "Test that make_list just passes through arrays.";
+    var tpl = new plate.Template(
+      '{% for i in item|make_list %}{{ i }}{% if not forloop.last %}\n{% endif %}{% endfor %}'
+    ),
+    item = [1,2,3,4,5];
+    tpl.render({'item':item}, assert.async(function(err, data) {
+      var bits = data.split('\n');
+      assert.equal(bits.length, item.length);
+      while(bits.length) {
+        assert.equal(bits.pop(), item.pop());
+      };
+    }));
+  },
+  function(assert) {
+    "Test that make_list works with strings.";
+    var tpl = new plate.Template(
+      '{% for i in item|make_list %}{{ i }}{% if not forloop.last %}\n{% endif %}{% endfor %}'
+    ),
+    item = "random"+Math.random();
+    tpl.render({'item':item}, assert.async(function(err, data) {
+      var bits = data.split('\n');
+      item = item.toString().split('');
+      assert.equal(bits.length, item.length);
+      while(bits.length) {
+        assert.equal(bits.pop(), item.pop());
+      };
+    }));
+  },
+  function(assert) {
+    "Test that make_list works with numbers.";
+    var tpl = new plate.Template(
+      '{% for i in item|make_list %}{{ i }}{% if not forloop.last %}\n{% endif %}{% endfor %}'
+    ),
+    item = ~~(100 * Math.random());
+    tpl.render({'item':item}, assert.async(function(err, data) {
+      var bits = data.split('\n');
+      item = item.toString().split('');
+      assert.equal(bits.length, item.length);
+      while(bits.length) {
+        assert.equal(bits.pop(), item.pop());
+      };
+    }));
+  }
+);
+
+exports.TestOfPhone2Numeric = platoon.unit({},
+    function(assert) {
+      "Test that phone2numeric works as expected.";
+      var phone = '1-800-4GO-OGLE',
+          expected = '1-800-446-6453',
+          tpl = new plate.Template(
+              "{{ item|phone2numeric }}"
+          );
+      tpl.render({'item':phone}, assert.async(function(err, data) {
+        assert.equal(data, expected);
+      }));
+
+    }
+);
+
+exports.TestOfPluralize = platoon.unit({},
+    function(assert) {
+      "Assert that pluralize coerces single argument to plural case.";
+      var values = [1,3],
+          tpl = new plate.Template(
+            '{% for i in items %}{{ i|pluralize:"s" }}:{% endfor %}'
+          );
+      tpl.render({items:values}, assert.async(function(err, data) {
+        assert.equal(data, ':s:');
+      }));
+    },
+    function(assert) {
+      "Assert that pluralize coerces two arguments to singular, plural.";
+      var values = [1,3],
+          tpl = new plate.Template(
+            '{% for i in items %}{{ i|pluralize:"y,s" }}:{% endfor %}'
+          );
+      tpl.render({items:values}, assert.async(function(err, data) {
+        assert.equal(data, 'y:s:');
+      }));
+    }
+);
+
+exports.TestOfRandom = platoon.unit({},
+    function(assert) {
+      "Assert that random pulls an item out of an array randomly.";
+      var arr = [1,2,3,4,5,6,7,8,9,10],
+          tpl = new plate.Template(
+            '{% for i in list %}{{ list|random }}\n{% endfor %}'
+          );
+
+      tpl.render({list:arr}, assert.async(function(err, data) {
+        var bits = data.split('\n').slice(0, -1);
+        while(bits.length) {
+          for(var i = 0, len = arr.length, item = bits.pop(), found = false; i < len && !found; ++i) {
+            found = arr[i] == item;
+          }
+          assert.ok(found);
+        }
+      }));
+    }
+);
+
+exports.TestOfRJust = platoon.unit({},
+    function(assert) {
+      "Test that rjust right justifies as expected.";
+      var tpl = new plate.Template(
+        "{% for i in range %}{{ str|rjust:i }}\n{% endfor %}"
+      ),
+      makeRange = function() {
+        var out = [], len = ~~(Math.random()*20) + 1;
+        while(out.length < len) { out.push(out.length+1); }
+        return out;
+      },
+      context = {
+        'str':'hi',
+        'range':makeRange()
+      };
+
+      tpl.render(context, assert.async(function(err, data) {
+        var bits = data.split('\n').slice(0, -1);
+        while(bits.length) {
+          var idx = context.range.length - bits.length
+              bit = bits.shift();
+
+          assert.ok(bit.length === context.str.length || bit.length === context.range[idx]);
+          if(bit.length > context.str.length) {
+            assert.ok((/^\s+/g).test(bit));
+          }
+        }
+      }));
+    }
+);
+
+exports.TestOfUpper = platoon.unit({},
+    function(assert) {
+      "Test that upper works.";
+      var tpl = new plate.Template(
+        "{% for word in words %}{{ word|upper }}{% endfor %}"
+      );
+      tpl.render({words:['Asdf', '1ST', 'YEAHHHH']}, assert.async(function(err, data) {
+        assert.fail((/[a-z]+/g).test(data));
+      }));
+    }
+);
+
+exports.TestOfSafeFilter = platoon.unit({},
+    function(assert) {
+      "Test that HTML characters are escaped by default";
+
+      var tpl = new plate.Template('{{ value }}')
+
+      tpl.render({'value':'<>"\'&'}, assert.async(function(err, data) {
+        assert.ok(!err)
+
+        assert.equal(data, '&lt;&gt;&quot;&#39;&amp;')
+      }))
+    },
+    function(assert) {
+      "Test that HTML characters may be marked 'safe'";
+
+      var tpl = new plate.Template('{{ value|safe }}')
+        , x = '<>"\'&'
+      tpl.render({'value':x}, assert.async(function(err, data) {
+        assert.ok(!err)
+
+        assert.equal(data, x)
+      }))
+    }
+)
+
+exports.TestOfEscapeFilter = platoon.unit({},
+    function(assert) {
+      "Test that escape automatically escapes the input";
+
+      var tpl = new plate.Template('{{ value|escape }}')
+        , x   = '&'
+
+      tpl.render({value:x}, assert.async(function(err, data) {
+        assert.ok(!err)
+
+        assert.equal(data, '&amp;')
+      }))
+    },
+    function(assert) {
+      "Test that escape does not double-escape the input";
+
+      var tpl = new plate.Template('{{ value|escape|escape }}')
+        , x   = '&'
+
+      tpl.render({value:x}, assert.async(function(err, data) {
+        assert.ok(!err)
+
+        assert.equal(data, '&amp;')
+      }))
+    },
+    function(assert) {
+      "Test that escape respects 'safe'";
+
+      var tpl = new plate.Template('{{ value|safe|escape }}')
+        , x   = '&'
+
+      tpl.render({value:x}, assert.async(function(err, data) {
+        assert.ok(!err)
+
+        assert.equal(data, '&')
+      }))
+    },
+    function(assert) {
+      "Test that force_escape does not respect 'safe'";
+
+      var tpl = new plate.Template('{{ value|safe|force_escape }}')
+        , x   = '&'
+
+      tpl.render({value:x}, assert.async(function(err, data) {
+        assert.ok(!err)
+
+        assert.equal(data, '&amp;')
+      }))
+    }
+)
+
+exports.TestOfSlice = platoon.unit({},
+    function(assert) {
+      "Test that slice works with :N";
+      var items = [1,2,3,4],
+          rand = ~~(items.length * Math.random()),
+          tpl = new plate.Template(
+            "{% for i in items|slice:rand %}{{ i }}:{% endfor %}"
+          );
+
+      tpl.render({items:items, rand:':'+rand}, assert.async(function(err, data) {
+        var bits = data.split(':').slice(0, -1),
+            expected = items.slice(0, rand);
+
+        assert.equal(bits.length, expected.length);
+        for(var i = 0, len = bits.length; i < len; ++i) {
+          assert.equal(bits[i], expected[i]);
+        }
+      }));
+    },
+    function(assert) {
+      "Test that slice works with N:";
+      var items = [1,2,3,4],
+          rand = ~~(items.length * Math.random()),
+          tpl = new plate.Template(
+            "{% for i in items|slice:rand %}{{ i }}:{% endfor %}"
+          );
+
+      tpl.render({items:items, rand:rand+':'}, assert.async(function(err, data) {
+        var bits = data.split(':').slice(0, -1),
+            expected = items.slice(rand);
+
+        assert.equal(bits.length, expected.length);
+        for(var i = 0, len = bits.length; i < len; ++i) {
+          assert.equal(bits[i], expected[i]);
+        }
+      }));
+    }
+);
+
+exports.TestOfSlugify = platoon.unit({},
+    function(assert) {
+      "Test that slugify removes unicode, turns spaces into dashes, lowercases everything.";
+      var makeRandomString = function() {
+        var len = ~~(Math.random()*1000),
+            out = [];
+        while(out.length < len) out.push(String.fromCharCode(~~(Math.random()*256)));
+        return out.join('');
+      },
+      tpl = new plate.Template('{{ item|slugify }}'),
+      context = {item:makeRandomString()};
+
+      tpl.render(context, assert.async(function(err, data) {
+        assert.fail((/[^a-z\-0-9_]+/g).test(data));
+      }));
+    }
+);
+
+exports.TestOfTimesince = platoon.unit({},
+  function(assert) {
+    "Test that timesince works as expected.";
+    var times = [
+          ['3 years', Date.now() - 31557600000 * 3]
+        , ['1 month', Date.now() - 2592000000 * 1]
+        , ['2 days', Date.now() - 86400000 * 2]
+        , ['23 hours', Date.now() - 3600000 * 23]
+        , ['30 minutes', Date.now() - 60000 * 30]
+      ]
+    , tpl = new plate.Template("{% for expected, time in times %}{{ time|timesince }}\n{% endfor %}")
+
+    tpl.render({times:times}, assert.async(function(err, data) {
+      assert.ok(!err)
+
+      data = data.split('\n').slice(0, -1)
+      for(var i = 0; i < data.length; ++i) {
+        assert.equal(data[i], times[i][0])
+      }
+    }))
+  },
+  function(assert) {
+    "Test that timesince may accept an input.";
+
+    var fake_now = +new Date() + ~~(Math.random() * 10000)
+    var times = [
+          ['3 years',     fake_now - 31557600000 * 3]
+        , ['1 month',     fake_now - 2592000000 * 1]
+        , ['2 days',      fake_now - 86400000 * 2]
+        , ['23 hours',    fake_now - 3600000 * 23]
+        , ['30 minutes',  fake_now - 60000 * 30]
+      ]
+    , tpl = new plate.Template("{% for expected, time in times %}{{ time|timesince:n }}\n{% endfor %}")
+
+    tpl.render({times:times, n:fake_now}, assert.async(function(err, data) {
+      assert.ok(!err)
+
+      data = data.split('\n').slice(0, -1)
+      for(var i = 0; i < data.length; ++i) {
+        assert.equal(data[i], times[i][0])
+      }
+    }))
+  },
+  function(assert) {
+    "Test that timesince displays the largest and second largest bit of multiple time values.";
+    var times = [
+          ['3 years, 2 days',   Date.now() - (31557600000 * 3 + 86400000 * 2 + 60000)]
+        , ['1 month, 23 hours',           Date.now() - (2592000000 + 3600000 * 23)]
+        , ['1 year, 10 days', Date.now() - (31557600000 + 10 * 86400000 + 20 * 60000)]
+      ]
+    , tpl = new plate.Template("{% for expected, time in times %}{{ time|timesince }}\n{% endfor %}")
+
+    tpl.render({times:times}, assert.async(function(err, data) {
+      assert.ok(!err)
+
+      data = data.split('\n').slice(0, -1)
+      for(var i = 0; i < data.length; ++i) {
+        assert.equal(data[i], times[i][0])
+      }
+    }))
+  },
+  function(assert) {
+    "Test that timesince displays '0 minutes' when time is in future, or when time is < 60 seconds away";
+    var t = new Date()
+      , n = t + 1000
+      , tpl = new plate.Template("{{ t|timesince:n }}")
+
+    tpl.render({t:t, n:n}, assert.async(function(err, data) {
+      assert.equal(data, '0 minutes')
+    }))
+
+    tpl.render({t:t, n:t}, assert.async(function(err, data) {
+      assert.equal(data, '0 minutes')
+    })) 
+  }
+)
+
+exports.TestOfTitle = platoon.unit({},
+    function(assert) {
+      "Test that title titlecases input.";
+      var words = ['hey','there','how','are','you',"you're",'1st','lol'],
+          sentence = words.sort(function() {
+              return Math.random() > 0.5;
+          }).join(' ');
+
+      var tpl = new plate.Template("{{ sentence|title }}");
+
+      tpl.render({sentence:sentence}, assert.async(function(err, data) {
+        var bits = data.split(/\s+/g);
+        while(bits.length) {
+          assert.ok((/^[A-Z0-9]{1}[a-z']+/g).test(bits.pop()));
+        }
+      }));
+    }
+);
+
+exports.TestOfStripTags = platoon.unit({},
+    function(assert) {
+      "Test that striptags removes all HTML tags no matter how cool they are.";
+      var testData =[
+      '<div class="versionadded">',
+      '<span class="title">New in Django 1.1.2:</span> <a class="reference internal" href="../../../releases/1.1.2/"><em>Please, see the release notes</em></a></div>',
+      '<p>In the Django 1.1.X series, this is a no-op tag that returns an empty string for',
+      'future compatibility purposes.  In Django 1.2 and later, it is used for CSRF',
+      'protection, as described in the documentation for <a class="reference internal" href="../../contrib/csrf/"><em>Cross Site Request',
+      'Forgeries</em></a>.</p>',
+      '</div>'
+      ].join('\n');
+      var tpl = new plate.Template('{{ text|striptags }}');
+
+      tpl.render({text:testData}, assert.async(function(err, data) {
+          // fail if you see a tag.
+          assert.fail((/<[^>]*?>/g).test(data));
+      }));
+    }
+);
+
+exports.TestOfTruncateChars = platoon.unit({},
+    function(assert) {
+      "Test that a string of characters gets truncated properly.";
+      var input = 'This is a collection of words.';
+
+      var tpl = new plate.Template('{{ input|truncatechars:8 }}'),
+          context = {input:input};
+
+      tpl.render(context, assert.async(function(err, data) {
+        assert.equal(data, 'This is ...');
+      }));
+
+      var tpl = new plate.Template('{{ input|truncatechars:20 }}'),
+          context = {input:input};
+
+      tpl.render(context, assert.async(function(err, data) {
+        assert.equal(data, 'This is a collection...');
+      }));
+
+      var tpl = new plate.Template('{{ input|truncatechars:200 }}'),
+          context = {input:input};
+
+      tpl.render(context, assert.async(function(err, data) {
+        assert.equal(data, 'This is a collection of words....');
+      }));
+    },
+    function(assert) {
+      "Test that a busted number doesn't double call the callback.";
+      var input = 'This is a collection of words.';
+
+      var tpl = new plate.Template('{{ input|truncatechars:abc }}'),
+          context = {input:input};
+
+      tpl.render(context, assert.async(function(err, data) {
+        assert.equal(data, 'This is a collection of words.');
+      }));
+    }
+);
+
+exports.TestOfTruncateWords = platoon.unit({},
+    function(assert) {
+      "Test that a string of words gets truncated properly.";
+      var input = 'This is a collection of words.';
+
+      var tpl = new plate.Template('{{ input|truncatewords:3 }}'),
+          context = {input:input};
+
+      tpl.render(context, assert.async(function(err, data) {
+        assert.equal(data, 'This is a...');
+      }));
+
+      var tpl = new plate.Template('{{ input|truncatewords:0 }}'),
+          context = {input:input};
+
+      tpl.render(context, assert.async(function(err, data) {
+        assert.equal(data, '...');
+      }));
+
+      var tpl = new plate.Template('{{ input|truncatewords:8 }}'),
+          context = {input:input};
+
+      tpl.render(context, assert.async(function(err, data) {
+        assert.equal(data, 'This is a collection of words....');
+      }));
+    },
+    function(assert) {
+      "Test that a busted number doesn't double call the callback.";
+      var input = 'This is a collection of words.';
+
+      var tpl = new plate.Template('{{ input|truncatewords:abc }}'),
+          context = {input:input};
+
+      tpl.render(context, assert.async(function(err, data) {
+        assert.equal(data, 'This is a collection of words.');
+      }));
+    }
+);
+
+exports.TestOfUnorderedList = platoon.unit({},
+    function(assert) {
+      "Test that unordered list... makes unordered lists. Awesome ones.";
+      var input = ['States', ['Kansas', ['Lawrence', 'Topeka'], 'Illinois']],
+          output = '<li>States<ul><li>Kansas<ul><li>Lawrence</li><li>Topeka</li></ul></li><li>Illinois</li></ul></li>';
+
+      var tpl = new plate.Template('{{ input|unordered_list }}'),
+          context = {input:input};
+
+      tpl.render(context, assert.async(function(err, data) {
+        assert.equal(data, output);
+      }));
+    }
+);
+
+exports.TestOfURLEncode = platoon.unit({},
+    function(assert) {
+      "Test that urlencode encodes all appropriate characters by using the built-in escape function.";
+      var stringOfEverything = (function() {
+          var out = [];
+          while(out.length < 256) { out.push(String.fromCharCode(out.length)); }
+          return out.join('');
+        })(),
+        tpl = new plate.Template('{{ str|urlencode }}');
+
+      tpl.render({str:stringOfEverything}, assert.async(function(err, data) {
+        assert.equal(data, escape(stringOfEverything));
+      }));
+    }
+);
+
+exports.TestOfURLize = platoon.unit({},
+    function(assert) {
+      "Test that urlize will turn urls of the form http://whatever.com/whatever, https://whatever.org/whatever into links.";
+      var links = ['https://google.com/', 'http://neversaw.us/media/blah.png'],
+          para = ['hey there i love ', links[0], ' and(',links[1],')'].join(''),
+          result = 'hey there i love <a href="'+links[0]+'">'+links[0]+'</a> and(<a href="'+links[1]+'">'+links[1]+'</a>)';
+
+      var tpl = new plate.Template('{{ para|urlize }}');
+
+      tpl.render({para:para}, assert.async(function(err, data) {
+        assert.equal(data, result);
+      }));
+    }
+);
+
+exports.TestOfURLizeTrunc = platoon.unit({});
+
+exports.TestOfWordCount = platoon.unit({},
+    function(assert) {
+      "Assert that wordcount counts the number of words.";
+      var lorem = 'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
+          count = lorem.split(/\s+/g).length,
+          tpl = new plate.Template("{{ lorem|wordcount }}");
+
+      tpl.render({lorem:lorem}, assert.async(function(err, data) {
+        assert.equal(data, count.toString());
+      }));
+    }
+);
+
+exports.TestOfWordWrap = platoon.unit({},
+    function(assert) {
+      "Assert that wordwrap wraps lines at a given number.";
+      var lorem = 'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
+          values = [1,2,3,4,5,6,7,8,9],
+          tpl = new plate.Template("{% for value in values %}{{ lorem|wordwrap:value }}:{% endfor %}");
+
+      tpl.render({lorem:lorem, values:values}, assert.async(function(err, data) {
+        var bits = data.split(':').slice(0, -1);
+        for(var i = 0, len = bits.length; i < len; ++i) {
+          var lilbits = bits[i].split('\n'),
+              max = 0,
+              val;
+          while(lilbits.length) {
+            val = lilbits.pop().split(/\s+/g).length;
+            max = max < val ? val : max;
+          }
+          assert.ok(max <= values[i]);
+        }
+      }));
+    }
+);
+
+exports.TestOfYesNo = platoon.unit({},
+    function(assert) {
+      "Test that the yesno filter coerces values into truthy,falsy";
+      var tpl = new plate.Template('{% for value in values %}{{ value|yesno:"truthy,falsy" }}\n{% endfor %}'),
+          context = {
+            values:[true, 1, {}, [], false, null, undefined]
+          };
+      tpl.render(context, assert.async(function(err, data) {
+        var bits = data.split('\n').slice(0, -1);
+        for(var i = 0, len = bits.length; i < len; ++i) {
+          var mode = context.values[i] ? 'truthy' : 'falsy';
+          assert.equal(bits[i], mode);
+        }
+      }));
+    },
+    function(assert) {
+      "Test that the yesno filter coerces values into true,false,maybe";
+      var tpl = new plate.Template('{% for value in values %}{{ value|yesno:"truthy,falsy,maybe" }}\n{% endfor %}'),
+          context = {
+            values:[true, 1, {}, [], false, null, undefined]
+          };
+      tpl.render(context, assert.async(function(err, data) {
+        var bits = data.split('\n').slice(0, -1);
+        for(var i = 0, len = bits.length; i < len; ++i) {
+          var mode = context.values[i] ? 'truthy' : context.values[i] === false ? 'falsy' : 'maybe';
+          assert.equal(bits[i], mode);
+        }
+      }));
+    }
+);
+
+  })(Function(), testrunner.make("./tests/filters.js"));(function (require, exports) {
+    ;if(typeof window === 'undefined') {
+  var plate = require('../index')
+    , utils = require('../lib/utils')
+    , platelib = require('../lib/libraries')
+    , platoon = require('platoon')
+} else {
+  var plate = window.plate
+    , platoon = window.platoon
+  var platelib = plate.libraries
+    , utils = plate.utils
+}
+
+var format = utils.format
+
+exports.TestForTag = platoon.unit({},
+    function(assert) {
+        "Test that for is enabled by default";
+        var tpl = new plate.Template("{% for x in y %}{% empty %}{% endfor %}");
+
+        assert.doesNotThrow(function() {
+            tpl.render({}, function(err, data) {});
+        });
+    },
+    function(assert) {
+        "Test that for does not bubble errors if it cannot find the appropriate arrayVar";
+        var tpl = new plate.Template("{% for x in y %}{% endfor %}");
+
+        tpl.render({}, assert.async(function(err, data) {
+            assert.strictEqual(err, null);
+        }));
+    },
+    function(assert) {
+        "Test that entering a for loop provides the forloop.counter";
+        var size = ~~(Math.random()*10)+1,
+            arr = [],
+            context = {};
+        for(var i = 0; i < size; ++i) {
+            arr.push(~~(Math.random()*10));
+        }
+        var tpl = new plate.Template("{% for x in y %}{{ forloop.counter }}\n{% endfor %}");
+        context.y = arr;
+        tpl.render(context, assert.async(function(err, data) {
+            var items = data.split('\n').slice(0,-1);
+            assert.equal(items.length, size);
+            for(var j = 0; j < size; ++j) {
+                assert.equal(items[j], j+1);
+            }
+        }));
+    },
+    function(assert) {
+        "Test that entering a for loop provides the forloop.counter0";
+        var size = ~~(Math.random()*10)+1,
+            arr = [],
+            context = {};
+        for(var i = 0; i < size; ++i) {
+            arr.push(~~(Math.random()*10));
+        }
+        var tpl = new plate.Template("{% for x in y %}{{ forloop.counter0 }}\n{% endfor %}");
+        context.y = arr;
+        tpl.render(context, assert.async(function(err, data) {
+            var items = data.split('\n').slice(0,-1);
+            assert.equal(items.length, size);
+            for(var j = 0; j < size; ++j) {
+                assert.equal(items[j], j);
+            }
+        }));
+    },
+    function(assert) {
+        "Test that entering a for loop provides the forloop.revcounter";
+        var size = ~~(Math.random()*10)+1,
+            arr = [],
+            context = {};
+        for(var i = 0; i < size; ++i) {
+            arr.push(~~(Math.random()*10));
+        }
+        var tpl = new plate.Template("{% for x in y %}{{ forloop.revcounter }}\n{% endfor %}");
+        context.y = arr;
+        tpl.render(context, assert.async(function(err, data) {
+            var items = data.split('\n').slice(0,-1);
+            assert.equal(items.length, size);
+            for(var j = 0; j < size; ++j) {
+                assert.equal(items[j], size-j);
+            }
+        }));
+    },
+    function(assert) {
+        "Test that entering a for loop provides the forloop.revcounter0";
+        var size = ~~(Math.random()*10)+1,
+            arr = [],
+            context = {};
+        for(var i = 0; i < size; ++i) {
+            arr.push(~~(Math.random()*10));
+        }
+        var tpl = new plate.Template("{% for x in y %}{{ forloop.revcounter0 }}\n{% endfor %}");
+        context.y = arr;
+        tpl.render(context, assert.async(function(err, data) {
+            var items = data.split('\n').slice(0,-1);
+            assert.equal(items.length, size);
+            for(var j = 0; j < size; ++j) {
+                assert.equal(items[j], size-(j+1));
+            }
+        }));
+    },
+    function(assert) {
+        "Test that entering a for loop provides the forloop.first";
+        var size = ~~(Math.random()*10)+1,
+            arr = [],
+            context = {};
+        for(var i = 0; i < size; ++i) {
+            arr.push(~~(Math.random()*10));
+        }
+        var tpl = new plate.Template("{% for x in y %}{{ forloop.first }}\n{% endfor %}");
+        context.y = arr;
+        tpl.render(context, assert.async(function(err, data) {
+            var items = data.split('\n').slice(0,-1);
+            assert.equal(items.length, size);
+            for(var j = 0; j < size; ++j) {
+                assert.equal(items[j], j === 0 ? 'true' : 'false');
+            }
+        }));
+    },
+    function(assert) {
+        "Test that entering a for loop provides the forloop.last";
+        var size = ~~(Math.random()*10)+1,
+            arr = [],
+            context = {};
+        for(var i = 0; i < size; ++i) {
+            arr.push(~~(Math.random()*10));
+        }
+        var tpl = new plate.Template("{% for x in y %}{{ forloop.last }}\n{% endfor %}");
+        context.y = arr;
+        tpl.render(context, assert.async(function(err, data) {
+            var items = data.split('\n').slice(0,-1);
+            assert.equal(items.length, size);
+            for(var j = 0; j < size; ++j) {
+                assert.equal(items[j], j === size-1 ? 'true' : 'false');
+            }
+        }));
+    },
+    function(assert) {
+        "Test that entering a nested forloop provides forloop.parentloop";
+        var size = ~~(Math.random()*10)+1,
+            arr = [],
+            context = {};
+        for(var i = 0; i < size; ++i) {
+            arr.push(~~(Math.random()*10));
+        }
+        var tpl = new plate.Template("{% for x in y %}{% for a in b %}{{ forloop.parentloop.counter }}:{{ forloop.counter }}\n{% endfor %}{% endfor %}");
+        context.y = arr;
+        context.b = arr;
+        tpl.render(context, assert.async(function(err, data) {
+            var items = data.split('\n').slice(0,-1);
+            assert.equal(items.length, size*size);
+            for(var x = 0; x < size; ++x) {
+                for(var y = 0; y < size; ++y) {
+                    assert.equal(items[x*size + y], [x+1,y+1].join(':'));
+                }
+            }
+        }));
+    },
+    function(assert) {
+        "Test that for unpacks variables as needed";
+        var size = ~~(Math.random()*10)+1,
+            arr = [],
+            context = {};
+        for(var i = 0; i < size; ++i) {
+            arr.push([~~(Math.random()*10), ~~(Math.random()*10)]);
+        }
+        var tpl = new plate.Template("{% for x, y in z %}{{ x }},{{ y }}\n{% endfor %}"),
+            context = {
+                z:arr
+            };
+
+        tpl.render(context, assert.async(function(err, data) {
+            var items = data.split('\n').slice(0,-1);
+
+            assert.strictEqual(err, null);
+            assert.equal(items.length, size);
+            
+            for(i = 0; i < size; ++i) {
+                assert.equal(items[i], arr[i].join(','));
+            }
+        }));
+    },
+    function(assert) {
+        "Test that for can reverse the contents of an array prior to iteration";
+        var size = ~~(Math.random()*10)+1,
+            arr = [],
+            context = {};
+        for(var i = 0; i < size; ++i) {
+            arr.push([~~(Math.random()*10), ~~(Math.random()*10)]);
+        }
+        var tpl = new plate.Template("{% for x, y in z reversed %}{{ x }},{{ y }}\n{% endfor %}"),
+            context = {
+                z:arr
+            };
+
+        tpl.render(context, assert.async(function(err, data) {
+            var items = data.split('\n').slice(0,-1);
+
+            assert.strictEqual(err, null);
+            assert.equal(items.length, size);
+ 
+            for(i = 0; i < size; ++i) {
+                assert.equal(items[i], arr[(size-1)-i].join(','));
+            }
+        }));
+    }
+);
+
+exports.TestWithTag = platoon.unit({},
+    function(assert) {
+        "Test that the with is enabled by default";
+        assert.doesNotThrow(function() {
+            var tpl = new plate.Template("{% with x as y %}\n\n{% endwith %}");
+            tpl.render({}, function(){});
+        });
+    },
+    function(assert) {
+        "Test that with adds the variable into context";
+        var context = {
+            'value':~~(Math.random()*10)
+        };
+        var tpl = new plate.Template("{% with value as othervalue %}{{ othervalue }}{% endwith %}");
+        tpl.render(context, assert.async(function(err, data) {
+            assert.strictEqual(err, null);
+            assert.equal(data, context.value.toString());
+        }));
+    },
+    function(assert) {
+        "Test that with does not leak context variables";
+        var context = {
+            'value':'hi'+~~(Math.random()*10),
+            'othervalue':~~(Math.random()*10)+'yeah'
+        };
+        var tpl = new plate.Template("{% with value as othervalue %}{{ othervalue }}{% endwith %}{{ othervalue }}");
+        tpl.render(context, assert.async(function(err, data) {
+            assert.strictEqual(err, null);
+            assert.equal(data, context.value.toString()+context.othervalue.toString());
+        }));
+    },
+    function(assert) {
+        "Test that an unclosed with statement throws an error";
+        var tpl = new plate.Template("{% with x as y %}\n\n yeahhhhh");
+        tpl.render({}, assert.async(function(err, data){
+            assert.strictEqual(data, null);
+            assert.isInstance(err, Error);
+        }));
+    }
+);
+
+exports.TestIfTag = platoon.unit({},
+    function(assert) {
+        "Test that if tag is enabled by default";
+        var tpl = new plate.Template("{% if x %}{% endif %}");
+        assert.doesNotThrow(function() {
+            tpl.render({}, function(err, data) {});
+        });
+    },
+    function(assert) {
+        "Test that =, ==, and != work";
+        var pairs = [[~~(Math.random()*10), ~~(10 + Math.random()*10)],
+                    [3, 3],
+                    ['string', 'string']],
+            context = {
+                pairs:pairs
+            },
+            tpl = new plate.Template("{% for lhs, rhs in pairs %}"+
+                                     "{% if lhs = rhs %}={% else %}!={% endif %}\n"+
+                                     "{% if lhs == rhs %}={% else %}!={% endif %}\n"+
+                                     "{% if lhs != rhs %}!={% else %}={% endif %}\n"+
+                                     "{% endfor %}"),
+            expect = [
+                '!=', '!=', '!=',
+                '=', '=', '=',
+                '=', '=', '='
+            ].join('\n')+'\n';
+
+        tpl.render(context, assert.async(function(err, data) {
+            assert.strictEqual(expect, data);
+        }));
+    },
+    function(assert) {
+        "Test that in and not in work";
+        var tpl = new plate.Template("{% for x,y,z in list %}{% if x in y %}y{% endif %}{% if x not in y %}n{% endif %}:{{ z }}\n{% endfor %}"),
+            tests = [
+                [[1,2], [1,2,3], 'n'],
+                [[1,2], [[1,2],3], 'y'],
+                [1, {1:'something'}, 'y'],
+                ['hi', 'asahi', 'y'],
+                ['no', 'yes', 'n']
+            ];
+        tpl.render({list:tests}, assert.async(function(err, data) {
+            var items = data.split('\n').slice(0, -1);
+            while(items.length) {
+                var v = items.shift().split(':');
+                assert.equal(v[0],v[1]);
+            }
+        }));
+    },
+    function(assert) {
+        "Test that >, <, <=, and >= work";
+        var pairs = [[~~(Math.random()*10), ~~(10 + Math.random()*10)],
+                    [3, 3],
+                    ['string', 'string']],
+            context = {
+                pairs:pairs
+            },
+            tpl = new plate.Template("{% for lhs, rhs in pairs %}"+
+                                     "{% if lhs < rhs %}<{% else %}>={% endif %}\n"+
+                                     "{% if lhs <= rhs %}<={% else %}>{% endif %}\n"+
+                                     "{% if lhs > rhs %}>{% else %}<={% endif %}\n"+
+                                     "{% if lhs >= rhs %}>={% else %}<{% endif %}\n"+
+                                     "{% endfor %}"),
+            expect = [
+                '<', '<=', '<=', '<',
+                '>=', '<=', '<=', '>=',
+                '>=', '<=', '<=', '>='
+            ].join('\n')+'\n';
+
+        tpl.render(context, assert.async(function(err, data) {
+            assert.strictEqual(expect, data);
+        }));
+    }
+);
+
+
+exports.TestExtendsAndBlockTags = platoon.unit({},
+    function(assert) {
+        "Test that extends does not trigger a parser error.";
+        var tpl = new plate.Template("{% extends whatever %}");
+        assert.doesNotThrow(function() {
+            tpl.getNodeList();
+        });
+    },
+    function(assert) {
+        "Test that extending a template produces super great results.";
+        var base = new plate.Template("hey {% block who %}<b>gary</b>{% endblock %}, how are you?"),
+            child = new plate.Template("{% extends base %}{% block who %}{{ block.super }} busey{% endblock %}"),
+            ctxt = { base:base };
+        child.render(ctxt, function(err, data) {
+            assert.equal(data, "hey <b>gary</b> busey, how are you?");
+        });
+    },
+    function(assert) {
+        "Test that multilevel extending works";
+        var base = new plate.Template("hey {% block firstname %}{% endblock %} {% block lastname %}{% endblock %}"+
+                                        ", {% block greeting %}hi there{% endblock %}"),
+            child1 = new plate.Template("{% extends base %}{% block firstname %}gary{% endblock %}"),
+            child2 = new plate.Template("{% extends child %}{% block firstname %}{{ block.super }} m.{% endblock %}"+
+                                        "{% block lastname %}busey{% endblock %}"),
+            context = {
+                base:base,
+                child:child1
+            };
+        child2.render(context, function(err, data) {
+            assert.equal(data, "hey gary m. busey, hi there");
+        });
+    }
+);
+
+exports.TestIncludeTag = platoon.unit({},
+    function(assert) {
+        "Test that include does not trigger a parser error";
+        var tpl = new plate.Template("{% include something %}");
+        assert.doesNotThrow(function() {
+            tpl.getNodeList();
+        });
+    },
+    function(assert) {
+        "Test that include will include the contents of the included template into the includer.";
+        var random = "random-"+Math.random(),
+            include = new plate.Template(random),
+            tpl = new plate.Template("{% include tpl %}"),
+            context = { tpl:include };
+        tpl.render(context, function(err, data) {
+            assert.equal(data, random);
+        });
+    },
+    function(assert) {
+        "Test that the loader plugin works with include";
+        if(typeof window !== 'undefined')
+          return;
+
+        var loader = function(name, callback) {
+                setTimeout(function() {
+                    callback(null, new plate.Template(name));
+                }, ~~(Math.random()*10));
+            },
+            pluginLib = function() {
+                platelib.Library.call(this);
+                this.register('loader', loader);
+            },
+            F = function(){};
+        F.prototype = platelib.Library.prototype;
+        pluginLib.prototype = new F();
+
+        var name = "name-"+Math.random(),
+            tpl = new plate.Template("{% include \""+name+"\" %}", {
+                plugin_library:new pluginLib()
+            });
+        tpl.render({}, assert.async(function(err, data) {
+            assert.equal(data, name);
+        }));
+    }
+);
+
+exports.TestCommentTag = platoon.unit({},
+    function(assert) {
+        "Test that comment does not trigger a parser error";
+        var tpl = new plate.Template("{% comment %}{% endcomment %}");
+        assert.doesNotThrow(function() {
+            tpl.getNodeList();
+        });
+    },
+    function(assert) {
+        "Test that comment omits all items wrapped inside the comment block.";
+        var tpl = new plate.Template("{% comment %}asdf{% endcomment %}");
+        tpl.render({}, assert.async(function(err, data) {
+            assert.equal(data, '');
+        }));
+    }
+);
+
+exports.TestNowTag = platoon.unit({},
+    function(assert) {
+      "test that now defaults to now N y, J"
+
+      var tpl = new plate.Template('{% now %}')
+        , now = format(new Date, 'N j, Y')
+
+      tpl.render({}, assert.async(function(err, data) {
+        assert.equal(data, now)
+      })) 
+
+    },
+    function(assert) {
+      "test that now can be configured with another argument";
+
+      var tpl = new plate.Template('{% now "jS o\\f F" %}')
+        , now = format(new Date, 'jS o\\f F')
+
+      tpl.render({}, assert.async(function(err, data) {
+        assert.equal(data, now)
+      })) 
+
+    }
+);
+
+
+  })(Function(), testrunner.make("./tests/tags.js"));(function (require, exports) {
+    ;
+if(typeof window === 'undefined') {
+  var plate = require('../index'),
+      path = require('path'),
+      platoon = require('platoon'),
+      libraries = require('../lib/libraries'),
+      filesystem = require('../lib/plugins/loaders/filesystem');
+
+  exports.TestOfFilesystemLoader = platoon.unit({}, 
+      function(assert) {
+          "Test that the filesystem loader returns templates from filesystem.";
+          var loader = new filesystem.Loader(
+                  [path.join(process.cwd(), 'tests', 'templates')]
+              );
+          loader.lookup('test.html', assert.async(function(err, template) {
+              assert.isInstance(template, plate.Template);
+          }));
+      },
+      function(assert) {
+          "Test that the filesystem loader works with the extends tag";
+          var lib = new libraries.Library(),
+              loader = new filesystem.Loader( 
+                  [path.join(process.cwd(), 'tests', 'templates')]
+              );
+
+          lib.register('loader', loader.getPlugin());
+          loader.setTemplateCreation(function(data) {
+              return new plate.Template(data, {
+                  plugin_library:lib
+              });
+          });
+
+          loader.lookup('test_child.html', assert.async(function(err, template) {
+              assert.isInstance(template, plate.Template);
+              template.render({}, assert.async(function(err, data) {
+                  assert.equal(data, "hello world!\n");
+              }));
+          }));
+      }
+  );
+}
+
+  })(Function(), testrunner.make("./tests/plugins.js"));(function (require, exports) {
+    ;if(typeof window === 'undefined') {
+  var plate = require('../index')
+    , utils = require('../lib/utils')
+    , platelib = require('../lib/libraries')
+    , nodes = require('../lib/nodes')
+    , platoon = require('platoon')
+} else {
+  var plate = window.plate
+    , platoon = window.platoon
+  var platelib = plate.libraries
+    , nodes = plate.nodes
+}
+
+exports.TestTemplateAPI = platoon.unit({},
+    function(assert) {
+        "Test the exception cases of plate.Template.";
+        assert.throws(TypeError, function() {
+            var tpl = new plate.Template(2);
+        });
+        assert.throws(TypeError, function() {
+            var tpl = new plate.Template();
+        });
+        
+        var tplstr = "random-"+Math.random(),
+            tpl = new plate.Template(tplstr);
+
+        assert.throws(TypeError, function() {
+            tpl.render();
+        });
+
+        assert.throws(TypeError, function() {
+            tpl.render("");
+        });
+
+        assert.throws(TypeError, function() {
+            tpl.render(Math.random());
+        });
+
+        tpl.render({}, function(err, data) {
+            assert.fail(err);
+            assert.equal(tplstr, data);
+        });
+
+        tpl.render(new plate.Context({}), assert.async(function(err, data) {
+            assert.fail(err);
+            assert.equal(data, tplstr);
+        }));
+    },
+    function(assert) {
+        "Test that encountering a {% tag %} will lookup that tag in the provided library";
+        var lib = new platelib.Library(),
+            name = "random_"+~~Math.random(),
+            value = Math.random().toString(),
+            creationFunction = function(token, parser) {
+                return {
+                    render:function(context, callback) {
+                        callback(null, value);
+                    }
+                };
+            };
+        lib.register(name, creationFunction);
+        var tpl = new plate.Template("{% "+name+" %}", {tag_library:lib});
+        tpl.render({}, assert.async(function(err, data) {
+            assert.equal(data, value);
+        }));
+    },
+    function(assert) {
+        "Test that filter nodes render as expected.";
+        var testContext = {
+            value:Math.random().toString(),
+            deep:{
+                value:Math.random().toString(),
+                method:function(callback) {
+                    return "lobsters";
+                },
+                delayed:function(callback) {
+                    setTimeout(function() {
+                        callback(null, "delayed");
+                    }, 10);
+                }
+            }
+        };
+        var tplValue = new plate.Template("{{ value }}"),
+            tplDeep = new plate.Template("{{ deep.value }}"),
+            tplMethod = new plate.Template("{{ deep.method }}");
+            tplDelayed = new plate.Template("{{ deep.delayed }}");
+
+        tplValue.render(testContext, function(err, data) {
+            assert.equal(err, null);
+            assert.equal(data, testContext.value);
+        });
+
+        tplDeep.render(testContext, function(err, data) {
+            assert.equal(err, null);
+            assert.equal(data, testContext.deep.value);
+        });
+
+        tplMethod.render(testContext, function(err, data) {
+            assert.equal(err, null);
+            assert.equal(data, testContext.deep.method());
+        });
+
+        tplDelayed.render(testContext, assert.async(function(err, data) {
+            assert.equal(err, null);
+            assert.equal('delayed', data);
+        }));
+    },
+    function(assert) {
+        "Test that hitting an unknown tag triggers an error.";
+        var tpl = new plate.Template("{% lol dne %}");
+        tpl.render({}, assert.async(function(err, data) {
+            assert.strictEqual(data, null);
+            assert.isInstance(err, Error); 
+        }));
+    }
+);
+
+exports.TestTemplateMetaAPI = platoon.unit({},
+    function(assert) {
+      "Test that autoregistration of the tag library works as expected.";
+      var expected = ~~(Math.random()*100);
+      var tag = {
+        render:function(context, ready) {
+          ready(null, ''+expected);
+        }
+      }; 
+      plate.Template.Meta.registerTag('lolwut', function() { return tag; });
+
+      assert.doesNotThrow(function() {
+        var tpl = new plate.Template('{% lolwut %}');
+        tpl.render({}, assert.async(function(err, data) {
+          assert.equal(data, ''+expected);
+        }));
+      });
+    },
+    function(assert) {
+      "Test that autoregistration of the filter library works as expected.";
+      var expected = ~~(Math.random()*100);
+      var testFilter = function(ready, input) {
+        ready(null, ''+expected);
+      };
+      plate.Template.Meta.registerFilter('lolol', testFilter);
+
+      assert.doesNotThrow(function() {
+        var tpl = new plate.Template('{{ anything|lolol }}');
+
+        tpl.render({}, assert.async(function(err, data) {
+          assert.equal(data, ''+expected);
+        }));
+      });
+    },
+    function(assert) {
+      "Test that autoregistration of the plugin library works as expected.";
+      var expected = ~~(Math.random()*100);
+      var plugin = function() {
+        return ''+expected;
+      };
+      plate.Template.Meta.registerPlugin('test_plugin', plugin);
+
+      var TestNode = function(test_plugin){ this.plugin = test_plugin; };
+      TestNode.prototype = new nodes.Node;
+
+      TestNode.prototype.render = function(context, ready) {
+        ready(null, this.plugin());
+      };
+      TestNode.parse = function(contents, parser) {
+        var test_plugin = parser.pluginLibrary.lookup('test_plugin');
+        return new TestNode(test_plugin);
+      };
+      plate.Template.Meta.registerTag('test_plugin_tag', TestNode.parse);
+
+      assert.doesNotThrow(function() {
+        var tpl = new plate.Template('{% test_plugin_tag %}');
+        tpl.render({}, function(err, data) {
+          assert.equal(data, ''+expected);
+        });
+      });
+
+
+    }
+);
+
+  })(Function(), testrunner.make("./tests/plate.js"));; return testrunner;})(platoon.makeHTMLTestRunner()).run()</script>
+  
