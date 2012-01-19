@@ -2805,15 +2805,19 @@ Array.prototype.forEach = [].forEach || function(fn) {
 
 function make_format_equiv(method, for_date, should_equal) {
 
+  try {
   return new Function('test', 'assert', (function () {
     NAME;
 
     test(assert)
   }+'').replace('NAME', '"test of '+method+'"').slice('function () {'.length, -1))
     .bind(null, function(assert) {
+      try {
       var fmt = new utils.DateFormat(for_date)
       assert.equal(fmt[method](), should_equal)
+      } catch(err) { alert("INNER ERROR ON "+method) }
     })
+  } catch(err) { alert("ERROR ON "+method) }
 }
 
 exports.TestFormatter = platoon.unit({},
