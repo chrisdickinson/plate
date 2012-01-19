@@ -29,7 +29,7 @@ function make_format_equiv(method, for_date, should_equal) {
     NAME;
 
     test(assert)
-  }+'').replace('NAME', '"test of '+method+'"')).slice('function () {'.length, -1))
+  }+'').replace('NAME', '"test of '+method+'"').slice('function () {'.length, -1))
     .bind(null, function(assert) {
       var fmt = new utils.DateFormat(for_date)
       assert.equal(fmt[method](), should_equal)
