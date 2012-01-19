@@ -1,7 +1,10 @@
 #!/bin/bash
 
-curl https://raw.github.com/chrisdickinson/dst.js/master/index.js 2>/dev/null > .dst.js
+git clone git@github.com:chrisdickinson/tz.js .tz.js
+cd .tz.js
+make build
+cd ..
 python support/build.py .plate.js
-node node_modules/.bin/platoon -s -b test.html -I .plate.js -I .dst.js tests
+node node_modules/.bin/platoon -s -b test.html -I .plate.js -I .tz.js/tz.js tests
 rm .plate.js
-rm .dst.js
+rm -rf .tz.js
