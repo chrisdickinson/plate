@@ -8,7 +8,17 @@ if(typeof window === 'undefined') {
   var utils = plate.utils
 }
 
+Function.prototype.bind = Function.prototype.bind || function(obj) {
+  var self = this
+    , args = [].slice.call(arguments, 1)
+
+  return function() {
+    return self.apply(obj, args.concat([].slice.call(arguments)))
+  }
+}
+
 function make_format_equiv(method, for_date, should_equal) {
+
   return new Function('test', 'assert', (function () {
     NAME;
 
