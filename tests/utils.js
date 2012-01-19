@@ -39,7 +39,15 @@ function make_format_equiv(method, for_date, should_equal) {
 exports.TestFormatter = platoon.unit({},
   function(assert) {
     "test that the formatter works as expected"
-    var format    = [].slice.call("aAbcdDEfFgGhHiIjlLmMnNOPrsStTUuwWyYzZ")
+    var strtoarr = function(str) {
+        var arr = [];
+        for(var i = 0; i < str.length; ++i) {
+          arr.push(str.charAt(i));
+        }
+        return arr 
+      }
+
+    var format    = strtoarr("aAbcdDEfFgGhHiIjlLmMnNOPrsStTUuwWyYzZ")
       , datetime  = new Date
       , result    = utils.format(datetime, format.join('\n'))
       , formatter = new utils.DateFormat(datetime)
@@ -121,7 +129,7 @@ exports.TestFormatMethods = platoon.unit({},
   , make_format_equiv('b', new Date(2010,11, 1, 18, 3, 59, 888), 'dec')
 
   // iso format
-  , make_format_equiv('c', new Date(2010,11, 1, 18, 3, 59, 888), (new Date(2010,11, 1, 18, 3, 59, 888)).toISOString())
+  , Date.prototype.toISOString ? make_format_equiv('c', new Date(2010,11, 1, 18, 3, 59, 888), (new Date(2010,11, 1, 18, 3, 59, 888)).toISOString()) : Function()
 
   // day of month, 2 digits, leading zeros
   , make_format_equiv('d', new Date(2010,11, 2, 5, 3, 59, 888), '02')
