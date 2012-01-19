@@ -1603,7 +1603,8 @@ exports.random = function(callback, input) {
       difference = num - bits.length;
 
   // push returns new length of array.
-  while(difference > 0) difference = num - bits.unshift(' ');
+  // NB: [].unshift returns `undefined` in IE<9.
+  while(difference > 0) difference = (bits.unshift(' '), num - bits.length);
 
   callback(null, bits.join(''));
 };
