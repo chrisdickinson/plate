@@ -722,6 +722,82 @@ exports.TestOfUpper = platoon.unit({},
     }
 );
 
+exports.TestOfSafeFilter = platoon.unit({},
+    function(assert) {
+      "Test that HTML characters are escaped by default";
+
+      var tpl = new plate.Template('{{ value }}')
+
+      tpl.render({'value':'<>"\'&'}, assert.async(function(err, data) {
+        assert.ok(!err)
+
+        assert.equal(data, '&lt;&gt;&quot;&#39;&amp;')
+      }))
+    },
+    function(assert) {
+      "Test that HTML characters may be marked 'safe'";
+
+      var tpl = new plate.Template('{{ value|safe }}')
+        , x = '<>"\'&'
+      tpl.render({'value':x}, assert.async(function(err, data) {
+        assert.ok(!err)
+
+        assert.equal(data, x)
+      }))
+    }
+)
+
+exports.TestOfEscapeFilter = platoon.unit({},
+    function(assert) {
+      "Test that escape automatically escapes the input";
+
+      var tpl = new plate.Template('{{ value|escape }}')
+        , x   = '&'
+
+      tpl.render({value:x}, assert.async(function(err, data) {
+        assert.ok(!err)
+
+        assert.equal(data, '&amp;')
+      }))
+    },
+    function(assert) {
+      "Test that escape does not double-escape the input";
+
+      var tpl = new plate.Template('{{ value|escape|escape }}')
+        , x   = '&'
+
+      tpl.render({value:x}, assert.async(function(err, data) {
+        assert.ok(!err)
+
+        assert.equal(data, '&amp;')
+      }))
+    },
+    function(assert) {
+      "Test that escape respects 'safe'";
+
+      var tpl = new plate.Template('{{ value|safe|escape }}')
+        , x   = '&'
+
+      tpl.render({value:x}, assert.async(function(err, data) {
+        assert.ok(!err)
+
+        assert.equal(data, '&')
+      }))
+    },
+    function(assert) {
+      "Test that force_escape does not respect 'safe'";
+
+      var tpl = new plate.Template('{{ value|safe|force_escape }}')
+        , x   = '&'
+
+      tpl.render({value:x}, assert.async(function(err, data) {
+        assert.ok(!err)
+
+        assert.equal(data, '&amp;')
+      }))
+    }
+)
+
 exports.TestOfSlice = platoon.unit({},
     function(assert) {
       "Test that slice works with :N";

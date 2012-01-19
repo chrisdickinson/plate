@@ -25,6 +25,8 @@ files = [
   'lib/filters/dictsort.js',
   'lib/filters/dictsortreversed.js',
   'lib/filters/divisibleby.js',
+  'lib/filters/escape.js',
+  'lib/filters/force_escape.js',
   'lib/filters/filesizeformat.js',
   'lib/filters/first.js',
   'lib/filters/floatformat.js',
