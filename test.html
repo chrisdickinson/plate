@@ -2670,8 +2670,9 @@ if(typeof module !== 'undefined') {
 
     function HTMLTestRunner() {
       this.tests = {}
-      this.target = document.getElementById('target')
-      this.target.appendChild(this.pre = document.createElement('pre'))
+      this.pre = document.createElement('PRE')
+
+      document.body.appendChild(this.pre)
     }
 
     var proto = HTMLTestRunner.prototype
