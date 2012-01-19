@@ -468,8 +468,6 @@ if(typeof(window) !== 'undefined') {
 
   if('postMessage' in window && 'addEventListener' in window)
     clear_stack = setZeroTimeout;
-  else
-    clear_stack = function(fn){fn();};
 }
 
 exports.eterator = function eterator (list) {
@@ -478,7 +476,7 @@ exports.eterator = function eterator (list) {
     block.next = function() {
       if(_l.length) {
         var next = _l.shift();
-        eterator.clear_stack(function() {
+        exports.eterator.clear_stack(function() {
           block(next);   
         });
       } else {
@@ -489,7 +487,7 @@ exports.eterator = function eterator (list) {
       ret.finish();
     };
 
-    eterator.clear_stack(block.next);
+    exports.eterator.clear_stack(block.next);
   };
   ret.on_ready = function(ready) {
     ret.finish = ready;
@@ -2778,9 +2776,6 @@ if(typeof module !== 'undefined') {
 })(typeof window === 'undefined' ? exports : (window.platoon = {}));
 </script>
     <script>(function(testrunner) {;(function (require, exports) {
-
-return;
-
     ;if(typeof window === 'undefined') {
   var plate = require('../index')
     , utils = require('../lib/utils')
