@@ -2829,9 +2829,12 @@ exports.TestFormatter = platoon.unit({},
       , formatter = new utils.DateFormat(datetime)
 
     result = result.split('\n')
+
+    try { 
     result.forEach(function(item, idx) {
       assert.equal(item, ''+formatter[format[idx]]())
     })
+    } catch(err) { alert("IE ERR") }
   }
 );
 
