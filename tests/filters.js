@@ -934,7 +934,7 @@ exports.TestOfTimesince = platoon.unit({},
 
     tpl.render({t:t, n:t}, assert.async(function(err, data) {
       assert.equal(data, '0 minutes')
-    })) 
+    }))
   }
 )
 
@@ -1001,7 +1001,7 @@ exports.TestOfTruncateChars = platoon.unit({},
           context = {input:input};
 
       tpl.render(context, assert.async(function(err, data) {
-        assert.equal(data, 'This is a collection of words....');
+        assert.equal(data, 'This is a collection of words.');
       }));
     },
     function(assert) {
@@ -1040,7 +1040,7 @@ exports.TestOfTruncateWords = platoon.unit({},
           context = {input:input};
 
       tpl.render(context, assert.async(function(err, data) {
-        assert.equal(data, 'This is a collection of words....');
+        assert.equal(data, 'This is a collection of words.');
       }));
     },
     function(assert) {
