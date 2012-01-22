@@ -1711,7 +1711,9 @@ exports.timeuntil = function(callback, input, n) {
       num = parseInt(n, 10);
 
   if(isNaN(num)) return callback(null, input);
-  callback(null, input.split(/\s+/).slice(0, num).join(' ')+'...');
+  var words = input.split(/\s+/);
+  if(words.length <= num) return callback(null, input);
+  callback(null, words.slice(0, num).join(' ')+'...');
 };
 })(get_exports("filters/truncatewords"));
 (function(exports){exports.truncatechars = function(callback, input, n) {
@@ -1719,6 +1721,7 @@ exports.timeuntil = function(callback, input, n) {
       num = parseInt(n, 10);
 
   if(isNaN(num)) return callback(null, input);
+  if(input.length <= num) return callback(null, input);
   callback(null, input.slice(0, num)+'...');
 };
 })(get_exports("filters/truncatechars"));
@@ -4995,7 +4998,7 @@ exports.TestOfTimesince = platoon.unit({},
 
     tpl.render({t:t, n:t}, assert.async(function(err, data) {
       assert.equal(data, '0 minutes')
-    })) 
+    }))
   }
 )
 
@@ -5062,7 +5065,7 @@ exports.TestOfTruncateChars = platoon.unit({},
           context = {input:input};
 
       tpl.render(context, assert.async(function(err, data) {
-        assert.equal(data, 'This is a collection of words....');
+        assert.equal(data, 'This is a collection of words.');
       }));
     },
     function(assert) {
@@ -5101,7 +5104,7 @@ exports.TestOfTruncateWords = platoon.unit({},
           context = {input:input};
 
       tpl.render(context, assert.async(function(err, data) {
-        assert.equal(data, 'This is a collection of words....');
+        assert.equal(data, 'This is a collection of words.');
       }));
     },
     function(assert) {
