@@ -4773,7 +4773,7 @@ exports.TestOfRJust = platoon.unit({},
 
           assert.ok(bit.length === context.str.length || bit.length === context.range[idx]);
           if(bit.length > context.str.length) {
-            assert.ok((/^\s+/g).test(bit));
+            assert.ok((/^\s+/).test(bit));
           }
         }
       }));
@@ -5015,7 +5015,7 @@ exports.TestOfTitle = platoon.unit({},
       tpl.render({sentence:sentence}, assert.async(function(err, data) {
         var bits = data.split(/\s+/g);
         while(bits.length) {
-          assert.ok((/^[A-Z0-9]{1}[a-z']+/g).test(bits.pop()));
+          assert.ok((/^[A-Z0-9]{1}[a-z']+/).test(bits.pop()));
         }
       }));
     }
