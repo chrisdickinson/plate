@@ -3,7 +3,21 @@
 <link rel="shortcut icon" href="./plate_favicon.png" />
 <title>plate!</title>
 <style>
-    h1, h2, h3, h4 { font-family:"Ostrich Black", sans-serif; }
+
+
+@font-face {
+    font-family: 'Ostrich-Black';
+    src: url('ostrich/ostrich-black-webfont.eot');
+    src: url('ostrich/ostrich-black-webfont.eot?#iefix') format('embedded-opentype'),
+         url('ostrich/ostrich-black-webfont.woff') format('woff'),
+         url('ostrich/ostrich-black-webfont.ttf') format('truetype'),
+         url('ostrich/ostrich-black-webfont.svg#KnewaveRegular') format('svg');
+    font-weight: normal;
+    font-style: normal;
+
+}
+    h1, h2, h3, h4 { font-family:"Ostrich-Black", sans-serif; }
     h1:before { float:left; content:" "; display:block; width:64px; height:64px; background:no-repeat url('./plate_medium.png'); margin-right:8px; }
+    h1 { position:relative; top:16px; }
 </style>
 <h1>plate.js</h1>
