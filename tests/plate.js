@@ -1,15 +1,6 @@
-if(typeof window === 'undefined') {
-  var plate = require('../index')
-    , utils = require('../lib/utils')
-    , platelib = require('../lib/libraries')
-    , nodes = require('../lib/nodes')
-    , platoon = require('platoon')
-} else {
-  var plate = window.plate
-    , platoon = window.platoon
-  var platelib = plate.libraries
-    , nodes = plate.nodes
-}
+var plate = require('../index') || window.plate
+  , platelib = require('../lib/libraries') || window.plate.libraries
+  , platoon = require('platoon') || window.platoon
 
 exports.TestTemplateAPI = platoon.unit({},
     function(assert) {
@@ -24,7 +15,7 @@ exports.TestTemplateAPI = platoon.unit({},
         var tplstr = "random-"+Math.random(),
             tpl = new plate.Template(tplstr);
 
-        assert.throws(TypeError, function() {
+        assert.throws(Error, function() {
             tpl.render();
         });
 
@@ -54,7 +45,7 @@ exports.TestTemplateAPI = platoon.unit({},
             creationFunction = function(token, parser) {
                 return {
                     render:function(context, callback) {
-                        callback(null, value);
+                        return value
                     }
                 };
             };
@@ -121,7 +112,7 @@ exports.TestTemplateMetaAPI = platoon.unit({},
       var expected = ~~(Math.random()*100);
       var tag = {
         render:function(context, ready) {
-          ready(null, ''+expected);
+          return expected
         }
       }; 
       plate.Template.Meta.registerTag('lolwut', function() { return tag; });
@@ -136,15 +127,15 @@ exports.TestTemplateMetaAPI = platoon.unit({},
     function(assert) {
       "Test that autoregistration of the filter library works as expected.";
       var expected = ~~(Math.random()*100);
-      var testFilter = function(ready, input) {
-        ready(null, ''+expected);
+      var testFilter = function(input) {
+        return expected
       };
       plate.Template.Meta.registerFilter('lolol', testFilter);
 
       assert.doesNotThrow(function() {
         var tpl = new plate.Template('{{ anything|lolol }}');
 
-        tpl.render({}, assert.async(function(err, data) {
+        tpl.render({anything:1}, assert.async(function(err, data) {
           assert.equal(data, ''+expected);
         }));
       });
@@ -157,17 +148,19 @@ exports.TestTemplateMetaAPI = platoon.unit({},
       };
       plate.Template.Meta.registerPlugin('test_plugin', plugin);
 
-      var TestNode = function(test_plugin){ this.plugin = test_plugin; };
-      TestNode.prototype = new nodes.Node;
+      var test_node = {
+        plugin: plugin
+      , render: render
+      , parse: parse
+      }
 
-      TestNode.prototype.render = function(context, ready) {
-        ready(null, this.plugin());
+      function render(context, ready) {
+        return this.plugin();
       };
-      TestNode.parse = function(contents, parser) {
-        var test_plugin = parser.pluginLibrary.lookup('test_plugin');
-        return new TestNode(test_plugin);
+      function parse(contents, parser) {
+        return test_node
       };
-      plate.Template.Meta.registerTag('test_plugin_tag', TestNode.parse);
+      plate.Template.Meta.registerTag('test_plugin_tag', parse);
 
       assert.doesNotThrow(function() {
         var tpl = new plate.Template('{% test_plugin_tag %}');
@@ -175,7 +168,95 @@ exports.TestTemplateMetaAPI = platoon.unit({},
           assert.equal(data, ''+expected);
         });
       });
-
-
     }
 );
+
+exports.TestFailureCases = platoon.unit({}
+  , test_lookup_failure
+  , test_lookup_async_failure
+  , test_filter_failure
+)
+
+function test_lookup_failure(assert) {
+  "Test obj.attr lookup failure (synchronous)."
+
+  var tpl = new plate.Template('test {{ obj.attr }}')
+
+  tpl.render({obj:null}, assert.async(function(err, data) {
+    assert.ok(!err)
+
+    assert.equal(data, 'test ')
+  }))
+
+  tpl.render({obj:{attr:null}}, assert.async(function(err, data) {
+    assert.ok(!err)
+
+    assert.equal(data, 'test ')
+  }))
+
+  tpl.render({obj:{attr:Function('throw new Error')}}, assert.async(function(err, data) {
+    assert.ok(!err)
+
+    assert.equal(data, 'test ')
+  }))
+}
+
+function test_lookup_async_failure(assert) {
+  "Test obj.attr lookup failure (asynchronous)."
+  var tpl = new plate.Template('test {{ obj.attr }}')
+    , make_return = function(what) {
+        return function(ready) { setTimeout(ready, 0, what) }
+      }
+
+  tpl.render({obj:make_return(null)}, assert.async(function(err, data) {
+    assert.ok(!err)
+
+    assert.equal(data, 'test ')
+  }))
+
+  tpl.render({obj:{attr:make_return(null)}}, assert.async(function(err, data) {
+    assert.ok(!err)
+
+    assert.equal(data, 'test ')
+  }))
+
+}
+
+function test_filter_failure(assert) {
+  "Test obj|attr failure (synchronous and async)."
+  var library = new platelib.Library
+    , sync_filter_tpl
+    , async_filter_tpl
+    , piped_filter_tpl
+
+  library.register('sync_filter', sync_filter)
+  library.register('async_filter', async_filter)
+  library.register('okay_filter', okay_filter)
+
+  sync_filter_tpl = new plate.Template('{{ obj|sync_filter }}', {filter_library:library})
+  async_filter_tpl = new plate.Template('{{ obj|async_filter }}', {filter_library:library})
+  piped_filter_tpl = new plate.Template('{{ obj|sync_filter|okay_filter }}', {filter_library:library})
+
+  sync_filter_tpl.render({obj:null}, assert.async(function(err, data) {
+    assert.equal(data, '')
+  }))
+
+  piped_filter_tpl.render({obj:null}, assert.async(function(err, data) {
+    assert.equal(data, '')
+  }))
+
+
+  function sync_filter(input) {
+    return input.try_something_that_doesnt_exist()
+  }
+
+  function async_filter(input, ready) {
+    setTimeout(function() {
+      ready(null, input.try_something_that_doesnt_exist())
+    }, 0)
+  }
+
+  function okay_filter(input) {
+    return input+' okay'
+  }
+}

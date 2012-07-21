@@ -1,16 +1,9 @@
-if(typeof window === 'undefined') {
-  var plate = require('../index')
-    , utils = require('../lib/utils')
-    , platelib = require('../lib/libraries')
-    , platoon = require('platoon')
-} else {
-  var plate = window.plate
-    , platoon = window.platoon
-  var platelib = plate.libraries
-    , utils = plate.utils
-}
+var plate = require('../index') || window.plate
+  , utils = require('../lib/date') || window.plate.date
+  , platelib = require('../lib/libraries') || window.plate.libraries
+  , platoon = require('platoon') || window.platoon
 
-var format = utils.format
+var format = utils.date
 
 exports.TestForTag = platoon.unit({},
     function(assert) {
@@ -329,6 +322,7 @@ exports.TestExtendsAndBlockTags = platoon.unit({},
     function(assert) {
         "Test that extends does not trigger a parser error.";
         var tpl = new plate.Template("{% extends whatever %}");
+        plate.Template.Meta.registerPlugin('loader', function() {})
         assert.doesNotThrow(function() {
             tpl.getNodeList();
         });
@@ -338,6 +332,7 @@ exports.TestExtendsAndBlockTags = platoon.unit({},
         var base = new plate.Template("hey {% block who %}<b>gary</b>{% endblock %}, how are you?"),
             child = new plate.Template("{% extends base %}{% block who %}{{ block.super }} busey{% endblock %}"),
             ctxt = { base:base };
+
         child.render(ctxt, function(err, data) {
             assert.equal(data, "hey <b>gary</b> busey, how are you?");
         });
@@ -363,6 +358,8 @@ exports.TestIncludeTag = platoon.unit({},
     function(assert) {
         "Test that include does not trigger a parser error";
         var tpl = new plate.Template("{% include something %}");
+
+
         assert.doesNotThrow(function() {
             tpl.getNodeList();
         });
@@ -373,6 +370,7 @@ exports.TestIncludeTag = platoon.unit({},
             include = new plate.Template(random),
             tpl = new plate.Template("{% include tpl %}"),
             context = { tpl:include };
+
         tpl.render(context, function(err, data) {
             assert.equal(data, random);
         });
@@ -382,10 +380,14 @@ exports.TestIncludeTag = platoon.unit({},
         if(typeof window !== 'undefined')
           return;
 
-        var loader = function(name, callback) {
-                setTimeout(function() {
-                    callback(null, new plate.Template(name));
-                }, ~~(Math.random()*10));
+        var Promise = require('../lib/promise')
+
+        var loader = function(name) {
+              var promise = new Promise
+                  setTimeout(function() {
+                      promise.resolve(new plate.Template(name))
+                  }, ~~(Math.random()*10))
+              return promise
             },
             pluginLib = function() {
                 platelib.Library.call(this);

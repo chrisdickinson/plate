@@ -1,6 +1,5 @@
 module.exports = require('./lib/index');
 
-
 try {
   require('express')
 

@@ -1,11 +1,11 @@
 if(typeof window === 'undefined') {
   var plate = require('../index')
-    , utils = require('../lib/utils')
+    , utils = require('../lib/date')
     , platoon = require('platoon')
 } else {
   var plate = window.plate
     , platoon = window.platoon
-  var utils = plate.utils
+    , utils = plate.date
 }
 
 Function.prototype.bind = Function.prototype.bind || function(obj) {
@@ -49,7 +49,7 @@ exports.TestFormatter = platoon.unit({},
 
     var format    = strtoarr("aAbcdDEfFgGhHiIjlLmMnNOPrsStTUuwWyYzZ")
       , datetime  = new Date
-      , result    = utils.format(datetime, format.join('\n'))
+      , result    = utils.date(datetime, format.join('\n'))
       , formatter = new utils.DateFormat(datetime)
 
     result = result.split('\n')
@@ -241,7 +241,7 @@ exports.TestFormatMethods = platoon.unit({},
   , make_format_equiv('O', {getTimezoneOffset:Function('return 10')}, '-0010')
 
   // D, j M Y H:i:s O
-  , make_format_equiv('r', new Date(2010,11, 1, 18, 3, 59, 888), utils.format(new Date(2010,11, 1, 18, 3, 59, 888), 'D, j M Y H:i:s O'))
+  , make_format_equiv('r', new Date(2010,11, 1, 18, 3, 59, 888), utils.date(new Date(2010,11, 1, 18, 3, 59, 888), 'D, j M Y H:i:s O'))
 
   // ordinal suffix for day of month, 2 chars, st, nd, rd, th
   , make_format_equiv('S', new Date(2010,11, 1, 18, 3, 59, 888), 'st')
@@ -288,7 +288,7 @@ exports.TestFormatMethods = platoon.unit({},
 
 
       for(var i = 0; i < 52; ++i) {
-        assert.equal(utils.format(new Date(first_day + week * i), 'W'), i+1)
+        assert.equal(utils.date(new Date(first_day + week * i), 'W'), i+1)
       }
     }
 
@@ -309,7 +309,7 @@ exports.TestFormatMethods = platoon.unit({},
       , day = 1000 * 60 * 60 * 24
 
     for(var i = 0; i < 365; ++i) { 
-      assert.equal(utils.format(new Date(year + (day * i) + 1000), 'z'), i + 1)
+      assert.equal(utils.date(new Date(year + (day * i) + 1000), 'z'), i + 1)
     }
   }
 
