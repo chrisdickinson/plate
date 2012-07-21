@@ -9,7 +9,8 @@
     "author":"Chris Dickinson",
     "directories":{"lib":"./lib"},
     "dependencies":{
-        "tz":"0.X.X"
+        "tz":"0.X.X",
+        "dst":"0.X.X"
     },
     "devDependencies":{
         "platoon":"0.X.X"

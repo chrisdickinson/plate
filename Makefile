@@ -1,5 +1,6 @@
 browser:
-	browserify -r tz -r dst browser.js  > plate.min.js
+	browserify -r tz -r dst browser.js > plate.js
+	cat plate.js | uglifyjs > plate.min.js
 	platoon -b index.html -I plate.min.js
 
 build:
