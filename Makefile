@@ -1,4 +1,5 @@
 browser:
+	npm install
 	echo ';(function(){' > plate.js
 	browserify -r tz -r dst browser.js >> plate.js
 	echo '})();' >> plate.js
@@ -6,6 +7,7 @@ browser:
 	platoon -b index.html -I plate.min.js
 
 build:
+	npm install
 	browserify -r tz -r dst browser.js | uglifyjs > plate.min.js
 
 test:
