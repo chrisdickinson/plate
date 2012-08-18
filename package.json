@@ -21,5 +21,6 @@
     "license": [
         "New BSD License"
     ],
-    "main":"./index"
+    "main":"./index",
+    "browserify":"./browserify"
 }
