@@ -17,23 +17,59 @@ Can I use it in my browser?
 Yes. Plate was designed to work well in the standard suite of browsers. Each minor point release will target
 compatibility with IE7+, FF3+, Chrome, and Safari 4+.
 
+You can [download a minified, precompiled version here](https://raw.github.com/chrisdickinson/plate/master/plate.min.js).
+
+
+
 How do I use it?
 ----------------
 
-The most basic case:
+### In node (or browserify):
 
-    var plate = require('plate'),
-        sys = require('sys');
-    var template = new plate.Template('hello {{ world }}');
+```javascript
+
+    var plate = require('plate')
+
+    var template = new plate.Template('hello {{ world }}')
 
     template.render({world:'everyone'}, function(err, data) {
-        sys.puts(data);
-    });
+      console.log(data)
+    })
 
     // outputs "hello everyone"
 
+```
+
 Plate follows the Node.js style of taking callbacks that receive an error object and a data object. If there's no
 error, `err` will be null.
+
+### In browser (vanilla):
+
+```html
+    <script type="text/javascript" src="plate.min.js">
+    <script type="text/html" id="template">
+        hello {{ world }}.
+    </script>
+    <script type="text/javascript">
+        var source = $('#template').text()
+          , template = new plate.Template(source)
+
+        template.render({world: 'everyone'}, function(err, data) {
+          console.log(data)
+        })
+    </script>
+```
+
+### In browser (using require.js):
+
+```javascript
+
+require(['plate.min'], function(plate) {
+  var template = new plate.Template('hello {{ world }}')
+})
+
+
+```
 
 Documentation
 -------------
