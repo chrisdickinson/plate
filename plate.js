@@ -1317,13 +1317,18 @@ proto.render = function(context, value) {
     , arr = value || self.target.resolve(context)
     , promise
 
+
   if(arr && arr.constructor === Promise) {
     promise = new Promise
     arr.once('done', function(data) {
-      promise.resolve(data)
+      promise.resolve(self.render(context, data))
     })
 
     return promise
+  }
+
+  if(arr === undefined || arr === null) {
+    arr = []
   }
 
   var bits = []
@@ -1334,7 +1339,7 @@ proto.render = function(context, value) {
     , ctxt
     , sub
 
-  if(Object.prototype.toString.call(arr) !== '[object Array]') {
+  if(!('length' in arr)) {
     for(var key in arr) if(arr.hasOwnProperty(key)) {
       bits.push(key)
     }
@@ -1369,8 +1374,9 @@ proto.render = function(context, value) {
     bits.push(result) 
   }
 
-  if(promises.length)
+  if(promises.length) {
     return self.loop.resolvePromises(bits, promises)
+  }
 
   return bits.join('')
 }
@@ -1484,7 +1490,7 @@ proto.render = function(context, result, times) {
 
   result = times === 1 ? result : this.predicate.evaluate(context)
 
-  if(result.constructor === Promise) {
+  if(result && result.constructor === Promise) {
     promise = new Promise
 
     result.once('done', function(value) {
