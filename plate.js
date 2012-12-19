@@ -1740,7 +1740,9 @@ module.exports = {
 
 function in_operator(x, y) {
   if(!(x instanceof Object) && y instanceof Object) {
-    y = keys(y)
+    if(!(y && 'length' in y)) {
+      y = keys(y)
+    }
   }
 
   if(typeof(x) == 'string' && typeof(y) =='string') {
