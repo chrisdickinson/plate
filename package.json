@@ -27,5 +27,15 @@
     "New BSD License"
   ],
   "main": "./index",
-  "browserify": "./browserify"
+  "browserify": "./browserify",
+  "testling": {
+    "files": "test/index.js",
+    "browsers": {
+      "ie": [ 8, 9 ],
+      "firefox": [ 13 ],
+      "chrome": [ 20 ],
+      "safari": [ 5.1 ],
+      "opera": [ 12 ]
+    }
+  }
 }
