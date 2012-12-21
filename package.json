@@ -30,7 +30,12 @@
   "browserify": "./browserify",
   "testling": {
     "files": [
-      "tests/plate.js"
+      "tests/filters.js",
+      "tests/mocktimeout.js",
+      "tests/plate.js",
+      "tests/tags.js",
+      "tests/templates",
+      "tests/utils.js"
     ],
     "browsers": {
       "ie": [ 7, 8, 9 ],
