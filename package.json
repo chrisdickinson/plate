@@ -34,7 +34,6 @@
       "tests/index.js",
       "tests/mocktimeout.js",
       "tests/plate.js",
-      "tests/plugins.js",
       "tests/tags.js",
       "tests/templates",
       "tests/utils.js"
