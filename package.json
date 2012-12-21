@@ -34,7 +34,6 @@
       "tests/mocktimeout.js",
       "tests/plate.js",
       "tests/tags.js",
-      "tests/templates",
       "tests/utils.js"
     ],
     "browsers": {
