@@ -277,6 +277,8 @@ test("test ISO-8601 week number of year", function(assert) {
   for(var i = 0; i < 52; ++i) {
     assert.equal(utils.date(new Date(first_day + week * i), 'W'), ''+(i+1))
   }
+
+  assert.end()
 })
 
 
@@ -298,6 +300,8 @@ test("test day of year", function(assert) {
   for(var i = 0; i < 365; ++i) { 
     assert.equal(utils.date(new Date(year + (day * i) + 1000), 'z'), ''+(i + 1))
   }
+
+  assert.end()
 })
 
 // timezone offset in seconds (-43200 to 43200)
