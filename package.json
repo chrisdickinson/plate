@@ -21,7 +21,7 @@
     "testling": "~0.2.5"
   },
   "scripts": {
-    "test": "make test"
+    "test": "node tests/index.js"
   },
   "license": [
     "New BSD License"
@@ -29,7 +29,16 @@
   "main": "./index",
   "browserify": "./browserify",
   "testling": {
-    "files": "test/index.js",
+    "files": [
+      "tests/filters.js",
+      "tests/index.js",
+      "tests/mocktimeout.js",
+      "tests/plate.js",
+      "tests/plugins.js",
+      "tests/tags.js",
+      "tests/templates",
+      "tests/utils.js"
+    ],
     "browsers": {
       "ie": [ 8, 9 ],
       "firefox": [ 13 ],
