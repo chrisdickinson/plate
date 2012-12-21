@@ -1,44 +1,45 @@
-var plate = require('../index') || window.plate
-  , platelib = require('../lib/libraries') || window.plate.libraries
-  , platoon = require('platoon') || window.platoon
+var plate = require('../index')
+  , platelib = require('../lib/libraries')
+  , test = require('tape')
+  , mocktimeout = require('./mocktimeout')
 
-exports.TestTemplateAPI = platoon.unit({},
-    function(assert) {
-        "Test the exception cases of plate.Template.";
-        assert.throws(TypeError, function() {
+test("Test the exception cases of plate.Template.", mocktimeout(function(assert) {
+        
+        assert.throws(function() {
             var tpl = new plate.Template(2);
         });
-        assert.throws(TypeError, function() {
+        assert.throws(function() {
             var tpl = new plate.Template();
         });
         
         var tplstr = "random-"+Math.random(),
             tpl = new plate.Template(tplstr);
 
-        assert.throws(Error, function() {
+        assert.throws(function() {
             tpl.render();
         });
 
-        assert.throws(TypeError, function() {
+        assert.throws(function() {
             tpl.render("");
         });
 
-        assert.throws(TypeError, function() {
+        assert.throws(function() {
             tpl.render(Math.random());
         });
 
         tpl.render({}, function(err, data) {
-            assert.fail(err);
+            assert.ok(!err);
             assert.equal(tplstr, data);
         });
 
-        tpl.render(new plate.Context({}), assert.async(function(err, data) {
-            assert.fail(err);
+        tpl.render(new plate.Context({}), function(err, data) {
+            assert.ok(!err);
             assert.equal(data, tplstr);
-        }));
-    },
-    function(assert) {
-        "Test that encountering a {% tag %} will lookup that tag in the provided library";
+        });
+    }))
+
+test("Test that encountering a {% tag %} will lookup that tag in the provided library", mocktimeout(function(assert) {
+        
         var lib = new platelib.Library(),
             name = "random_"+~~Math.random(),
             value = Math.random().toString(),
@@ -51,12 +52,13 @@ exports.TestTemplateAPI = platoon.unit({},
             };
         lib.register(name, creationFunction);
         var tpl = new plate.Template("{% "+name+" %}", {tag_library:lib});
-        tpl.render({}, assert.async(function(err, data) {
+        tpl.render({}, function(err, data) {
             assert.equal(data, value);
-        }));
-    },
-    function(assert) {
-        "Test that filter nodes render as expected.";
+        });
+    }))
+
+test("Test that filter nodes render as expected.", mocktimeout(function(assert) {
+        
         var testContext = {
             value:Math.random().toString(),
             deep:{
@@ -91,24 +93,25 @@ exports.TestTemplateAPI = platoon.unit({},
             assert.equal(data, testContext.deep.method());
         });
 
-        tplDelayed.render(testContext, assert.async(function(err, data) {
+        tplDelayed.render(testContext, function(err, data) {
             assert.equal(err, null);
             assert.equal('delayed', data);
-        }));
-    },
-    function(assert) {
-        "Test that hitting an unknown tag triggers an error.";
-        var tpl = new plate.Template("{% lol dne %}");
-        tpl.render({}, assert.async(function(err, data) {
-            assert.strictEqual(data, null);
-            assert.isInstance(err, Error); 
-        }));
-    }
-);
+        });
+    })
+)
 
-exports.TestTemplateMetaAPI = platoon.unit({},
-    function(assert) {
-      "Test that autoregistration of the tag library works as expected.";
+test("Test that hitting an unknown tag triggers an error.", mocktimeout(function(assert) {
+        
+        var tpl = new plate.Template("{% lol dne %}");
+        tpl.render({}, function(err, data) {
+            assert.strictEqual(data, null);
+            assert.ok(err instanceof Error); 
+        });
+    })
+)
+
+test("Test that autoregistration of the tag library works as expected.", mocktimeout(function(assert) {
+      
       var expected = ~~(Math.random()*100);
       var tag = {
         render:function(context, ready) {
@@ -119,13 +122,15 @@ exports.TestTemplateMetaAPI = platoon.unit({},
 
       assert.doesNotThrow(function() {
         var tpl = new plate.Template('{% lolwut %}');
-        tpl.render({}, assert.async(function(err, data) {
+        tpl.render({}, function(err, data) {
           assert.equal(data, ''+expected);
-        }));
+        });
       });
-    },
-    function(assert) {
-      "Test that autoregistration of the filter library works as expected.";
+    })
+)
+
+test("Test that autoregistration of the filter library works as expected.", mocktimeout(function(assert) {
+      
       var expected = ~~(Math.random()*100);
       var testFilter = function(input) {
         return expected
@@ -135,13 +140,15 @@ exports.TestTemplateMetaAPI = platoon.unit({},
       assert.doesNotThrow(function() {
         var tpl = new plate.Template('{{ anything|lolol }}');
 
-        tpl.render({anything:1}, assert.async(function(err, data) {
+        tpl.render({anything:1}, function(err, data) {
           assert.equal(data, ''+expected);
-        }));
+        });
       });
-    },
-    function(assert) {
-      "Test that autoregistration of the plugin library works as expected.";
+    })
+)
+
+test("Test that autoregistration of the plugin library works as expected.", mocktimeout(function(assert) {
+      
       var expected = ~~(Math.random()*100);
       var plugin = function() {
         return ''+expected;
@@ -168,62 +175,55 @@ exports.TestTemplateMetaAPI = platoon.unit({},
           assert.equal(data, ''+expected);
         });
       });
-    }
-);
-
-exports.TestFailureCases = platoon.unit({}
-  , test_lookup_failure
-  , test_lookup_async_failure
-  , test_filter_failure
+    })
 )
 
-function test_lookup_failure(assert) {
-  "Test obj.attr lookup failure (synchronous)."
-
+test("Test obj.attr lookup failure (synchronous).", mocktimeout(function test_lookup_failure(assert) {
   var tpl = new plate.Template('test {{ obj.attr }}')
 
-  tpl.render({obj:null}, assert.async(function(err, data) {
+  tpl.render({obj:null}, function(err, data) {
     assert.ok(!err)
 
     assert.equal(data, 'test ')
-  }))
+  })
 
-  tpl.render({obj:{attr:null}}, assert.async(function(err, data) {
+  tpl.render({obj:{attr:null}}, function(err, data) {
     assert.ok(!err)
 
     assert.equal(data, 'test ')
-  }))
+  })
 
-  tpl.render({obj:{attr:Function('throw new Error')}}, assert.async(function(err, data) {
+  tpl.render({obj:{attr:Function('throw new Error')}}, function(err, data) {
     assert.ok(!err)
 
     assert.equal(data, 'test ')
-  }))
-}
+  })
+})
+)
 
-function test_lookup_async_failure(assert) {
-  "Test obj.attr lookup failure (asynchronous)."
+test("Test obj.attr lookup failure (asynchronous).", function test_lookup_async_failure(assert) {
   var tpl = new plate.Template('test {{ obj.attr }}')
     , make_return = function(what) {
         return function(ready) { setTimeout(ready, 0, what) }
       }
 
-  tpl.render({obj:make_return(null)}, assert.async(function(err, data) {
+  assert.plan(4)
+  tpl.render({obj:make_return(null)}, function(err, data) {
     assert.ok(!err)
 
     assert.equal(data, 'test ')
-  }))
+  })
 
-  tpl.render({obj:{attr:make_return(null)}}, assert.async(function(err, data) {
+  tpl.render({obj:{attr:make_return(null)}}, function(err, data) {
     assert.ok(!err)
 
     assert.equal(data, 'test ')
-  }))
+  })
 
 }
+)
 
-function test_filter_failure(assert) {
-  "Test obj|attr failure (synchronous and async)."
+test("Test obj|attr failure (synchronous and async).", mocktimeout(function test_filter_failure(assert) {
   var library = new platelib.Library
     , sync_filter_tpl
     , async_filter_tpl
@@ -237,13 +237,13 @@ function test_filter_failure(assert) {
   async_filter_tpl = new plate.Template('{{ obj|async_filter }}', {filter_library:library})
   piped_filter_tpl = new plate.Template('{{ obj|sync_filter|okay_filter }}', {filter_library:library})
 
-  sync_filter_tpl.render({obj:null}, assert.async(function(err, data) {
+  sync_filter_tpl.render({obj:null}, function(err, data) {
     assert.equal(data, '')
-  }))
+  })
 
-  piped_filter_tpl.render({obj:null}, assert.async(function(err, data) {
+  piped_filter_tpl.render({obj:null}, function(err, data) {
     assert.equal(data, '')
-  }))
+  })
 
 
   function sync_filter(input) {
@@ -259,4 +259,5 @@ function test_filter_failure(assert) {
   function okay_filter(input) {
     return input+' okay'
   }
-}
+})
+)
