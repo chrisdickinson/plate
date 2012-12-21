@@ -1,29 +1,33 @@
-var plate = require('../index') || window.plate
-  , utils = require('../lib/date') || window.plate.date
-  , platelib = require('../lib/libraries') || window.plate.libraries
-  , platoon = require('platoon') || window.platoon
+var plate = require('../index')
+  , utils = require('../lib/date')
+  , platelib = require('../lib/libraries')
+  , test = require('tape')
+  , mocktimeout = require('./mocktimeout')
 
 var format = utils.date
 
-exports.TestForTag = platoon.unit({},
-    function(assert) {
-        "Test that for is enabled by default";
+test("Test that for is enabled by default", mocktimeout(function(assert) {
+        
         var tpl = new plate.Template("{% for x in y %}{% empty %}{% endfor %}");
 
         assert.doesNotThrow(function() {
             tpl.render({}, function(err, data) {});
         });
-    },
-    function(assert) {
-        "Test that for does not bubble errors if it cannot find the appropriate arrayVar";
+    })
+)
+
+test("Test that for does not bubble errors if it cannot find the appropriate arrayVar", mocktimeout(function(assert) {
+        
         var tpl = new plate.Template("{% for x in y %}{% endfor %}");
 
-        tpl.render({}, assert.async(function(err, data) {
+        tpl.render({}, function(err, data) {
             assert.strictEqual(err, null);
-        }));
-    },
-    function(assert) {
-        "Test that entering a for loop provides the forloop.counter";
+        });
+    })
+)
+
+test("Test that entering a for loop provides the forloop.counter", mocktimeout(function(assert) {
+        
         var size = ~~(Math.random()*10)+1,
             arr = [],
             context = {};
@@ -32,16 +36,18 @@ exports.TestForTag = platoon.unit({},
         }
         var tpl = new plate.Template("{% for x in y %}{{ forloop.counter }}\n{% endfor %}");
         context.y = arr;
-        tpl.render(context, assert.async(function(err, data) {
+        tpl.render(context, function(err, data) {
             var items = data.split('\n').slice(0,-1);
             assert.equal(items.length, size);
             for(var j = 0; j < size; ++j) {
-                assert.equal(items[j], j+1);
+                assert.equal(items[j], ''+(j+1));
             }
-        }));
-    },
-    function(assert) {
-        "Test that entering a for loop provides the forloop.counter0";
+        });
+    })
+)
+
+test("Test that entering a for loop provides the forloop.counter0", mocktimeout(function(assert) {
+        
         var size = ~~(Math.random()*10)+1,
             arr = [],
             context = {};
@@ -50,16 +56,18 @@ exports.TestForTag = platoon.unit({},
         }
         var tpl = new plate.Template("{% for x in y %}{{ forloop.counter0 }}\n{% endfor %}");
         context.y = arr;
-        tpl.render(context, assert.async(function(err, data) {
+        tpl.render(context, function(err, data) {
             var items = data.split('\n').slice(0,-1);
             assert.equal(items.length, size);
             for(var j = 0; j < size; ++j) {
-                assert.equal(items[j], j);
+                assert.equal(items[j], ''+j);
             }
-        }));
-    },
-    function(assert) {
-        "Test that entering a for loop provides the forloop.revcounter";
+        });
+    })
+)
+
+test("Test that entering a for loop provides the forloop.revcounter", mocktimeout(function(assert) {
+        
         var size = ~~(Math.random()*10)+1,
             arr = [],
             context = {};
@@ -68,16 +76,18 @@ exports.TestForTag = platoon.unit({},
         }
         var tpl = new plate.Template("{% for x in y %}{{ forloop.revcounter }}\n{% endfor %}");
         context.y = arr;
-        tpl.render(context, assert.async(function(err, data) {
+        tpl.render(context, function(err, data) {
             var items = data.split('\n').slice(0,-1);
             assert.equal(items.length, size);
             for(var j = 0; j < size; ++j) {
-                assert.equal(items[j], size-j);
+                assert.equal(items[j], ''+(size-j));
             }
-        }));
-    },
-    function(assert) {
-        "Test that entering a for loop provides the forloop.revcounter0";
+        });
+    })
+)
+
+test("Test that entering a for loop provides the forloop.revcounter0", mocktimeout(function(assert) {
+        
         var size = ~~(Math.random()*10)+1,
             arr = [],
             context = {};
@@ -86,16 +96,18 @@ exports.TestForTag = platoon.unit({},
         }
         var tpl = new plate.Template("{% for x in y %}{{ forloop.revcounter0 }}\n{% endfor %}");
         context.y = arr;
-        tpl.render(context, assert.async(function(err, data) {
+        tpl.render(context, function(err, data) {
             var items = data.split('\n').slice(0,-1);
             assert.equal(items.length, size);
             for(var j = 0; j < size; ++j) {
-                assert.equal(items[j], size-(j+1));
+                assert.equal(items[j], ''+(size-(j+1)));
             }
-        }));
-    },
-    function(assert) {
-        "Test that entering a for loop provides the forloop.first";
+        });
+    })
+)
+
+test("Test that entering a for loop provides the forloop.first", mocktimeout(function(assert) {
+        
         var size = ~~(Math.random()*10)+1,
             arr = [],
             context = {};
@@ -104,16 +116,18 @@ exports.TestForTag = platoon.unit({},
         }
         var tpl = new plate.Template("{% for x in y %}{{ forloop.first }}\n{% endfor %}");
         context.y = arr;
-        tpl.render(context, assert.async(function(err, data) {
+        tpl.render(context, function(err, data) {
             var items = data.split('\n').slice(0,-1);
             assert.equal(items.length, size);
             for(var j = 0; j < size; ++j) {
                 assert.equal(items[j], j === 0 ? 'true' : 'false');
             }
-        }));
-    },
-    function(assert) {
-        "Test that entering a for loop provides the forloop.last";
+        });
+    })
+)
+
+test("Test that entering a for loop provides the forloop.last", mocktimeout(function(assert) {
+        
         var size = ~~(Math.random()*10)+1,
             arr = [],
             context = {};
@@ -122,16 +136,18 @@ exports.TestForTag = platoon.unit({},
         }
         var tpl = new plate.Template("{% for x in y %}{{ forloop.last }}\n{% endfor %}");
         context.y = arr;
-        tpl.render(context, assert.async(function(err, data) {
+        tpl.render(context, function(err, data) {
             var items = data.split('\n').slice(0,-1);
             assert.equal(items.length, size);
             for(var j = 0; j < size; ++j) {
                 assert.equal(items[j], j === size-1 ? 'true' : 'false');
             }
-        }));
-    },
-    function(assert) {
-        "Test that entering a nested forloop provides forloop.parentloop";
+        });
+    })
+)
+
+test("Test that entering a nested forloop provides forloop.parentloop", mocktimeout(function(assert) {
+        
         var size = ~~(Math.random()*10)+1,
             arr = [],
             context = {};
@@ -141,7 +157,7 @@ exports.TestForTag = platoon.unit({},
         var tpl = new plate.Template("{% for x in y %}{% for a in b %}{{ forloop.parentloop.counter }}:{{ forloop.counter }}\n{% endfor %}{% endfor %}");
         context.y = arr;
         context.b = arr;
-        tpl.render(context, assert.async(function(err, data) {
+        tpl.render(context, function(err, data) {
             var items = data.split('\n').slice(0,-1);
             assert.equal(items.length, size*size);
             for(var x = 0; x < size; ++x) {
@@ -149,10 +165,12 @@ exports.TestForTag = platoon.unit({},
                     assert.equal(items[x*size + y], [x+1,y+1].join(':'));
                 }
             }
-        }));
-    },
-    function(assert) {
-        "Test that for unpacks variables as needed";
+        });
+    })
+)
+
+test("Test that for unpacks variables as needed", mocktimeout(function(assert) {
+        
         var size = ~~(Math.random()*10)+1,
             arr = [],
             context = {};
@@ -164,7 +182,7 @@ exports.TestForTag = platoon.unit({},
                 z:arr
             };
 
-        tpl.render(context, assert.async(function(err, data) {
+        tpl.render(context, function(err, data) {
             var items = data.split('\n').slice(0,-1);
 
             assert.strictEqual(err, null);
@@ -173,10 +191,12 @@ exports.TestForTag = platoon.unit({},
             for(i = 0; i < size; ++i) {
                 assert.equal(items[i], arr[i].join(','));
             }
-        }));
-    },
-    function(assert) {
-        "Test that for can reverse the contents of an array prior to iteration";
+        });
+    })
+)
+
+test("Test that for can reverse the contents of an array prior to iteration", mocktimeout(function(assert) {
+        
         var size = ~~(Math.random()*10)+1,
             arr = [],
             context = {};
@@ -188,7 +208,7 @@ exports.TestForTag = platoon.unit({},
                 z:arr
             };
 
-        tpl.render(context, assert.async(function(err, data) {
+        tpl.render(context, function(err, data) {
             var items = data.split('\n').slice(0,-1);
 
             assert.strictEqual(err, null);
@@ -197,61 +217,67 @@ exports.TestForTag = platoon.unit({},
             for(i = 0; i < size; ++i) {
                 assert.equal(items[i], arr[(size-1)-i].join(','));
             }
-        }));
-    }
-);
+        });
+    })
+)
 
-exports.TestWithTag = platoon.unit({},
-    function(assert) {
-        "Test that the with is enabled by default";
+test("Test that the with is enabled by default", mocktimeout(function(assert) {
+        
         assert.doesNotThrow(function() {
             var tpl = new plate.Template("{% with x as y %}\n\n{% endwith %}");
             tpl.render({}, function(){});
         });
-    },
-    function(assert) {
-        "Test that with adds the variable into context";
+    })
+)
+
+test("Test that with adds the variable into context", mocktimeout(function(assert) {
+        
         var context = {
             'value':~~(Math.random()*10)
         };
         var tpl = new plate.Template("{% with value as othervalue %}{{ othervalue }}{% endwith %}");
-        tpl.render(context, assert.async(function(err, data) {
+        tpl.render(context, function(err, data) {
             assert.strictEqual(err, null);
             assert.equal(data, context.value.toString());
-        }));
-    },
-    function(assert) {
-        "Test that with does not leak context variables";
+        });
+    })
+)
+
+test("Test that with does not leak context variables", mocktimeout(function(assert) {
+        
         var context = {
             'value':'hi'+~~(Math.random()*10),
             'othervalue':~~(Math.random()*10)+'yeah'
         };
         var tpl = new plate.Template("{% with value as othervalue %}{{ othervalue }}{% endwith %}{{ othervalue }}");
-        tpl.render(context, assert.async(function(err, data) {
+        tpl.render(context, function(err, data) {
             assert.strictEqual(err, null);
             assert.equal(data, context.value.toString()+context.othervalue.toString());
-        }));
-    },
-    function(assert) {
-        "Test that an unclosed with statement throws an error";
-        var tpl = new plate.Template("{% with x as y %}\n\n yeahhhhh");
-        tpl.render({}, assert.async(function(err, data){
-            assert.strictEqual(data, null);
-            assert.isInstance(err, Error);
-        }));
-    }
-);
+        });
+    })
+)
 
-exports.TestIfTag = platoon.unit({},
-    function(assert) {
-        "Test that if tag is enabled by default";
+test("Test that an unclosed with statement throws an error", mocktimeout(function(assert) {
+        
+        var tpl = new plate.Template("{% with x as y %}\n\n yeahhhhh");
+        tpl.render({}, function(err, data){
+            assert.strictEqual(data, null);
+            assert.ok(err instanceof Error);
+        });
+    })
+)
+
+test("Test that if tag is enabled by default", mocktimeout(function(assert) {
+        
         var tpl = new plate.Template("{% if x %}{% endif %}");
         assert.doesNotThrow(function() {
             tpl.render({}, function(err, data) {});
         });
-    },
-    function(assert) {
-        "Test that =, ==, and != work";
+    })
+)
+
+test("Test that =, ==, and != work", mocktimeout(function(assert) {
+        
         var pairs = [[~~(Math.random()*10), ~~(10 + Math.random()*10)],
                     [3, 3],
                     ['string', 'string']],
@@ -269,12 +295,14 @@ exports.TestIfTag = platoon.unit({},
                 '=', '=', '='
             ].join('\n')+'\n';
 
-        tpl.render(context, assert.async(function(err, data) {
+        tpl.render(context, function(err, data) {
             assert.strictEqual(expect, data);
-        }));
-    },
-    function(assert) {
-        "Test that in and not in work";
+        });
+    })
+)
+
+test("Test that in and not in work", mocktimeout(function(assert) {
+        
         var tpl = new plate.Template("{% for x,y,z in list %}{% if x in y %}y{% endif %}{% if x not in y %}n{% endif %}:{{ z }}\n{% endfor %}"),
             tests = [
                 [[1,2], [1,2,3], 'n'],
@@ -283,16 +311,18 @@ exports.TestIfTag = platoon.unit({},
                 ['hi', 'asahi', 'y'],
                 ['no', 'yes', 'n']
             ];
-        tpl.render({list:tests}, assert.async(function(err, data) {
+        tpl.render({list:tests}, function(err, data) {
             var items = data.split('\n').slice(0, -1);
             while(items.length) {
                 var v = items.shift().split(':');
                 assert.equal(v[0],v[1]);
             }
-        }));
-    },
-    function(assert) {
-        "Test that >, <, <=, and >= work";
+        });
+    })
+)
+
+test("Test that >, <, <=, and >= work", mocktimeout(function(assert) {
+        
         var pairs = [[~~(Math.random()*10), ~~(10 + Math.random()*10)],
                     [3, 3],
                     ['string', 'string']],
@@ -311,34 +341,39 @@ exports.TestIfTag = platoon.unit({},
                 '>=', '<=', '<=', '>='
             ].join('\n')+'\n';
 
-        tpl.render(context, assert.async(function(err, data) {
+        tpl.render(context, function(err, data) {
             assert.strictEqual(expect, data);
-        }));
-    }
-);
+        });
+    })
+)
 
 
-exports.TestExtendsAndBlockTags = platoon.unit({},
-    function(assert) {
-        "Test that extends does not trigger a parser error.";
+test("Test that extends does not trigger a parser error.", mocktimeout(function(assert) {
+        
         var tpl = new plate.Template("{% extends whatever %}");
         plate.Template.Meta.registerPlugin('loader', function() {})
         assert.doesNotThrow(function() {
             tpl.getNodeList();
         });
-    },
-    function(assert) {
-        "Test that extending a template produces super great results.";
+    })
+)
+
+test("Test that extending a template produces super great results.", function(assert) {
+        
         var base = new plate.Template("hey {% block who %}<b>gary</b>{% endblock %}, how are you?"),
             child = new plate.Template("{% extends base %}{% block who %}{{ block.super }} busey{% endblock %}"),
             ctxt = { base:base };
 
+        assert.plan(2)
         child.render(ctxt, function(err, data) {
+            assert.equal(err, null)
             assert.equal(data, "hey <b>gary</b> busey, how are you?");
         });
-    },
-    function(assert) {
-        "Test that multilevel extending works";
+    }
+)
+
+test("Test that multilevel extending works", function(assert) {
+        
         var base = new plate.Template("hey {% block firstname %}{% endblock %} {% block lastname %}{% endblock %}"+
                                         ", {% block greeting %}hi there{% endblock %}"),
             child1 = new plate.Template("{% extends base %}{% block firstname %}gary{% endblock %}"),
@@ -348,35 +383,43 @@ exports.TestExtendsAndBlockTags = platoon.unit({},
                 base:base,
                 child:child1
             };
+
+        assert.plan(2)
         child2.render(context, function(err, data) {
+            assert.equal(err, null)
             assert.equal(data, "hey gary m. busey, hi there");
         });
     }
-);
+)
 
-exports.TestIncludeTag = platoon.unit({},
-    function(assert) {
-        "Test that include does not trigger a parser error";
+test("Test that include does not trigger a parser error", mocktimeout(function(assert) {
+        
         var tpl = new plate.Template("{% include something %}");
 
 
         assert.doesNotThrow(function() {
             tpl.getNodeList();
         });
-    },
-    function(assert) {
-        "Test that include will include the contents of the included template into the includer.";
+    })
+)
+
+test("Test that include will include the contents of the included template into the includer.", function(assert) {
+        
         var random = "random-"+Math.random(),
             include = new plate.Template(random),
             tpl = new plate.Template("{% include tpl %}"),
             context = { tpl:include };
 
         tpl.render(context, function(err, data) {
+            assert.equal(err, null)
             assert.equal(data, random);
+            assert.end()
         });
-    },
-    function(assert) {
-        "Test that the loader plugin works with include";
+    }
+)
+
+test("Test that the loader plugin works with include", function(assert) {
+        
         if(typeof window !== 'undefined')
           return;
 
@@ -401,51 +444,54 @@ exports.TestIncludeTag = platoon.unit({},
             tpl = new plate.Template("{% include \""+name+"\" %}", {
                 plugin_library:new pluginLib()
             });
-        tpl.render({}, assert.async(function(err, data) {
-            assert.equal(data, name);
-        }));
-    }
-);
 
-exports.TestCommentTag = platoon.unit({},
-    function(assert) {
-        "Test that comment does not trigger a parser error";
+        tpl.render({}, function(err, data) {
+            assert.equal(err, null);
+            assert.equal(data, name);
+            assert.end()
+        });
+    }
+)
+
+test("Test that comment does not trigger a parser error", mocktimeout(function(assert) {
+        
         var tpl = new plate.Template("{% comment %}{% endcomment %}");
         assert.doesNotThrow(function() {
             tpl.getNodeList();
         });
-    },
-    function(assert) {
-        "Test that comment omits all items wrapped inside the comment block.";
+    })
+)
+
+test("Test that comment omits all items wrapped inside the comment block.", mocktimeout(function(assert) {
+        
         var tpl = new plate.Template("{% comment %}asdf{% endcomment %}");
-        tpl.render({}, assert.async(function(err, data) {
+        tpl.render({}, function(err, data) {
             assert.equal(data, '');
-        }));
-    }
-);
+        });
+    })
+)
 
-exports.TestNowTag = platoon.unit({},
-    function(assert) {
-      "test that now defaults to now N y, J"
-
+test("test that now defaults to now N y, J", mocktimeout(function(assert) {
       var tpl = new plate.Template('{% now %}')
         , now = format(new Date, 'N j, Y')
 
-      tpl.render({}, assert.async(function(err, data) {
+      tpl.render({}, function(err, data) {
         assert.equal(data, now)
-      })) 
+      }) 
 
-    },
-    function(assert) {
-      "test that now can be configured with another argument";
+    })
+)
+
+test("test that now can be configured with another argument", mocktimeout(function(assert) {
+      
 
       var tpl = new plate.Template('{% now "jS o\\f F" %}')
         , now = format(new Date, 'jS o\\f F')
 
-      tpl.render({}, assert.async(function(err, data) {
+      tpl.render({}, function(err, data) {
         assert.equal(data, now)
-      })) 
+      }) 
 
-    }
-);
+    })
+)
 

@@ -1,26 +1,41 @@
 {
-    "name": "plate",
-    "version":"1.0.4",
-    "description": "A javascript templating language",
-    "keywords": [ 
-        "template",
-        "dtl"
-    ],
-    "author":"Chris Dickinson",
-    "directories":{"lib":"./lib"},
-    "dependencies":{
-        "tz":"0.X.X",
-        "dst":"0.X.X"
-    },
-    "devDependencies":{
-        "platoon":"0.X.X"
-    },
-    "scripts":{
-        "test":"make test"
-    },
-    "license": [
-        "New BSD License"
-    ],
-    "main":"./index",
-    "browserify":"./browserify"
+  "name": "plate",
+  "version": "1.0.4",
+  "description": "A javascript templating language",
+  "keywords": [
+    "template",
+    "dtl"
+  ],
+  "author": "Chris Dickinson",
+  "directories": {
+    "lib": "./lib"
+  },
+  "dependencies": {
+    "tz": "0.X.X",
+    "dst": "0.X.X",
+    "tape": "~0.1.3"
+  },
+  "devDependencies": {
+    "platoon": "0.X.X",
+    "tape": "~0.1.5",
+    "testling": "~0.2.5"
+  },
+  "scripts": {
+    "test": "make test"
+  },
+  "license": [
+    "New BSD License"
+  ],
+  "main": "./index",
+  "browserify": "./browserify",
+  "testling": {
+    "files": "test/index.js",
+    "browsers": {
+      "ie": [ 8, 9 ],
+      "firefox": [ 13 ],
+      "chrome": [ 20 ],
+      "safari": [ 5.1 ],
+      "opera": [ 12 ]
+    }
+  }
 }

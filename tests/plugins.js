@@ -1,28 +1,27 @@
-if(typeof window !== 'undefined') {
-  return
-}
-
 var plate = require('../index'),
     path = require('path'),
-    platoon = require('platoon'),
+    test = require('tape'),
     libraries = require('../lib/libraries'),
-    filesystem = require('../lib/plugins/loaders/filesystem');
+    filesystem = require('../lib/plugins/loaders/filesystem'),
+    mocktimeout = require('./mocktimeout')
 
-exports.TestOfFilesystemLoader = platoon.unit({}, 
-    function(assert) {
-        "Test that the filesystem loader returns templates from filesystem.";
+test("Test that the filesystem loader returns templates from filesystem.", function(assert) {
+        
         var loader = new filesystem.Loader(
                 [path.join(__dirname, 'templates')]
             );
 
         var p = loader.lookup('test.html')
         
-        p.once('done', assert.async(function(template) {
-            assert.isInstance(template, plate.Template);
-        }));
-    },
-    function(assert) {
-        "Test that the filesystem loader works with the extends tag";
+        p.once('done', function(template) {
+            assert.ok(template instanceof plate.Template);
+            assert.end()
+        });
+    }
+)
+
+test("Test that the filesystem loader works with the extends tag", function(assert) {
+        
         var lib = new libraries.Library(),
             loader = new filesystem.Loader( 
                 [path.join(__dirname, 'templates')]
@@ -35,11 +34,13 @@ exports.TestOfFilesystemLoader = platoon.unit({},
             });
         });
 
-        loader.lookup('test_child.html').once('done', assert.async(function(template) {
-            assert.isInstance(template, plate.Template);
-            template.render({}, assert.async(function(err, data) {
+        loader.lookup('test_child.html').once('done', function(template) {
+            assert.ok(template instanceof plate.Template);
+            template.render({}, function(err, data) {
                 assert.equal(data, "hello world!\n");
-            }));
-        }));
+
+                assert.end()
+            });
+        });
     }
-);
+)
