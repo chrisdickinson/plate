@@ -33,11 +33,11 @@
       "tests/plate.js"
     ],
     "browsers": {
-      "ie": [ 8, 9 ],
-      "firefox": [ 13 ],
+      "ie": [ 7, 8, 9 ],
+      "firefox": [ 4, 13 ],
       "chrome": [ 20 ],
-      "safari": [ 5.1 ],
-      "opera": [ 12 ]
+      "safari": [ 5.1, 6 ],
+      "opera": [ 10, 12 ]
     }
   }
 }
