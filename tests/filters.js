@@ -8,7 +8,6 @@ test("Test that the add filter works as expected", mocktimeout(function(assert) 
         var tpl = new plate.Template("{{ test|add:3 }}"),
             rnd = ~~(Math.random()*10);
 
-        assert.plan(1)
         tpl.render({'test':rnd}, function(err, data) {
             assert.equal((rnd+3), parseInt(data, 10));
         });
@@ -27,7 +26,6 @@ test("Test that the addslashes filter works as expected", mocktimeout(function(a
         inp = inp.join("asdf");
         ctxt.test = inp;
 
-        assert.plan(1)
         tpl.render(ctxt, function(err, data) {
             assert.equal(data.split('\\').length, num+1);
         });
@@ -44,7 +42,6 @@ test("Test that the capfirst filter works as expected", mocktimeout(function(ass
                     assert.equal(data.charAt(0), item.toString().charAt(0).toUpperCase());
                 });
             };
-        assert.plan(corpus.length)
         for(var i = 0; i < corpus.length; ++i) {
             emitter(corpus[i]);
         }
