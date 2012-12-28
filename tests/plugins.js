@@ -1,4 +1,4 @@
-if(typeof window !== 'undefined') return
+if(typeof window === 'undefined') {
 
 var plate = require('../index'),
     path = require('path'),
@@ -46,3 +46,5 @@ test("Test that the filesystem loader works with the extends tag", function(asse
         });
     }
 )
+
+}
