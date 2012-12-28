@@ -37,6 +37,7 @@
       "tests/tags.js",
       "tests/utils.js"
     ],
+    "scripts": [ "vendor/es5-shim.min.js" ],
     "browsers": {
       "ie": [
         7,
