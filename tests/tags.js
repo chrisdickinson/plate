@@ -419,10 +419,6 @@ test("Test that include will include the contents of the included template into 
 )
 
 test("Test that the loader plugin works with include", function(assert) {
-        
-        if(typeof window !== 'undefined')
-          return;
-
         var Promise = require('../lib/promise')
 
         var loader = function(name) {

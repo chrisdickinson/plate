@@ -1,3 +1,5 @@
+if(typeof window !== 'undefined') return
+
 var plate = require('../index'),
     path = require('path'),
     test = require('tape'),
