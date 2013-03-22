@@ -123,4 +123,4 @@ $ open http://localhost:8000/test.html
 
 License
 -----------------
-Licensed new BSD.
+Licensed MIT.

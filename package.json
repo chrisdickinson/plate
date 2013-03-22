@@ -20,14 +20,10 @@
   "scripts": {
     "test": "node tests/index.js"
   },
-  "license": [
-    "New BSD License"
-  ],
+  "license": "MIT"
   "main": "./index",
   "testling": {
-    "files": [
-      "tests/index.js"
-    ],
+    "files": "tests/index.js",
     "scripts": [
       "vendor/es5-shim.min.js"
     ],
