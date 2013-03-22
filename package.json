@@ -1,6 +1,6 @@
 {
   "name": "plate",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "A javascript templating language",
   "keywords": [
     "template",
@@ -35,7 +35,9 @@
       "tests/tags.js",
       "tests/utils.js"
     ],
-    "scripts": [ "vendor/es5-shim.min.js" ],
+    "scripts": [
+      "vendor/es5-shim.min.js"
+    ],
     "browsers": {
       "ie": [
         7,
