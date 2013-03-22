@@ -32,27 +32,13 @@
     "scripts": [
       "vendor/es5-shim.min.js"
     ],
-    "browsers": {
-      "ie": [
-        7,
-        8,
-        9
-      ],
-      "firefox": [
-        4,
-        13
-      ],
-      "chrome": [
-        20
-      ],
-      "safari": [
-        5.1,
-        6
-      ],
-      "opera": [
-        10,
-        12
-      ]
-    }
+    "browsers": [
+      "ie/7..latest",
+      "firefox/4..latest",
+      "chrome/20..latest",
+      "safari/5..latest",
+      "iphone/6",
+      "ipad/6"
+    ]
   }
 }

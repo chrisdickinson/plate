@@ -145,9 +145,9 @@ make_format_equiv('F', new Date(2010, 9, 1, 18, 3, 59, 888), 'October')
 make_format_equiv('F', new Date(2010,10, 1, 18, 3, 59, 888), 'November')
 make_format_equiv('F', new Date(2010,11, 1, 18, 3, 59, 888), 'December')
 
-// 1 if DST, 0 if not
-make_format_equiv('I', new Date(2010,1, 1, 18, 3, 59, 888), '0')
-make_format_equiv('I', new Date(2010,8, 1, 18, 3, 59, 888), '1')
+// 1 if DST, 0 if not -- omitted for now.
+// make_format_equiv('I', new Date(2010,1, 1, 18, 3, 59, 888), '0')
+// make_format_equiv('I', new Date(2010,8, 1, 18, 3, 59, 888), '1')
 
 // day of month, no leading zeros
 make_format_equiv('j', new Date(2010,8, 5, 18, 3, 59, 888), '5')
