@@ -8,4 +8,10 @@ if(typeof define !== 'undefined' && define.amd) {
 }
 
 plate.utils = plate.date = require('./lib/date')
+plate.utils.Promise = require('./lib/promise')
+plate.utils.SafeString = function(str) {
+  str = new String(str)
+  str.safe = true
+  return str
+}
 plate.libraries = require('./lib/libraries')
