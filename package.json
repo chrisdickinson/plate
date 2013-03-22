@@ -24,7 +24,6 @@
     "New BSD License"
   ],
   "main": "./index",
-  "browserify": "./browserify",
   "testling": {
     "files": [
       "tests/index.js"
