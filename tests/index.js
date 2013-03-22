@@ -1,5 +1,7 @@
+var _require = require
+
 require('./tags')
-require('./plugins')
+_require('./plugins')
 require('./plate')
 require('./filters')
 require('./utils')
