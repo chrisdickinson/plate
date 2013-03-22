@@ -11,7 +11,7 @@
     "lib": "./lib"
   },
   "dependencies": {
-    "tz": "0.X.X",
+    "tz": "0.0.4",
     "dst": "0.X.X",
     "tape": "~0.1.3"
   },
