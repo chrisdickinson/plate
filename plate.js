@@ -187,6 +187,10 @@ module.exports = {
 module.exports = Context
 
 function Context(from) {
+  if(from && from.constructor === Context) {
+    return from
+  }
+
   from = from || {}
   for(var key in from) if(from.hasOwnProperty(key)) {
     this[key] = from[key]
@@ -240,27 +244,7 @@ function errorOnNull(fn, msg) {
 }
 
 
-},{}],4:[function(require,module,exports){
-module.exports = TagToken
-
-var Token = require('./token')
-
-function TagToken(content, line) {
-  Token.call(this, content, line)
-}
-
-var cons = TagToken
-  , proto = cons.prototype = new Token
-
-proto.constructor = cons
-
-proto.node = function(parser) {
-  var tag = parser.tags.lookup(this.name)
-
-  return tag(this.content, parser)
-}
-
-},{"./token":14}],3:[function(require,module,exports){
+},{}],3:[function(require,module,exports){
 var Token = require('./token')
   , FilterNode = require('./filter_node')
 
@@ -280,26 +264,46 @@ proto.node = function(parser) {
 }
 
 
-},{"./token":14,"./filter_node":15}],6:[function(require,module,exports){
-module.exports = TextToken
+},{"./token":14,"./filter_node":15}],4:[function(require,module,exports){
+module.exports = TagToken
 
 var Token = require('./token')
-  , TextNode = require('./text_node')
 
-function TextToken(content, line) {
+function TagToken(content, line) {
   Token.call(this, content, line)
 }
 
-var cons = TextToken
+var cons = TagToken
   , proto = cons.prototype = new Token
 
 proto.constructor = cons
 
 proto.node = function(parser) {
-  return new TextNode(this.content)
+  var tag = parser.tags.lookup(this.name)
+
+  return tag(this.content, parser)
 }
 
-},{"./token":14,"./text_node":16}],5:[function(require,module,exports){
+},{"./token":14}],16:[function(require,module,exports){
+require('dst')
+
+var plate = require('./lib/index')
+if(typeof define !== 'undefined' && define.amd) {
+  define('plate', [], function() { return plate })
+} else {
+  window.plate = plate
+}
+
+plate.utils = plate.date = require('./lib/date')
+plate.utils.Promise = require('./lib/promise')
+plate.utils.SafeString = function(str) {
+  str = new String(str)
+  str.safe = true
+  return str
+}
+plate.libraries = require('./lib/libraries')
+
+},{"./lib/index":2,"./lib/date":17,"./lib/promise":1,"./lib/libraries":7,"dst":18}],5:[function(require,module,exports){
 module.exports = CommentToken
 
 var Token = require('./token')
@@ -319,7 +323,26 @@ proto.node = function(parser) {
 }
 
 
-},{"./token":14}],8:[function(require,module,exports){
+},{"./token":14}],6:[function(require,module,exports){
+module.exports = TextToken
+
+var Token = require('./token')
+  , TextNode = require('./text_node')
+
+function TextToken(content, line) {
+  Token.call(this, content, line)
+}
+
+var cons = TextToken
+  , proto = cons.prototype = new Token
+
+proto.constructor = cons
+
+proto.node = function(parser) {
+  return new TextNode(this.content)
+}
+
+},{"./token":14,"./text_node":19}],8:[function(require,module,exports){
 module.exports = Parser
 
 var NodeList = require('./node_list')
@@ -537,7 +560,7 @@ proto.compile = function(content) {
   return output
 }
 
-},{"./node_list":17,"./filter_chain":18,"./filter_lookup":19,"./filter_application":20}],10:[function(require,module,exports){
+},{"./node_list":20,"./filter_chain":21,"./filter_lookup":22,"./filter_application":23}],10:[function(require,module,exports){
 var libraries = require('./libraries')
 
 module.exports = Meta
@@ -620,7 +643,7 @@ proto.builtins = {
   , 'with': require('./tags/with').parse
 }
 
-},{"./library":11,"./tags/block":21,"./tags/comment":22,"./tags/extends":23,"./tags/for":24,"./tags/if/node":25,"./tags/include":26,"./tags/now":27,"./tags/with":28}],13:[function(require,module,exports){
+},{"./library":11,"./tags/block":24,"./tags/comment":25,"./tags/extends":26,"./tags/for":27,"./tags/if/node":28,"./tags/include":29,"./tags/now":30,"./tags/with":31}],13:[function(require,module,exports){
 var Library = require('./library')
 
 module.exports = DefaultFilters
@@ -688,26 +711,7 @@ proto.builtins = {
 }
 
 
-},{"./library":11,"./filters/add":29,"./filters/addslashes":30,"./filters/capfirst":31,"./filters/center":32,"./filters/cut":33,"./filters/date":34,"./filters/default":35,"./filters/dictsort":36,"./filters/dictsortreversed":37,"./filters/divisibleby":38,"./filters/escape":39,"./filters/filesizeformat":40,"./filters/first":41,"./filters/floatformat":42,"./filters/force_escape":43,"./filters/get_digit":44,"./filters/index":45,"./filters/iteritems":46,"./filters/iriencode":47,"./filters/join":48,"./filters/last":49,"./filters/length":50,"./filters/length_is":51,"./filters/linebreaks":52,"./filters/linebreaksbr":53,"./filters/linenumbers":54,"./filters/ljust":55,"./filters/lower":56,"./filters/make_list":57,"./filters/phone2numeric":58,"./filters/pluralize":59,"./filters/random":60,"./filters/rjust":61,"./filters/safe":62,"./filters/slice":63,"./filters/slugify":64,"./filters/striptags":65,"./filters/timesince":66,"./filters/timeuntil":67,"./filters/title":68,"./filters/truncatechars":69,"./filters/truncatewords":70,"./filters/unordered_list":71,"./filters/upper":72,"./filters/urlencode":73,"./filters/urlize":74,"./filters/urlizetrunc":75,"./filters/wordcount":76,"./filters/wordwrap":77,"./filters/yesno":78}],79:[function(require,module,exports){
-require('dst')
-
-var plate = require('./lib/index')
-if(typeof define !== 'undefined' && define.amd) {
-  define('plate', [], function() { return plate })
-} else {
-  window.plate = plate
-}
-
-plate.utils = plate.date = require('./lib/date')
-plate.utils.Promise = require('./lib/promise')
-plate.utils.SafeString = function(str) {
-  str = new String(str)
-  str.safe = true
-  return str
-}
-plate.libraries = require('./lib/libraries')
-
-},{"./lib/index":2,"./lib/date":80,"./lib/promise":1,"./lib/libraries":7,"dst":81}],14:[function(require,module,exports){
+},{"./library":11,"./filters/add":32,"./filters/addslashes":33,"./filters/capfirst":34,"./filters/center":35,"./filters/cut":36,"./filters/date":37,"./filters/default":38,"./filters/dictsort":39,"./filters/dictsortreversed":40,"./filters/divisibleby":41,"./filters/escape":42,"./filters/filesizeformat":43,"./filters/first":44,"./filters/floatformat":45,"./filters/force_escape":46,"./filters/get_digit":47,"./filters/index":48,"./filters/iteritems":49,"./filters/iriencode":50,"./filters/join":51,"./filters/last":52,"./filters/length":53,"./filters/length_is":54,"./filters/linebreaks":55,"./filters/linebreaksbr":56,"./filters/linenumbers":57,"./filters/ljust":58,"./filters/lower":59,"./filters/make_list":60,"./filters/phone2numeric":61,"./filters/pluralize":62,"./filters/random":63,"./filters/rjust":64,"./filters/safe":65,"./filters/slice":66,"./filters/slugify":67,"./filters/striptags":68,"./filters/timesince":69,"./filters/timeuntil":70,"./filters/title":71,"./filters/truncatechars":72,"./filters/truncatewords":73,"./filters/unordered_list":74,"./filters/upper":75,"./filters/urlencode":76,"./filters/urlize":77,"./filters/urlizetrunc":78,"./filters/wordcount":79,"./filters/wordwrap":80,"./filters/yesno":81}],14:[function(require,module,exports){
 module.exports = Token
 
 function Token(content, line) {
@@ -735,532 +739,7 @@ proto.is = function(names) {
   return false
 }
 
-},{}],16:[function(require,module,exports){
-module.exports = TextNode
-
-function TextNode(content) {
-  this.content = content
-}
-
-var cons = TextNode
-  , proto = cons.prototype
-
-proto.render = function(context) {
-  return this.content
-}
-
 },{}],18:[function(require,module,exports){
-module.exports = FilterChain
-
-function FilterChain(bits) {
-  this.bits = bits
-}
-
-var cons = FilterChain
-  , proto = cons.prototype
-
-proto.attach = function(parser) {
-  for(var i = 0, len = this.bits.length; i < len; ++i) {
-    if(this.bits[i] && this.bits[i].attach) { 
-      this.bits[i].attach(parser)
-    }
-  }
-}
-
-proto.resolve = function(context) {
-  var result = this.bits[0].resolve ?
-      this.bits[0].resolve(context) :
-      this.bits[0]
-
-  for(var i = 1, len = this.bits.length; i < len; ++i) {
-    result = this.bits[i].resolve(context, result)
-  }
-
-  return result
-}
-
-
-},{}],22:[function(require,module,exports){
-module.exports = CommentNode
-
-function CommentNode() {
-  // no-op.
-}
-
-var cons = CommentNode
-  , proto = cons.prototype
-
-proto.render = function(context) {
-  return ''
-}
-
-cons.parse = function(contents, parser) {
-  nl = parser.parse(['endcomment'])
-  parser.tokens.shift()
-
-  return new cons
-}
-
-},{}],31:[function(require,module,exports){
-module.exports = function(input) {
-  var str = input.toString();
-  return [str.slice(0,1).toUpperCase(), str.slice(1)].join('')
-}
-
-},{}],32:[function(require,module,exports){
-module.exports = function(input, len, ready) {
-  if(ready === undefined)
-    len = 0
-
-  var str = input.toString()
-    , value = ' '
-
-  len -= str.length
-  if(len < 0) { 
-    return str
-  }
-
-  var len_half = len/2.0
-    , arr = []
-    , idx = Math.floor(len_half)
-
-  while(idx-- > 0) {
-    arr.push(value)
-  }
-
-  arr = arr.join('')
-  str = arr + str + arr
-  if((len_half - Math.floor(len_half)) > 0) {
-    str = input.toString().length % 2 == 0 ? value + str : str + value
-  }
-  
-  return str
-}
-
-},{}],29:[function(require,module,exports){
-module.exports = function(input, value) {
-  return parseInt(input, 10) + parseInt(value, 10)
-}
-
-},{}],33:[function(require,module,exports){
-module.exports = function(input, value) {
-  var str = input.toString()
-  return str.replace(new RegExp(value, "g"), '')
-}
-
-},{}],36:[function(require,module,exports){
-module.exports = function(input, key) {
-  return input.sort(function(x, y) {
-    if(x[key] > y[key]) return 1
-    if(x[key] == y[key]) return 0
-    if(x[key] < y[key]) return -1
-  })
-}
-
-},{}],35:[function(require,module,exports){
-module.exports = function(input, def, ready) {
-  return input ? input : def
-}
-
-},{}],30:[function(require,module,exports){
-module.exports = function(input) {
-  return input.toString().replace(/'/g, "\\'")
-}
-
-},{}],38:[function(require,module,exports){
-module.exports = function(input, num) {
-  return input % parseInt(num, 10) == 0
-}
-
-},{}],40:[function(require,module,exports){
-module.exports = function(input) {
-  var num = (new Number(input)).valueOf()
-    , singular = num == 1 ? '' : 's'
-    , value 
-    
-  value =
-    num < 1024 ? num + ' byte'+singular :
-    num < (1024*1024) ? (num/1024)+' KB' :
-    num < (1024*1024*1024) ? (num / (1024*1024)) + ' MB' :
-    num / (1024*1024*1024) + ' GB'
-
-  return value
-}
-
-},{}],45:[function(require,module,exports){
-
-},{}],41:[function(require,module,exports){
-module.exports = function(input) {
-  return input[0]
-}
-
-},{}],44:[function(require,module,exports){
-module.exports = function(input, digit) {
-  var isNum = !isNaN(parseInt(input, 10))
-    , str = input.toString()
-    , len = str.split('').length
-
-  digit = parseInt(digit, 10)
-  if(isNum && !isNaN(digit) && digit <= len) {
-    return str.charAt(len - digit)
-  }
-
-  return input
-}
-
-},{}],42:[function(require,module,exports){
-module.exports = function(input, val) {
-  val = parseInt(val, 10)
-  val = isNaN(val) ? -1 : val
-
-  var isPositive = val >= 0
-    , asNumber = parseFloat(input)
-    , absValue = Math.abs(val)
-    , pow = Math.pow(10, absValue)
-    , pow_minus_one = Math.pow(10, Math.max(absValue-1, 0))
-    , asString
-
-  asNumber = Math.round((pow * asNumber) / pow_minus_one)
-
-  if(val !== 0)
-    asNumber /= 10
-
-  asString = asNumber.toString()
-
-  if(isPositive) {
-    var split = asString.split('.')
-      , decimal = split.length > 1 ? split[1] : ''
-
-    while(decimal.length < val) {
-      decimal += '0'
-    }
-
-    asString = decimal.length ? [split[0], decimal].join('.') : split[0]
-  }
-
-  return asString
-}
-
-},{}],46:[function(require,module,exports){
-module.exports = function(input) {
-  var output = []
-  for(var name in input) if(input.hasOwnProperty(name)) {
-    output.push([name, input[name]])
-  }
-  return output
-}
-
-},{}],47:[function(require,module,exports){
-module.exports = function(input) {
-  return input
-}
-
-},{}],48:[function(require,module,exports){
-module.exports = function(input, glue) {
-  input = input instanceof Array ? input : input.toString().split('')
-  return input.join(glue)
-}
-
-},{}],49:[function(require,module,exports){
-module.exports = function(input) {
-  var cb = input.charAt || function(ind) { return input[ind]; }
-
-  return cb.call(input, input.length-1);
-}
-
-},{}],50:[function(require,module,exports){
-module.exports = function(input, ready) {
-  if(input && typeof input.length === 'function') {
-    return input.length(ready)
-  }
-  return input.length
-}
-
-},{}],51:[function(require,module,exports){
-module.exports = function(input, expected, ready) {
-  var tmp
-  if(input && typeof input.length === 'function') {
-    tmp = input.length(function(err, len) {
-      ready(err, err ? null : len === expected)
-    })
-
-    return tmp === undefined ? undefined : tmp === expected
-  }
-
-  return input.length === expected
-}
-
-},{}],54:[function(require,module,exports){
-module.exports = function(input) {
-  var str = input.toString()
-    , bits = str.split('\n')
-    , out = []
-    , len = bits.length
-
-  while(bits.length) {
-    out.unshift(len - out.length + '. ' + bits.pop())
-  }
-
-  return out.join('\n')
-}
-
-},{}],55:[function(require,module,exports){
-module.exports = function(input, num) {
-  var bits = (input === null || input === undefined ? '' : input).toString().split('')
-    , difference = num - bits.length
-
-  // push returns new length of array.
-  while(difference > 0) {
-    difference = num - bits.push(' ')
-  }
-
-  return bits.join('')
-}
-
-},{}],56:[function(require,module,exports){
-module.exports = function(input) {
-  return input.toString().toLowerCase()
-}
-
-},{}],57:[function(require,module,exports){
-module.exports = function(input) {
-  input = input instanceof Array ? input : input.toString().split('')
-
-  return input
-}
-
-},{}],59:[function(require,module,exports){
-module.exports = function(input, plural) {
-  plural = (plural || 's').split(',')
-
-  var val = Number(input)
-    , suffix
-
-  suffix = plural[plural.length-1];
-  if(val === 1) {
-    suffix = plural.length > 1 ? plural[0] : '';    
-  }
-
-  return suffix
-}
-
-},{}],58:[function(require,module,exports){
-
-var LETTERS = {
-'a': '2', 'b': '2', 'c': '2', 'd': '3', 'e': '3',
-'f': '3', 'g': '4', 'h': '4', 'i': '4', 'j': '5', 'k': '5', 'l': '5',
-'m': '6', 'n': '6', 'o': '6', 'p': '7', 'q': '7', 'r': '7', 's': '7',
-'t': '8', 'u': '8', 'v': '8', 'w': '9', 'x': '9', 'y': '9', 'z': '9'
-};
-
-module.exports = function(input) {
-  var str = input.toString().toLowerCase().split('')
-    , out = []
-    , ltr
-
-  while(str.length) {
-    ltr = str.pop()
-    out.unshift(LETTERS[ltr] ? LETTERS[ltr] : ltr)
-  }
-
-  return out.join('')
-}
-
-},{}],60:[function(require,module,exports){
-module.exports = function(input) {
-  var cb = input.charAt || function(idx) {
-    return this[idx];
-  };
-
-  return cb.call(input, Math.floor(Math.random() * input.length))
-}
-
-},{}],61:[function(require,module,exports){
-module.exports = function(input, num) {
-  var bits = (input === null || input === undefined ? '' : input).toString().split('')
-    , difference = num - bits.length
-
-  // push returns new length of array.
-  // NB: [].unshift returns `undefined` in IE<9.
-  while(difference > 0) {
-    difference = (bits.unshift(' '), num - bits.length)
-  }
-
-  return bits.join('')
-}
-
-},{}],63:[function(require,module,exports){
-module.exports = function(input, by) {
-  by = by.toString()
-  if(by.charAt(0) === ':') {
-    by = '0'+by
-  }
-
-  if(by.charAt(by.length-1) === ':') {
-    by = by.slice(0, -1)
-  }
-
-  var splitBy = by.split(':')
-    , slice = input.slice || (function() {
-        input = this.toString()
-        return input.slice
-      })()
-
-  return slice.apply(input, splitBy)
-}
-
-},{}],65:[function(require,module,exports){
-module.exports = function(input) {
-  var str = input.toString()
-  return str.replace(/<[^>]*?>/g, '')
-}
-
-},{}],64:[function(require,module,exports){
-module.exports = function(input) {
-  input = input.toString()
-  return input
-        .replace(/[^\w\s\d\-]/g, '')
-        .replace(/^\s*/, '')
-        .replace(/\s*$/, '')
-        .replace(/[\-\s]+/g, '-')
-        .toLowerCase()
-}
-
-},{}],66:[function(require,module,exports){
-module.exports = function(input, n, ready) {
-  var input = new Date(input)
-    , now   = ready === undefined ? new Date() : new Date(n)
-    , diff  = input - now
-    , since = Math.abs(diff)
-
-  if(diff > 0)
-    return '0 minutes'
-
-  // 365.25 * 24 * 60 * 60 * 1000 === years
-  var years =   ~~(since / 31557600000)
-    , months =  ~~((since - (years*31557600000)) / 2592000000)
-    , days =    ~~((since - (years * 31557600000 + months * 2592000000)) / 86400000)
-    , hours =   ~~((since - (years * 31557600000 + months * 2592000000 + days * 86400000)) / 3600000)
-    , minutes = ~~((since - (years * 31557600000 + months * 2592000000 + days * 86400000 + hours * 3600000)) / 60000)
-    , result = [
-        years   ? pluralize(years,    'year') : null
-      , months  ? pluralize(months,   'month') : null
-      , days    ? pluralize(days,     'day') : null
-      , hours   ? pluralize(hours,    'hour') : null
-      , minutes ? pluralize(minutes,  'minute') : null
-    ]
-    , out = []
-
-  for(var i = 0, len = result.length; i < len; ++i) {
-    result[i] !== null && out.push(result[i])
-  }
-
-  if(!out.length) {
-    return '0 minutes'
-  }
-
-  return out[0] + (out[1] ? ', ' + out[1] : '')
-
-  function pluralize(x, str) {
-    return x + ' ' + str + (x === 1 ? '' : 's')
-  }
-}
-
-},{}],68:[function(require,module,exports){
-module.exports = function(input) {
-  var str = input.toString()
-    , bits = str.split(/\s{1}/g)
-    , out = []
-  
-  while(bits.length) {
-    var word = bits.pop()
-    word = word.charAt(0).toUpperCase() + word.slice(1)
-    out.push(word)
-  }
-
-  out = out.join(' ')
-  return out.replace(/([a-z])'([A-Z])/g, function(a, m, x) { return x.toLowerCase() })
-}
-
-},{}],69:[function(require,module,exports){
-module.exports = function(input, n) {
-  var str = input.toString()
-    , num = parseInt(n, 10)
-
-  if(isNaN(num))
-    return input
-
-  if(input.length <= num)
-    return input
-
-  return input.slice(0, num)+'...'
-}
-
-},{}],70:[function(require,module,exports){
-module.exports = function(input, n) {
-  var str = input.toString()
-    , num = parseInt(n, 10)
-    , words
-
-  if(isNaN(num))
-    return input
-
-  words = input.split(/\s+/)
-
-  if(words.length <= num)
-    return input
-
-  return words.slice(0, num).join(' ')+'...'
-}
-
-},{}],73:[function(require,module,exports){
-module.exports = function(input) {
-  return escape(input.toString())
-}
-
-},{}],72:[function(require,module,exports){
-module.exports = function(input) {
-  return input.toString().toUpperCase()
-}
-
-},{}],77:[function(require,module,exports){
-module.exports = function(input, len) {
-  var words = input.toString().split(/\s+/g)
-    , out = []
-    , len = parseInt(len, 10) || words.length
-
-  while(words.length) {
-    out.unshift(words.splice(0, len).join(' '))
-  }
-
-  return out.join('\n')
-}
-
-},{}],76:[function(require,module,exports){
-module.exports = function(input) {
-  var str = input.toString()
-    , bits = str.split(/\s+/g)
-
-  return bits.length
-}
-
-},{}],78:[function(require,module,exports){
-module.exports = function(input, map) {
-  var ourMap = map.toString().split(',')
-    , value
-
-  ourMap.length < 3 && ourMap.push(ourMap[1])
-
-  value = ourMap[
-    input ? 0 :
-    input === false ? 1 :
-    2
-  ]
-
-  return value
-}
-
-},{}],81:[function(require,module,exports){
 ;(function() {
 
 // so, the only way we (reliably) get access to DST in javascript
@@ -1334,6 +813,531 @@ if(typeof module !== 'undefined') {
 
 })()
 
+},{}],19:[function(require,module,exports){
+module.exports = TextNode
+
+function TextNode(content) {
+  this.content = content
+}
+
+var cons = TextNode
+  , proto = cons.prototype
+
+proto.render = function(context) {
+  return this.content
+}
+
+},{}],21:[function(require,module,exports){
+module.exports = FilterChain
+
+function FilterChain(bits) {
+  this.bits = bits
+}
+
+var cons = FilterChain
+  , proto = cons.prototype
+
+proto.attach = function(parser) {
+  for(var i = 0, len = this.bits.length; i < len; ++i) {
+    if(this.bits[i] && this.bits[i].attach) { 
+      this.bits[i].attach(parser)
+    }
+  }
+}
+
+proto.resolve = function(context) {
+  var result = this.bits[0].resolve ?
+      this.bits[0].resolve(context) :
+      this.bits[0]
+
+  for(var i = 1, len = this.bits.length; i < len; ++i) {
+    result = this.bits[i].resolve(context, result)
+  }
+
+  return result
+}
+
+
+},{}],25:[function(require,module,exports){
+module.exports = CommentNode
+
+function CommentNode() {
+  // no-op.
+}
+
+var cons = CommentNode
+  , proto = cons.prototype
+
+proto.render = function(context) {
+  return ''
+}
+
+cons.parse = function(contents, parser) {
+  nl = parser.parse(['endcomment'])
+  parser.tokens.shift()
+
+  return new cons
+}
+
+},{}],32:[function(require,module,exports){
+module.exports = function(input, value) {
+  return parseInt(input, 10) + parseInt(value, 10)
+}
+
+},{}],33:[function(require,module,exports){
+module.exports = function(input) {
+  return input.toString().replace(/'/g, "\\'")
+}
+
+},{}],34:[function(require,module,exports){
+module.exports = function(input) {
+  var str = input.toString();
+  return [str.slice(0,1).toUpperCase(), str.slice(1)].join('')
+}
+
+},{}],35:[function(require,module,exports){
+module.exports = function(input, len, ready) {
+  if(ready === undefined)
+    len = 0
+
+  var str = input.toString()
+    , value = ' '
+
+  len -= str.length
+  if(len < 0) { 
+    return str
+  }
+
+  var len_half = len/2.0
+    , arr = []
+    , idx = Math.floor(len_half)
+
+  while(idx-- > 0) {
+    arr.push(value)
+  }
+
+  arr = arr.join('')
+  str = arr + str + arr
+  if((len_half - Math.floor(len_half)) > 0) {
+    str = input.toString().length % 2 == 0 ? value + str : str + value
+  }
+  
+  return str
+}
+
+},{}],36:[function(require,module,exports){
+module.exports = function(input, value) {
+  var str = input.toString()
+  return str.replace(new RegExp(value, "g"), '')
+}
+
+},{}],38:[function(require,module,exports){
+module.exports = function(input, def, ready) {
+  return input ? input : def
+}
+
+},{}],39:[function(require,module,exports){
+module.exports = function(input, key) {
+  return input.sort(function(x, y) {
+    if(x[key] > y[key]) return 1
+    if(x[key] == y[key]) return 0
+    if(x[key] < y[key]) return -1
+  })
+}
+
+},{}],41:[function(require,module,exports){
+module.exports = function(input, num) {
+  return input % parseInt(num, 10) == 0
+}
+
+},{}],43:[function(require,module,exports){
+module.exports = function(input) {
+  var num = (new Number(input)).valueOf()
+    , singular = num == 1 ? '' : 's'
+    , value 
+    
+  value =
+    num < 1024 ? num + ' byte'+singular :
+    num < (1024*1024) ? (num/1024)+' KB' :
+    num < (1024*1024*1024) ? (num / (1024*1024)) + ' MB' :
+    num / (1024*1024*1024) + ' GB'
+
+  return value
+}
+
+},{}],44:[function(require,module,exports){
+module.exports = function(input) {
+  return input[0]
+}
+
+},{}],45:[function(require,module,exports){
+module.exports = function(input, val) {
+  val = parseInt(val, 10)
+  val = isNaN(val) ? -1 : val
+
+  var isPositive = val >= 0
+    , asNumber = parseFloat(input)
+    , absValue = Math.abs(val)
+    , pow = Math.pow(10, absValue)
+    , pow_minus_one = Math.pow(10, Math.max(absValue-1, 0))
+    , asString
+
+  asNumber = Math.round((pow * asNumber) / pow_minus_one)
+
+  if(val !== 0)
+    asNumber /= 10
+
+  asString = asNumber.toString()
+
+  if(isPositive) {
+    var split = asString.split('.')
+      , decimal = split.length > 1 ? split[1] : ''
+
+    while(decimal.length < val) {
+      decimal += '0'
+    }
+
+    asString = decimal.length ? [split[0], decimal].join('.') : split[0]
+  }
+
+  return asString
+}
+
+},{}],47:[function(require,module,exports){
+module.exports = function(input, digit) {
+  var isNum = !isNaN(parseInt(input, 10))
+    , str = input.toString()
+    , len = str.split('').length
+
+  digit = parseInt(digit, 10)
+  if(isNum && !isNaN(digit) && digit <= len) {
+    return str.charAt(len - digit)
+  }
+
+  return input
+}
+
+},{}],48:[function(require,module,exports){
+
+},{}],49:[function(require,module,exports){
+module.exports = function(input) {
+  var output = []
+  for(var name in input) if(input.hasOwnProperty(name)) {
+    output.push([name, input[name]])
+  }
+  return output
+}
+
+},{}],50:[function(require,module,exports){
+module.exports = function(input) {
+  return input
+}
+
+},{}],51:[function(require,module,exports){
+module.exports = function(input, glue) {
+  input = input instanceof Array ? input : input.toString().split('')
+  return input.join(glue)
+}
+
+},{}],52:[function(require,module,exports){
+module.exports = function(input) {
+  var cb = input.charAt || function(ind) { return input[ind]; }
+
+  return cb.call(input, input.length-1);
+}
+
+},{}],53:[function(require,module,exports){
+module.exports = function(input, ready) {
+  if(input && typeof input.length === 'function') {
+    return input.length(ready)
+  }
+  return input.length
+}
+
+},{}],54:[function(require,module,exports){
+module.exports = function(input, expected, ready) {
+  var tmp
+  if(input && typeof input.length === 'function') {
+    tmp = input.length(function(err, len) {
+      ready(err, err ? null : len === expected)
+    })
+
+    return tmp === undefined ? undefined : tmp === expected
+  }
+
+  return input.length === expected
+}
+
+},{}],57:[function(require,module,exports){
+module.exports = function(input) {
+  var str = input.toString()
+    , bits = str.split('\n')
+    , out = []
+    , len = bits.length
+
+  while(bits.length) {
+    out.unshift(len - out.length + '. ' + bits.pop())
+  }
+
+  return out.join('\n')
+}
+
+},{}],58:[function(require,module,exports){
+module.exports = function(input, num) {
+  var bits = (input === null || input === undefined ? '' : input).toString().split('')
+    , difference = num - bits.length
+
+  // push returns new length of array.
+  while(difference > 0) {
+    difference = num - bits.push(' ')
+  }
+
+  return bits.join('')
+}
+
+},{}],59:[function(require,module,exports){
+module.exports = function(input) {
+  return input.toString().toLowerCase()
+}
+
+},{}],60:[function(require,module,exports){
+module.exports = function(input) {
+  input = input instanceof Array ? input : input.toString().split('')
+
+  return input
+}
+
+},{}],61:[function(require,module,exports){
+
+var LETTERS = {
+'a': '2', 'b': '2', 'c': '2', 'd': '3', 'e': '3',
+'f': '3', 'g': '4', 'h': '4', 'i': '4', 'j': '5', 'k': '5', 'l': '5',
+'m': '6', 'n': '6', 'o': '6', 'p': '7', 'q': '7', 'r': '7', 's': '7',
+'t': '8', 'u': '8', 'v': '8', 'w': '9', 'x': '9', 'y': '9', 'z': '9'
+};
+
+module.exports = function(input) {
+  var str = input.toString().toLowerCase().split('')
+    , out = []
+    , ltr
+
+  while(str.length) {
+    ltr = str.pop()
+    out.unshift(LETTERS[ltr] ? LETTERS[ltr] : ltr)
+  }
+
+  return out.join('')
+}
+
+},{}],62:[function(require,module,exports){
+module.exports = function(input, plural) {
+  plural = (plural || 's').split(',')
+
+  var val = Number(input)
+    , suffix
+
+  suffix = plural[plural.length-1];
+  if(val === 1) {
+    suffix = plural.length > 1 ? plural[0] : '';    
+  }
+
+  return suffix
+}
+
+},{}],63:[function(require,module,exports){
+module.exports = function(input) {
+  var cb = input.charAt || function(idx) {
+    return this[idx];
+  };
+
+  return cb.call(input, Math.floor(Math.random() * input.length))
+}
+
+},{}],64:[function(require,module,exports){
+module.exports = function(input, num) {
+  var bits = (input === null || input === undefined ? '' : input).toString().split('')
+    , difference = num - bits.length
+
+  // push returns new length of array.
+  // NB: [].unshift returns `undefined` in IE<9.
+  while(difference > 0) {
+    difference = (bits.unshift(' '), num - bits.length)
+  }
+
+  return bits.join('')
+}
+
+},{}],66:[function(require,module,exports){
+module.exports = function(input, by) {
+  by = by.toString()
+  if(by.charAt(0) === ':') {
+    by = '0'+by
+  }
+
+  if(by.charAt(by.length-1) === ':') {
+    by = by.slice(0, -1)
+  }
+
+  var splitBy = by.split(':')
+    , slice = input.slice || (function() {
+        input = this.toString()
+        return input.slice
+      })()
+
+  return slice.apply(input, splitBy)
+}
+
+},{}],67:[function(require,module,exports){
+module.exports = function(input) {
+  input = input.toString()
+  return input
+        .replace(/[^\w\s\d\-]/g, '')
+        .replace(/^\s*/, '')
+        .replace(/\s*$/, '')
+        .replace(/[\-\s]+/g, '-')
+        .toLowerCase()
+}
+
+},{}],68:[function(require,module,exports){
+module.exports = function(input) {
+  var str = input.toString()
+  return str.replace(/<[^>]*?>/g, '')
+}
+
+},{}],69:[function(require,module,exports){
+module.exports = function(input, n, ready) {
+  var input = new Date(input)
+    , now   = ready === undefined ? new Date() : new Date(n)
+    , diff  = input - now
+    , since = Math.abs(diff)
+
+  if(diff > 0)
+    return '0 minutes'
+
+  // 365.25 * 24 * 60 * 60 * 1000 === years
+  var years =   ~~(since / 31557600000)
+    , months =  ~~((since - (years*31557600000)) / 2592000000)
+    , days =    ~~((since - (years * 31557600000 + months * 2592000000)) / 86400000)
+    , hours =   ~~((since - (years * 31557600000 + months * 2592000000 + days * 86400000)) / 3600000)
+    , minutes = ~~((since - (years * 31557600000 + months * 2592000000 + days * 86400000 + hours * 3600000)) / 60000)
+    , result = [
+        years   ? pluralize(years,    'year') : null
+      , months  ? pluralize(months,   'month') : null
+      , days    ? pluralize(days,     'day') : null
+      , hours   ? pluralize(hours,    'hour') : null
+      , minutes ? pluralize(minutes,  'minute') : null
+    ]
+    , out = []
+
+  for(var i = 0, len = result.length; i < len; ++i) {
+    result[i] !== null && out.push(result[i])
+  }
+
+  if(!out.length) {
+    return '0 minutes'
+  }
+
+  return out[0] + (out[1] ? ', ' + out[1] : '')
+
+  function pluralize(x, str) {
+    return x + ' ' + str + (x === 1 ? '' : 's')
+  }
+}
+
+},{}],71:[function(require,module,exports){
+module.exports = function(input) {
+  var str = input.toString()
+    , bits = str.split(/\s{1}/g)
+    , out = []
+  
+  while(bits.length) {
+    var word = bits.pop()
+    word = word.charAt(0).toUpperCase() + word.slice(1)
+    out.push(word)
+  }
+
+  out = out.join(' ')
+  return out.replace(/([a-z])'([A-Z])/g, function(a, m, x) { return x.toLowerCase() })
+}
+
+},{}],72:[function(require,module,exports){
+module.exports = function(input, n) {
+  var str = input.toString()
+    , num = parseInt(n, 10)
+
+  if(isNaN(num))
+    return input
+
+  if(input.length <= num)
+    return input
+
+  return input.slice(0, num)+'...'
+}
+
+},{}],73:[function(require,module,exports){
+module.exports = function(input, n) {
+  var str = input.toString()
+    , num = parseInt(n, 10)
+    , words
+
+  if(isNaN(num))
+    return input
+
+  words = input.split(/\s+/)
+
+  if(words.length <= num)
+    return input
+
+  return words.slice(0, num).join(' ')+'...'
+}
+
+},{}],75:[function(require,module,exports){
+module.exports = function(input) {
+  return input.toString().toUpperCase()
+}
+
+},{}],76:[function(require,module,exports){
+module.exports = function(input) {
+  return escape(input.toString())
+}
+
+},{}],79:[function(require,module,exports){
+module.exports = function(input) {
+  var str = input.toString()
+    , bits = str.split(/\s+/g)
+
+  return bits.length
+}
+
+},{}],80:[function(require,module,exports){
+module.exports = function(input, len) {
+  var words = input.toString().split(/\s+/g)
+    , out = []
+    , len = parseInt(len, 10) || words.length
+
+  while(words.length) {
+    out.unshift(words.splice(0, len).join(' '))
+  }
+
+  return out.join('\n')
+}
+
+},{}],81:[function(require,module,exports){
+module.exports = function(input, map) {
+  var ourMap = map.toString().split(',')
+    , value
+
+  ourMap.length < 3 && ourMap.push(ourMap[1])
+
+  value = ourMap[
+    input ? 0 :
+    input === false ? 1 :
+    2
+  ]
+
+  return value
+}
+
 },{}],15:[function(require,module,exports){
 module.exports = FilterNode
 
@@ -1399,7 +1403,7 @@ function escapeHTML(str) {
     .replace(/'/g, '&#39;')
 }
 
-},{"./promise":1}],17:[function(require,module,exports){
+},{"./promise":1}],20:[function(require,module,exports){
 module.exports = NodeList
 
 var Promise = require('./promise')
@@ -1458,7 +1462,7 @@ function bind(num, fn) {
   }
 }
 
-},{"./promise":1}],19:[function(require,module,exports){
+},{"./promise":1}],22:[function(require,module,exports){
 module.exports = FilterLookup
 
 var Promise = require('./promise')
@@ -1522,7 +1526,7 @@ proto.resolve = function(context, fromIDX) {
   return current
 }
 
-},{"./promise":1}],20:[function(require,module,exports){
+},{"./promise":1}],23:[function(require,module,exports){
 module.exports = FilterApplication
 
 var Promise = require('./promise')
@@ -1613,7 +1617,7 @@ proto.resolve = function(context, value, fromIDX, argValues) {
   }
 }
 
-},{"./promise":1}],21:[function(require,module,exports){
+},{"./promise":1}],24:[function(require,module,exports){
 module.exports = BlockNode
 
 var Promise = require('../promise')
@@ -1697,7 +1701,7 @@ cons.parse = function(contents, parser) {
   return new cons(name, nodes)  
 }
 
-},{"../promise":1,"../block_context":82}],23:[function(require,module,exports){
+},{"../promise":1,"../block_context":82}],26:[function(require,module,exports){
 module.exports = ExtendsNode
 
 var Promise = require('../promise')
@@ -1799,7 +1803,7 @@ cons.parse = function(contents, parser) {
   return new cons(parent, nodes, loader)
 }
 
-},{"../promise":1,"../block_context":82}],24:[function(require,module,exports){
+},{"../promise":1,"../block_context":82}],27:[function(require,module,exports){
 module.exports = ForNode
 
 var NodeList = require('../node_list')
@@ -1858,6 +1862,10 @@ proto.render = function(context, value) {
 
     arr = bits.slice()
     bits.length = 0
+  }
+
+  if(!arr.length) {
+    return self.empty.render(ctxt)
   }
 
   sub = self.reversed ? arr.length - 1 : 0
@@ -1921,7 +1929,7 @@ cons.parse = function(contents, parser) {
   return new cons(target, unpack, nodelist, empty, reversed);
 }
 
-},{"../node_list":17,"../promise":1}],25:[function(require,module,exports){
+},{"../node_list":20,"../promise":1}],28:[function(require,module,exports){
 module.exports = IfNode
 
 var Promise = require('../../promise')
@@ -1983,38 +1991,7 @@ cons.parse = function(contents, parser) {
   return new cons(predicate, when_true, when_false)
 }
 
-},{"../../promise":1,"../../node_list":17,"./parser":83}],27:[function(require,module,exports){
-module.exports = NowNode
-
-var format = require('../date').date
-
-function NowNode(formatString) {
-  this.format = formatString
-}
-
-var cons = NowNode
-  , proto = cons.prototype
-
-proto.render = function(context) {
-  return format(new Date, this.format)
-}
-
-cons.parse = function(contents, parser) {
-  var bits = contents.split(' ')
-    , fmt = bits.slice(1).join(' ')
-
-  fmt = fmt
-    .replace(/^\s+/, '')
-    .replace(/\s+$/, '')
-
-  if(/['"]/.test(fmt.charAt(0))) {
-    fmt = fmt.slice(1, -1)
-  }
-
-  return new NowNode(fmt || 'N j, Y')
-}
-
-},{"../date":80}],26:[function(require,module,exports){
+},{"../../promise":1,"../../node_list":20,"./parser":83}],29:[function(require,module,exports){
 module.exports = IncludeNode
 
 var Promise = require('../promise')
@@ -2081,7 +2058,38 @@ proto.get_template = function(target) {
   return target
 }
 
-},{"../promise":1}],28:[function(require,module,exports){
+},{"../promise":1}],30:[function(require,module,exports){
+module.exports = NowNode
+
+var format = require('../date').date
+
+function NowNode(formatString) {
+  this.format = formatString
+}
+
+var cons = NowNode
+  , proto = cons.prototype
+
+proto.render = function(context) {
+  return format(new Date, this.format)
+}
+
+cons.parse = function(contents, parser) {
+  var bits = contents.split(' ')
+    , fmt = bits.slice(1).join(' ')
+
+  fmt = fmt
+    .replace(/^\s+/, '')
+    .replace(/\s+$/, '')
+
+  if(/['"]/.test(fmt.charAt(0))) {
+    fmt = fmt.slice(1, -1)
+  }
+
+  return new NowNode(fmt || 'N j, Y')
+}
+
+},{"../date":17}],31:[function(require,module,exports){
 module.exports = WithNode
 
 var Promise = require('../promise')
@@ -2130,7 +2138,7 @@ proto.render = function(context, value) {
   return result
 }
 
-},{"../promise":1}],34:[function(require,module,exports){
+},{"../promise":1}],37:[function(require,module,exports){
 var format = require('../date').date
   
 module.exports = function(input, value, ready) {
@@ -2140,14 +2148,14 @@ module.exports = function(input, value, ready) {
   return format(input.getFullYear ? input : new Date(input), value)
 }
 
-},{"../date":80}],37:[function(require,module,exports){
+},{"../date":17}],40:[function(require,module,exports){
 var dictsort = require('./dictsort');
 
 module.exports = function(input, key) {
   return dictsort(input, key).reverse()
 }
 
-},{"./dictsort":36}],39:[function(require,module,exports){
+},{"./dictsort":39}],42:[function(require,module,exports){
 var FilterNode = require('../filter_node')
 
 module.exports = function(input) {
@@ -2160,7 +2168,7 @@ module.exports = function(input) {
   return input
 }
 
-},{"../filter_node":15}],43:[function(require,module,exports){
+},{"../filter_node":15}],46:[function(require,module,exports){
 var FilterNode = require('../filter_node')
 
 module.exports = function(input) {
@@ -2169,7 +2177,7 @@ module.exports = function(input) {
   return x
 }
 
-},{"../filter_node":15}],52:[function(require,module,exports){
+},{"../filter_node":15}],55:[function(require,module,exports){
 var safe = require('./safe')
 
 module.exports = function(input) {
@@ -2184,7 +2192,7 @@ module.exports = function(input) {
   return safe('<p>'+out.join('</p><p>')+'</p>')
 }
 
-},{"./safe":62}],53:[function(require,module,exports){
+},{"./safe":65}],56:[function(require,module,exports){
 var safe = require('./safe')
 
 module.exports = function(input) {
@@ -2192,7 +2200,7 @@ module.exports = function(input) {
   return safe(str.replace(/\n/g, '<br />'))
 }
 
-},{"./safe":62}],62:[function(require,module,exports){
+},{"./safe":65}],65:[function(require,module,exports){
 var FilterNode = require('../filter_node')
 
 module.exports = function(input) {
@@ -2201,7 +2209,7 @@ module.exports = function(input) {
   return input
 }
 
-},{"../filter_node":15}],67:[function(require,module,exports){
+},{"../filter_node":15}],70:[function(require,module,exports){
 var timesince = require('./timesince').timesince
 
 module.exports = function(input, n) {
@@ -2209,7 +2217,7 @@ module.exports = function(input, n) {
   return timesince(now, input)
 }
 
-},{"./timesince":66}],71:[function(require,module,exports){
+},{"./timesince":69}],74:[function(require,module,exports){
 var safe = require('./safe');
 
 var ulparser = function(list) {
@@ -2236,7 +2244,7 @@ module.exports = function(input) {
     input
 }
 
-},{"./safe":62}],74:[function(require,module,exports){
+},{"./safe":65}],77:[function(require,module,exports){
 var safe = require('./safe')
 
 module.exports = function(input) {
@@ -2246,7 +2254,7 @@ module.exports = function(input) {
   }))
 }
 
-},{"./safe":62}],75:[function(require,module,exports){
+},{"./safe":65}],78:[function(require,module,exports){
 var safe = require('./safe')
 
 module.exports = function(input, len) {
@@ -2258,7 +2266,47 @@ module.exports = function(input, len) {
   }))
 }
 
-},{"./safe":62}],80:[function(require,module,exports){
+},{"./safe":65}],82:[function(require,module,exports){
+module.exports = BlockContext
+
+function BlockContext() {
+  this.blocks = {}
+}
+
+var cons = BlockContext
+  , proto = cons.prototype
+
+cons.KEY = '__BLOCK_CONTEXT__'
+
+cons.from = function(context) {
+  return context[this.KEY]
+}
+
+cons.into = function(context) {
+  return context[this.KEY] = new this()
+}
+
+proto.add = function(blocks) {
+  for(var name in blocks) {
+    (this.blocks[name] = this.blocks[name] || []).unshift(blocks[name])
+  }
+}
+
+proto.get = function(name) {
+  var list = this.blocks[name] || []
+
+  return list[list.length - 1]
+}
+
+proto.push = function(name, block) {
+  (this.blocks[name] = this.blocks[name] || []).push(block)
+}
+
+proto.pop = function(name) {
+  return (this.blocks[name] = this.blocks[name] || []).pop()
+}
+
+},{}],17:[function(require,module,exports){
 module.exports = { time: time_format, date: format, DateFormat: DateFormat }
 
 try { require('tz') } catch(e) { }
@@ -2667,47 +2715,7 @@ function time_format(value, format_string) {
   return tf.format(format_string)
 }
 
-},{"tz":84}],82:[function(require,module,exports){
-module.exports = BlockContext
-
-function BlockContext() {
-  this.blocks = {}
-}
-
-var cons = BlockContext
-  , proto = cons.prototype
-
-cons.KEY = '__BLOCK_CONTEXT__'
-
-cons.from = function(context) {
-  return context[this.KEY]
-}
-
-cons.into = function(context) {
-  return context[this.KEY] = new this()
-}
-
-proto.add = function(blocks) {
-  for(var name in blocks) {
-    (this.blocks[name] = this.blocks[name] || []).unshift(blocks[name])
-  }
-}
-
-proto.get = function(name) {
-  var list = this.blocks[name] || []
-
-  return list[list.length - 1]
-}
-
-proto.push = function(name, block) {
-  (this.blocks[name] = this.blocks[name] || []).push(block)
-}
-
-proto.pop = function(name) {
-  return (this.blocks[name] = this.blocks[name] || []).pop()
-}
-
-},{}],83:[function(require,module,exports){
+},{"tz":84}],83:[function(require,module,exports){
 module.exports = IfParser
 
 var LiteralToken = require('./literal')
@@ -4021,5 +4029,5 @@ Date.prototype.tzoffset = function() {
   return 'GMT'+get_offset_fmt(this.getTimezoneOffset())
 }
 
-},{"./tz":90,"dst":81}]},{},[79])
+},{"./tz":90,"dst":18}]},{},[16])
 ;
