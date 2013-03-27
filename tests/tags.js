@@ -16,6 +16,14 @@ test("Test that for is enabled by default", mocktimeout(function(assert) {
     })
 )
 
+test("Test that for - empty works", mocktimeout(function(assert) {
+  var tpl = new plate.Template('{% for x in y %}{% empty %}ok{% endfor %}')
+
+  tpl.render({y:null}, function(err, data) {
+    assert.equal(data, 'ok')
+  })
+}))
+
 test("Test that for does not bubble errors if it cannot find the appropriate arrayVar", mocktimeout(function(assert) {
         
         var tpl = new plate.Template("{% for x in y %}{% endfor %}");
