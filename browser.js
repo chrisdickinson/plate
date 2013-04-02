@@ -7,6 +7,7 @@ if(typeof define !== 'undefined' && define.amd) {
   window.plate = plate
 }
 
+plate.debug = require('./lib/debug')
 plate.utils = plate.date = require('./lib/date')
 plate.utils.Promise = require('./lib/promise')
 plate.utils.SafeString = function(str) {
