@@ -202,7 +202,7 @@ plate.utils.SafeString = function(str) {
 }
 plate.libraries = require('./lib/libraries')
 
-},{"./lib/index":3,"./lib/debug":1,"./lib/date":13,"./lib/promise":2,"./lib/libraries":8,"dst":14}],8:[function(require,module,exports){
+},{"./lib/debug":1,"./lib/index":3,"./lib/date":13,"./lib/libraries":8,"./lib/promise":2,"dst":14}],8:[function(require,module,exports){
 module.exports = {
     Library: require('./library')
   , DefaultPluginLibrary: require('./library')
@@ -345,7 +345,27 @@ function errorOnNull(fn, msg) {
 }
 
 
-},{}],5:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
+var Token = require('./token')
+  , FilterNode = require('./filter_node')
+
+module.exports = FilterToken
+
+function FilterToken(content, line) {
+  Token.call(this, content, line)
+}
+
+var cons = FilterToken
+  , proto = cons.prototype = new Token
+
+proto.constructor = cons
+
+proto.node = function(parser) {
+  return new FilterNode(parser.compile(this.content))
+}
+
+
+},{"./token":18,"./filter_node":19}],5:[function(require,module,exports){
 module.exports = TagToken
 
 var Token = require('./token')
@@ -385,27 +405,7 @@ proto.node = function(parser) {
 }
 
 
-},{"./token":18}],4:[function(require,module,exports){
-var Token = require('./token')
-  , FilterNode = require('./filter_node')
-
-module.exports = FilterToken
-
-function FilterToken(content, line) {
-  Token.call(this, content, line)
-}
-
-var cons = FilterToken
-  , proto = cons.prototype = new Token
-
-proto.constructor = cons
-
-proto.node = function(parser) {
-  return new FilterNode(parser.compile(this.content))
-}
-
-
-},{"./token":18,"./filter_node":19}],7:[function(require,module,exports){
+},{"./token":18}],7:[function(require,module,exports){
 module.exports = TextToken
 
 var Token = require('./token')
@@ -795,7 +795,7 @@ proto.builtins = {
 }
 
 
-},{"./library":15,"./filters/add":34,"./filters/addslashes":35,"./filters/capfirst":36,"./filters/center":37,"./filters/cut":38,"./filters/date":39,"./filters/default":40,"./filters/dictsort":41,"./filters/dictsortreversed":42,"./filters/divisibleby":43,"./filters/escape":44,"./filters/filesizeformat":45,"./filters/first":46,"./filters/floatformat":47,"./filters/force_escape":48,"./filters/get_digit":49,"./filters/index":50,"./filters/iteritems":51,"./filters/iriencode":52,"./filters/join":53,"./filters/last":54,"./filters/length":55,"./filters/length_is":56,"./filters/linebreaks":57,"./filters/linebreaksbr":58,"./filters/linenumbers":59,"./filters/ljust":60,"./filters/lower":61,"./filters/make_list":62,"./filters/phone2numeric":63,"./filters/pluralize":64,"./filters/random":65,"./filters/rjust":66,"./filters/safe":67,"./filters/slice":68,"./filters/slugify":69,"./filters/split":70,"./filters/striptags":71,"./filters/timesince":72,"./filters/timeuntil":73,"./filters/title":74,"./filters/truncatechars":75,"./filters/truncatewords":76,"./filters/unordered_list":77,"./filters/upper":78,"./filters/urlencode":79,"./filters/urlize":80,"./filters/urlizetrunc":81,"./filters/wordcount":82,"./filters/wordwrap":83,"./filters/yesno":84}],18:[function(require,module,exports){
+},{"./library":15,"./filters/add":34,"./filters/addslashes":35,"./filters/capfirst":36,"./filters/center":37,"./filters/cut":38,"./filters/date":39,"./filters/default":40,"./filters/dictsort":41,"./filters/dictsortreversed":42,"./filters/divisibleby":43,"./filters/escape":44,"./filters/filesizeformat":45,"./filters/first":46,"./filters/floatformat":47,"./filters/force_escape":48,"./filters/get_digit":49,"./filters/iteritems":50,"./filters/index":51,"./filters/iriencode":52,"./filters/join":53,"./filters/last":54,"./filters/length":55,"./filters/linebreaks":56,"./filters/length_is":57,"./filters/linebreaksbr":58,"./filters/linenumbers":59,"./filters/ljust":60,"./filters/lower":61,"./filters/make_list":62,"./filters/phone2numeric":63,"./filters/pluralize":64,"./filters/random":65,"./filters/rjust":66,"./filters/safe":67,"./filters/slice":68,"./filters/slugify":69,"./filters/split":70,"./filters/striptags":71,"./filters/timesince":72,"./filters/timeuntil":73,"./filters/title":74,"./filters/truncatechars":75,"./filters/truncatewords":76,"./filters/unordered_list":77,"./filters/upper":78,"./filters/urlencode":79,"./filters/urlize":80,"./filters/urlizetrunc":81,"./filters/wordcount":82,"./filters/wordwrap":83,"./filters/yesno":84}],18:[function(require,module,exports){
 module.exports = Token
 
 function Token(content, line) {
@@ -946,15 +946,6 @@ module.exports = function(input, def, ready) {
   return input ? input : def
 }
 
-},{}],41:[function(require,module,exports){
-module.exports = function(input, key) {
-  return input.sort(function(x, y) {
-    if(x[key] > y[key]) return 1
-    if(x[key] == y[key]) return 0
-    if(x[key] < y[key]) return -1
-  })
-}
-
 },{}],43:[function(require,module,exports){
 module.exports = function(input, num) {
   return input % parseInt(num, 10) == 0
@@ -973,11 +964,6 @@ module.exports = function(input) {
     num / (1024*1024*1024) + ' GB'
 
   return value
-}
-
-},{}],46:[function(require,module,exports){
-module.exports = function(input) {
-  return input[0]
 }
 
 },{}],47:[function(require,module,exports){
@@ -1028,8 +1014,6 @@ module.exports = function(input, digit) {
 }
 
 },{}],50:[function(require,module,exports){
-
-},{}],51:[function(require,module,exports){
 module.exports = function(input) {
   var output = []
   for(var name in input) if(input.hasOwnProperty(name)) {
@@ -1038,15 +1022,16 @@ module.exports = function(input) {
   return output
 }
 
+},{}],46:[function(require,module,exports){
+module.exports = function(input) {
+  return input[0]
+}
+
+},{}],51:[function(require,module,exports){
+
 },{}],52:[function(require,module,exports){
 module.exports = function(input) {
   return input
-}
-
-},{}],53:[function(require,module,exports){
-module.exports = function(input, glue) {
-  input = input instanceof Array ? input : input.toString().split('')
-  return input.join(glue)
 }
 
 },{}],54:[function(require,module,exports){
@@ -1056,15 +1041,22 @@ module.exports = function(input) {
   return cb.call(input, input.length-1);
 }
 
-},{}],55:[function(require,module,exports){
-module.exports = function(input, ready) {
-  if(input && typeof input.length === 'function') {
-    return input.length(ready)
-  }
-  return input.length
+},{}],41:[function(require,module,exports){
+module.exports = function(input, key) {
+  return input.sort(function(x, y) {
+    if(x[key] > y[key]) return 1
+    if(x[key] == y[key]) return 0
+    if(x[key] < y[key]) return -1
+  })
 }
 
-},{}],56:[function(require,module,exports){
+},{}],53:[function(require,module,exports){
+module.exports = function(input, glue) {
+  input = input instanceof Array ? input : input.toString().split('')
+  return input.join(glue)
+}
+
+},{}],57:[function(require,module,exports){
 module.exports = function(input, expected, ready) {
   var tmp
   if(input && typeof input.length === 'function') {
@@ -1117,28 +1109,6 @@ module.exports = function(input) {
   return input
 }
 
-},{}],63:[function(require,module,exports){
-
-var LETTERS = {
-'a': '2', 'b': '2', 'c': '2', 'd': '3', 'e': '3',
-'f': '3', 'g': '4', 'h': '4', 'i': '4', 'j': '5', 'k': '5', 'l': '5',
-'m': '6', 'n': '6', 'o': '6', 'p': '7', 'q': '7', 'r': '7', 's': '7',
-'t': '8', 'u': '8', 'v': '8', 'w': '9', 'x': '9', 'y': '9', 'z': '9'
-};
-
-module.exports = function(input) {
-  var str = input.toString().toLowerCase().split('')
-    , out = []
-    , ltr
-
-  while(str.length) {
-    ltr = str.pop()
-    out.unshift(LETTERS[ltr] ? LETTERS[ltr] : ltr)
-  }
-
-  return out.join('')
-}
-
 },{}],64:[function(require,module,exports){
 module.exports = function(input, plural) {
   plural = (plural || 's').split(',')
@@ -1177,6 +1147,28 @@ module.exports = function(input, num) {
   return bits.join('')
 }
 
+},{}],63:[function(require,module,exports){
+
+var LETTERS = {
+'a': '2', 'b': '2', 'c': '2', 'd': '3', 'e': '3',
+'f': '3', 'g': '4', 'h': '4', 'i': '4', 'j': '5', 'k': '5', 'l': '5',
+'m': '6', 'n': '6', 'o': '6', 'p': '7', 'q': '7', 'r': '7', 's': '7',
+'t': '8', 'u': '8', 'v': '8', 'w': '9', 'x': '9', 'y': '9', 'z': '9'
+};
+
+module.exports = function(input) {
+  var str = input.toString().toLowerCase().split('')
+    , out = []
+    , ltr
+
+  while(str.length) {
+    ltr = str.pop()
+    out.unshift(LETTERS[ltr] ? LETTERS[ltr] : ltr)
+  }
+
+  return out.join('')
+}
+
 },{}],68:[function(require,module,exports){
 module.exports = function(input, by) {
   by = by.toString()
@@ -1213,12 +1205,6 @@ module.exports = function(input, by, ready) {
   by = arguments.length === 2 ? ',' : by
   input = ''+input
   return input.split(by)
-}
-
-},{}],71:[function(require,module,exports){
-module.exports = function(input) {
-  var str = input.toString()
-  return str.replace(/<[^>]*?>/g, '')
 }
 
 },{}],72:[function(require,module,exports){
@@ -1353,6 +1339,20 @@ module.exports = function(input, map) {
   ]
 
   return value
+}
+
+},{}],71:[function(require,module,exports){
+module.exports = function(input) {
+  var str = input.toString()
+  return str.replace(/<[^>]*?>/g, '')
+}
+
+},{}],55:[function(require,module,exports){
+module.exports = function(input, ready) {
+  if(input && typeof input.length === 'function') {
+    return input.length(ready)
+  }
+  return input.length
 }
 
 },{}],13:[function(require,module,exports){
@@ -2178,7 +2178,7 @@ cons.parse = function(contents, parser) {
 }
 
 
-},{"../promise":2,"../context":10,"../debug":1}],28:[function(require,module,exports){
+},{"../context":10,"../promise":2,"../debug":1}],28:[function(require,module,exports){
 module.exports = ExtendsNode
 
 var Promise = require('../promise')
@@ -2406,7 +2406,38 @@ cons.parse = function(contents, parser) {
   return new cons(target, unpack, nodelist, empty, reversed);
 }
 
-},{"../node_list":21,"../promise":2}],31:[function(require,module,exports){
+},{"../node_list":21,"../promise":2}],32:[function(require,module,exports){
+module.exports = NowNode
+
+var format = require('../date').date
+
+function NowNode(formatString) {
+  this.format = formatString
+}
+
+var cons = NowNode
+  , proto = cons.prototype
+
+proto.render = function(context) {
+  return format(new Date, this.format)
+}
+
+cons.parse = function(contents, parser) {
+  var bits = contents.split(' ')
+    , fmt = bits.slice(1).join(' ')
+
+  fmt = fmt
+    .replace(/^\s+/, '')
+    .replace(/\s+$/, '')
+
+  if(/['"]/.test(fmt.charAt(0))) {
+    fmt = fmt.slice(1, -1)
+  }
+
+  return new NowNode(fmt || 'N j, Y')
+}
+
+},{"../date":13}],31:[function(require,module,exports){
 module.exports = IncludeNode
 
 var Promise = require('../promise')
@@ -2473,38 +2504,7 @@ proto.get_template = function(target) {
   return target
 }
 
-},{"../promise":2}],32:[function(require,module,exports){
-module.exports = NowNode
-
-var format = require('../date').date
-
-function NowNode(formatString) {
-  this.format = formatString
-}
-
-var cons = NowNode
-  , proto = cons.prototype
-
-proto.render = function(context) {
-  return format(new Date, this.format)
-}
-
-cons.parse = function(contents, parser) {
-  var bits = contents.split(' ')
-    , fmt = bits.slice(1).join(' ')
-
-  fmt = fmt
-    .replace(/^\s+/, '')
-    .replace(/\s+$/, '')
-
-  if(/['"]/.test(fmt.charAt(0))) {
-    fmt = fmt.slice(1, -1)
-  }
-
-  return new NowNode(fmt || 'N j, Y')
-}
-
-},{"../date":13}],33:[function(require,module,exports){
+},{"../promise":2}],33:[function(require,module,exports){
 module.exports = WithNode
 
 var Promise = require('../promise')
@@ -2592,7 +2592,7 @@ module.exports = function(input) {
   return x
 }
 
-},{"../filter_node":19}],57:[function(require,module,exports){
+},{"../filter_node":19}],56:[function(require,module,exports){
 var safe = require('./safe')
 
 module.exports = function(input) {
