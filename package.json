@@ -15,7 +15,9 @@
     "dst": "0.X.X"
   },
   "devDependencies": {
-    "tape": "~0.1.5"
+    "tape": "~0.1.5",
+    "mold-source-map": "~0.2.0",
+    "browserify": "~2.11.0"
   },
   "scripts": {
     "test": "node tests/index.js"

@@ -19,6 +19,7 @@ compatibility with IE7+, FF3+, Chrome, and Safari 4+.
 
 You can [download a minified, precompiled version here](https://raw.github.com/chrisdickinson/plate/master/plate.min.js).
 
+If you're having trouble, try using the [debug version, with source maps](https://raw.github.com/chrisdickinson/plate/master/plate.debug.js).
 
 
 How do I use it?

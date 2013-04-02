@@ -244,7 +244,26 @@ function errorOnNull(fn, msg) {
 }
 
 
-},{}],3:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
+require('dst')
+
+var plate = require('./lib/index')
+if(typeof define !== 'undefined' && define.amd) {
+  define('plate', [], function() { return plate })
+} else {
+  window.plate = plate
+}
+
+plate.utils = plate.date = require('./lib/date')
+plate.utils.Promise = require('./lib/promise')
+plate.utils.SafeString = function(str) {
+  str = new String(str)
+  str.safe = true
+  return str
+}
+plate.libraries = require('./lib/libraries')
+
+},{"./lib/index":2,"./lib/date":15,"./lib/promise":1,"./lib/libraries":7,"dst":16}],3:[function(require,module,exports){
 var Token = require('./token')
   , FilterNode = require('./filter_node')
 
@@ -264,7 +283,7 @@ proto.node = function(parser) {
 }
 
 
-},{"./token":14,"./filter_node":15}],4:[function(require,module,exports){
+},{"./token":17,"./filter_node":18}],4:[function(require,module,exports){
 module.exports = TagToken
 
 var Token = require('./token')
@@ -284,26 +303,7 @@ proto.node = function(parser) {
   return tag(this.content, parser)
 }
 
-},{"./token":14}],16:[function(require,module,exports){
-require('dst')
-
-var plate = require('./lib/index')
-if(typeof define !== 'undefined' && define.amd) {
-  define('plate', [], function() { return plate })
-} else {
-  window.plate = plate
-}
-
-plate.utils = plate.date = require('./lib/date')
-plate.utils.Promise = require('./lib/promise')
-plate.utils.SafeString = function(str) {
-  str = new String(str)
-  str.safe = true
-  return str
-}
-plate.libraries = require('./lib/libraries')
-
-},{"./lib/index":2,"./lib/date":17,"./lib/promise":1,"./lib/libraries":7,"dst":18}],5:[function(require,module,exports){
+},{"./token":17}],5:[function(require,module,exports){
 module.exports = CommentToken
 
 var Token = require('./token')
@@ -323,7 +323,7 @@ proto.node = function(parser) {
 }
 
 
-},{"./token":14}],6:[function(require,module,exports){
+},{"./token":17}],6:[function(require,module,exports){
 module.exports = TextToken
 
 var Token = require('./token')
@@ -342,7 +342,7 @@ proto.node = function(parser) {
   return new TextNode(this.content)
 }
 
-},{"./token":14,"./text_node":19}],8:[function(require,module,exports){
+},{"./token":17,"./text_node":19}],8:[function(require,module,exports){
 module.exports = Parser
 
 var NodeList = require('./node_list')
@@ -711,35 +711,7 @@ proto.builtins = {
 }
 
 
-},{"./library":11,"./filters/add":32,"./filters/addslashes":33,"./filters/capfirst":34,"./filters/center":35,"./filters/cut":36,"./filters/date":37,"./filters/default":38,"./filters/dictsort":39,"./filters/dictsortreversed":40,"./filters/divisibleby":41,"./filters/escape":42,"./filters/filesizeformat":43,"./filters/first":44,"./filters/floatformat":45,"./filters/force_escape":46,"./filters/get_digit":47,"./filters/index":48,"./filters/iteritems":49,"./filters/iriencode":50,"./filters/join":51,"./filters/last":52,"./filters/length":53,"./filters/length_is":54,"./filters/linebreaks":55,"./filters/linebreaksbr":56,"./filters/linenumbers":57,"./filters/ljust":58,"./filters/lower":59,"./filters/make_list":60,"./filters/phone2numeric":61,"./filters/pluralize":62,"./filters/random":63,"./filters/rjust":64,"./filters/safe":65,"./filters/slice":66,"./filters/slugify":67,"./filters/striptags":68,"./filters/timesince":69,"./filters/timeuntil":70,"./filters/title":71,"./filters/truncatechars":72,"./filters/truncatewords":73,"./filters/unordered_list":74,"./filters/upper":75,"./filters/urlencode":76,"./filters/urlize":77,"./filters/urlizetrunc":78,"./filters/wordcount":79,"./filters/wordwrap":80,"./filters/yesno":81}],14:[function(require,module,exports){
-module.exports = Token
-
-function Token(content, line) {
-  this.content = content
-  this.line = line
-
-  this.name = content && content.split(' ')[0]
-}
-
-var cons = Token
-  , proto = cons.prototype
-
-proto.toString = function() {
-  // NB: this should only be
-  // debug output, so it's
-  // probably safe to use
-  // JSON.stringify here.
-  return '<'+this.constructor.name+': '+JSON.stringify(this.content)+'>'
-}
-
-proto.is = function(names) {
-  for(var i = 0, len = names.length; i < len; ++i)
-    if(names[i] === this.name)
-      return true
-  return false
-}
-
-},{}],18:[function(require,module,exports){
+},{"./library":11,"./filters/add":32,"./filters/addslashes":33,"./filters/capfirst":34,"./filters/center":35,"./filters/cut":36,"./filters/date":37,"./filters/default":38,"./filters/dictsort":39,"./filters/dictsortreversed":40,"./filters/divisibleby":41,"./filters/escape":42,"./filters/filesizeformat":43,"./filters/first":44,"./filters/floatformat":45,"./filters/force_escape":46,"./filters/get_digit":47,"./filters/index":48,"./filters/iteritems":49,"./filters/iriencode":50,"./filters/join":51,"./filters/last":52,"./filters/length":53,"./filters/length_is":54,"./filters/linebreaks":55,"./filters/linebreaksbr":56,"./filters/linenumbers":57,"./filters/ljust":58,"./filters/lower":59,"./filters/make_list":60,"./filters/phone2numeric":61,"./filters/pluralize":62,"./filters/random":63,"./filters/rjust":64,"./filters/safe":65,"./filters/slice":66,"./filters/slugify":67,"./filters/striptags":68,"./filters/timesince":69,"./filters/timeuntil":70,"./filters/title":71,"./filters/truncatechars":72,"./filters/truncatewords":73,"./filters/unordered_list":74,"./filters/upper":75,"./filters/urlencode":76,"./filters/urlize":77,"./filters/urlizetrunc":78,"./filters/wordcount":79,"./filters/wordwrap":80,"./filters/yesno":81}],16:[function(require,module,exports){
 ;(function() {
 
 // so, the only way we (reliably) get access to DST in javascript
@@ -813,6 +785,34 @@ if(typeof module !== 'undefined') {
 
 })()
 
+},{}],17:[function(require,module,exports){
+module.exports = Token
+
+function Token(content, line) {
+  this.content = content
+  this.line = line
+
+  this.name = content && content.split(' ')[0]
+}
+
+var cons = Token
+  , proto = cons.prototype
+
+proto.toString = function() {
+  // NB: this should only be
+  // debug output, so it's
+  // probably safe to use
+  // JSON.stringify here.
+  return '<'+this.constructor.name+': '+JSON.stringify(this.content)+'>'
+}
+
+proto.is = function(names) {
+  for(var i = 0, len = names.length; i < len; ++i)
+    if(names[i] === this.name)
+      return true
+  return false
+}
+
 },{}],19:[function(require,module,exports){
 module.exports = TextNode
 
@@ -879,22 +879,6 @@ cons.parse = function(contents, parser) {
   return new cons
 }
 
-},{}],32:[function(require,module,exports){
-module.exports = function(input, value) {
-  return parseInt(input, 10) + parseInt(value, 10)
-}
-
-},{}],33:[function(require,module,exports){
-module.exports = function(input) {
-  return input.toString().replace(/'/g, "\\'")
-}
-
-},{}],34:[function(require,module,exports){
-module.exports = function(input) {
-  var str = input.toString();
-  return [str.slice(0,1).toUpperCase(), str.slice(1)].join('')
-}
-
 },{}],35:[function(require,module,exports){
 module.exports = function(input, len, ready) {
   if(ready === undefined)
@@ -925,6 +909,11 @@ module.exports = function(input, len, ready) {
   return str
 }
 
+},{}],32:[function(require,module,exports){
+module.exports = function(input, value) {
+  return parseInt(input, 10) + parseInt(value, 10)
+}
+
 },{}],36:[function(require,module,exports){
 module.exports = function(input, value) {
   var str = input.toString()
@@ -936,6 +925,11 @@ module.exports = function(input, def, ready) {
   return input ? input : def
 }
 
+},{}],33:[function(require,module,exports){
+module.exports = function(input) {
+  return input.toString().replace(/'/g, "\\'")
+}
+
 },{}],39:[function(require,module,exports){
 module.exports = function(input, key) {
   return input.sort(function(x, y) {
@@ -943,11 +937,6 @@ module.exports = function(input, key) {
     if(x[key] == y[key]) return 0
     if(x[key] < y[key]) return -1
   })
-}
-
-},{}],41:[function(require,module,exports){
-module.exports = function(input, num) {
-  return input % parseInt(num, 10) == 0
 }
 
 },{}],43:[function(require,module,exports){
@@ -963,6 +952,17 @@ module.exports = function(input) {
     num / (1024*1024*1024) + ' GB'
 
   return value
+}
+
+},{}],41:[function(require,module,exports){
+module.exports = function(input, num) {
+  return input % parseInt(num, 10) == 0
+}
+
+},{}],34:[function(require,module,exports){
+module.exports = function(input) {
+  var str = input.toString();
+  return [str.slice(0,1).toUpperCase(), str.slice(1)].join('')
 }
 
 },{}],44:[function(require,module,exports){
@@ -1003,6 +1003,8 @@ module.exports = function(input, val) {
   return asString
 }
 
+},{}],48:[function(require,module,exports){
+
 },{}],47:[function(require,module,exports){
 module.exports = function(input, digit) {
   var isNum = !isNaN(parseInt(input, 10))
@@ -1017,7 +1019,10 @@ module.exports = function(input, digit) {
   return input
 }
 
-},{}],48:[function(require,module,exports){
+},{}],50:[function(require,module,exports){
+module.exports = function(input) {
+  return input
+}
 
 },{}],49:[function(require,module,exports){
 module.exports = function(input) {
@@ -1026,11 +1031,6 @@ module.exports = function(input) {
     output.push([name, input[name]])
   }
   return output
-}
-
-},{}],50:[function(require,module,exports){
-module.exports = function(input) {
-  return input
 }
 
 },{}],51:[function(require,module,exports){
@@ -1068,20 +1068,6 @@ module.exports = function(input, expected, ready) {
   return input.length === expected
 }
 
-},{}],57:[function(require,module,exports){
-module.exports = function(input) {
-  var str = input.toString()
-    , bits = str.split('\n')
-    , out = []
-    , len = bits.length
-
-  while(bits.length) {
-    out.unshift(len - out.length + '. ' + bits.pop())
-  }
-
-  return out.join('\n')
-}
-
 },{}],58:[function(require,module,exports){
 module.exports = function(input, num) {
   var bits = (input === null || input === undefined ? '' : input).toString().split('')
@@ -1095,16 +1081,25 @@ module.exports = function(input, num) {
   return bits.join('')
 }
 
-},{}],59:[function(require,module,exports){
-module.exports = function(input) {
-  return input.toString().toLowerCase()
-}
-
 },{}],60:[function(require,module,exports){
 module.exports = function(input) {
   input = input instanceof Array ? input : input.toString().split('')
 
   return input
+}
+
+},{}],57:[function(require,module,exports){
+module.exports = function(input) {
+  var str = input.toString()
+    , bits = str.split('\n')
+    , out = []
+    , len = bits.length
+
+  while(bits.length) {
+    out.unshift(len - out.length + '. ' + bits.pop())
+  }
+
+  return out.join('\n')
 }
 
 },{}],61:[function(require,module,exports){
@@ -1127,6 +1122,11 @@ module.exports = function(input) {
   }
 
   return out.join('')
+}
+
+},{}],59:[function(require,module,exports){
+module.exports = function(input) {
+  return input.toString().toLowerCase()
 }
 
 },{}],62:[function(require,module,exports){
@@ -1167,6 +1167,17 @@ module.exports = function(input, num) {
   return bits.join('')
 }
 
+},{}],67:[function(require,module,exports){
+module.exports = function(input) {
+  input = input.toString()
+  return input
+        .replace(/[^\w\s\d\-]/g, '')
+        .replace(/^\s*/, '')
+        .replace(/\s*$/, '')
+        .replace(/[\-\s]+/g, '-')
+        .toLowerCase()
+}
+
 },{}],66:[function(require,module,exports){
 module.exports = function(input, by) {
   by = by.toString()
@@ -1185,17 +1196,6 @@ module.exports = function(input, by) {
       })()
 
   return slice.apply(input, splitBy)
-}
-
-},{}],67:[function(require,module,exports){
-module.exports = function(input) {
-  input = input.toString()
-  return input
-        .replace(/[^\w\s\d\-]/g, '')
-        .replace(/^\s*/, '')
-        .replace(/\s*$/, '')
-        .replace(/[\-\s]+/g, '-')
-        .toLowerCase()
 }
 
 },{}],68:[function(require,module,exports){
@@ -1244,6 +1244,20 @@ module.exports = function(input, n, ready) {
   }
 }
 
+},{}],72:[function(require,module,exports){
+module.exports = function(input, n) {
+  var str = input.toString()
+    , num = parseInt(n, 10)
+
+  if(isNaN(num))
+    return input
+
+  if(input.length <= num)
+    return input
+
+  return input.slice(0, num)+'...'
+}
+
 },{}],71:[function(require,module,exports){
 module.exports = function(input) {
   var str = input.toString()
@@ -1258,20 +1272,6 @@ module.exports = function(input) {
 
   out = out.join(' ')
   return out.replace(/([a-z])'([A-Z])/g, function(a, m, x) { return x.toLowerCase() })
-}
-
-},{}],72:[function(require,module,exports){
-module.exports = function(input, n) {
-  var str = input.toString()
-    , num = parseInt(n, 10)
-
-  if(isNaN(num))
-    return input
-
-  if(input.length <= num)
-    return input
-
-  return input.slice(0, num)+'...'
 }
 
 },{}],73:[function(require,module,exports){
@@ -1291,22 +1291,14 @@ module.exports = function(input, n) {
   return words.slice(0, num).join(' ')+'...'
 }
 
-},{}],75:[function(require,module,exports){
-module.exports = function(input) {
-  return input.toString().toUpperCase()
-}
-
 },{}],76:[function(require,module,exports){
 module.exports = function(input) {
   return escape(input.toString())
 }
 
-},{}],79:[function(require,module,exports){
+},{}],75:[function(require,module,exports){
 module.exports = function(input) {
-  var str = input.toString()
-    , bits = str.split(/\s+/g)
-
-  return bits.length
+  return input.toString().toUpperCase()
 }
 
 },{}],80:[function(require,module,exports){
@@ -1320,6 +1312,14 @@ module.exports = function(input, len) {
   }
 
   return out.join('\n')
+}
+
+},{}],79:[function(require,module,exports){
+module.exports = function(input) {
+  var str = input.toString()
+    , bits = str.split(/\s+/g)
+
+  return bits.length
 }
 
 },{}],81:[function(require,module,exports){
@@ -1338,7 +1338,7 @@ module.exports = function(input, map) {
   return value
 }
 
-},{}],15:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 module.exports = FilterNode
 
 var Promise = require('./promise')
@@ -1865,7 +1865,7 @@ proto.render = function(context, value) {
   }
 
   if(!arr.length) {
-    return self.empty.render(ctxt)
+    return self.empty.render(context)
   }
 
   sub = self.reversed ? arr.length - 1 : 0
@@ -1991,74 +1991,7 @@ cons.parse = function(contents, parser) {
   return new cons(predicate, when_true, when_false)
 }
 
-},{"../../promise":1,"../../node_list":20,"./parser":83}],29:[function(require,module,exports){
-module.exports = IncludeNode
-
-var Promise = require('../promise')
-
-function IncludeNode(target_var, loader) {
-  this.target_var = target_var
-  this.loader = loader
-}
-
-var cons = IncludeNode
-  , proto = cons.prototype
-
-cons.parse = function(contents, parser) {
-  var bits = contents.split(' ')
-    , varname = parser.compile(bits.slice(1).join(' '))
-    , loader = parser.plugins.lookup('loader')
-
-  return new cons(varname, loader) 
-}
-
-proto.render = function(context, target) {
-  var self = this
-    , promise
-
-  target = target || this.target_var.resolve(context)
-
-  if(target.constructor === Promise) {
-    promise = new Promise
-
-    target.once('done', function(data) {
-      promise.resolve(self.render(context, data))
-    })
-
-    return promise
-  }
-
-  target = self.get_template(target)
-
-  if(target.constructor === Promise) {
-    promise = new Promise
-
-    target.once('done', function(data) {
-      promise.resolve(self.render(context, data))
-    })  
-
-    return promise
-  }
-
-  promise = new Promise
-
-  target.render(context.copy(), function(err, data) {
-    promise.resolve(data)
-  })
-
-  return promise
-}
-
-proto.get_template = function(target) {
-  if(typeof target === 'string') {
-    return this.loader(target)
-  }
-
-  // okay, it's probably a template object
-  return target
-}
-
-},{"../promise":1}],30:[function(require,module,exports){
+},{"../../promise":1,"../../node_list":20,"./parser":83}],30:[function(require,module,exports){
 module.exports = NowNode
 
 var format = require('../date').date
@@ -2089,7 +2022,7 @@ cons.parse = function(contents, parser) {
   return new NowNode(fmt || 'N j, Y')
 }
 
-},{"../date":17}],31:[function(require,module,exports){
+},{"../date":15}],31:[function(require,module,exports){
 module.exports = WithNode
 
 var Promise = require('../promise')
@@ -2138,6 +2071,73 @@ proto.render = function(context, value) {
   return result
 }
 
+},{"../promise":1}],29:[function(require,module,exports){
+module.exports = IncludeNode
+
+var Promise = require('../promise')
+
+function IncludeNode(target_var, loader) {
+  this.target_var = target_var
+  this.loader = loader
+}
+
+var cons = IncludeNode
+  , proto = cons.prototype
+
+cons.parse = function(contents, parser) {
+  var bits = contents.split(' ')
+    , varname = parser.compile(bits.slice(1).join(' '))
+    , loader = parser.plugins.lookup('loader')
+
+  return new cons(varname, loader) 
+}
+
+proto.render = function(context, target) {
+  var self = this
+    , promise
+
+  target = target || this.target_var.resolve(context)
+
+  if(target && target.constructor === Promise) {
+    promise = new Promise
+
+    target.once('done', function(data) {
+      promise.resolve(self.render(context, data))
+    })
+
+    return promise
+  }
+
+  target = self.get_template(target)
+
+  if(target && target.constructor === Promise) {
+    promise = new Promise
+
+    target.once('done', function(data) {
+      promise.resolve(self.render(context, data))
+    })  
+
+    return promise
+  }
+
+  promise = new Promise
+
+  target.render(context.copy(), function(err, data) {
+    promise.resolve(data)
+  })
+
+  return promise
+}
+
+proto.get_template = function(target) {
+  if(typeof target === 'string') {
+    return this.loader(target)
+  }
+
+  // okay, it's probably a template object
+  return target
+}
+
 },{"../promise":1}],37:[function(require,module,exports){
 var format = require('../date').date
   
@@ -2148,14 +2148,23 @@ module.exports = function(input, value, ready) {
   return format(input.getFullYear ? input : new Date(input), value)
 }
 
-},{"../date":17}],40:[function(require,module,exports){
+},{"../date":15}],40:[function(require,module,exports){
 var dictsort = require('./dictsort');
 
 module.exports = function(input, key) {
   return dictsort(input, key).reverse()
 }
 
-},{"./dictsort":39}],42:[function(require,module,exports){
+},{"./dictsort":39}],46:[function(require,module,exports){
+var FilterNode = require('../filter_node')
+
+module.exports = function(input) {
+  var x = new String(FilterNode.escape(input+''))
+  x.safe = true
+  return x
+}
+
+},{"../filter_node":18}],42:[function(require,module,exports){
 var FilterNode = require('../filter_node')
 
 module.exports = function(input) {
@@ -2168,16 +2177,7 @@ module.exports = function(input) {
   return input
 }
 
-},{"../filter_node":15}],46:[function(require,module,exports){
-var FilterNode = require('../filter_node')
-
-module.exports = function(input) {
-  var x = new String(FilterNode.escape(input+''))
-  x.safe = true
-  return x
-}
-
-},{"../filter_node":15}],55:[function(require,module,exports){
+},{"../filter_node":18}],55:[function(require,module,exports){
 var safe = require('./safe')
 
 module.exports = function(input) {
@@ -2209,7 +2209,7 @@ module.exports = function(input) {
   return input
 }
 
-},{"../filter_node":15}],70:[function(require,module,exports){
+},{"../filter_node":18}],70:[function(require,module,exports){
 var timesince = require('./timesince').timesince
 
 module.exports = function(input, n) {
@@ -2266,47 +2266,7 @@ module.exports = function(input, len) {
   }))
 }
 
-},{"./safe":65}],82:[function(require,module,exports){
-module.exports = BlockContext
-
-function BlockContext() {
-  this.blocks = {}
-}
-
-var cons = BlockContext
-  , proto = cons.prototype
-
-cons.KEY = '__BLOCK_CONTEXT__'
-
-cons.from = function(context) {
-  return context[this.KEY]
-}
-
-cons.into = function(context) {
-  return context[this.KEY] = new this()
-}
-
-proto.add = function(blocks) {
-  for(var name in blocks) {
-    (this.blocks[name] = this.blocks[name] || []).unshift(blocks[name])
-  }
-}
-
-proto.get = function(name) {
-  var list = this.blocks[name] || []
-
-  return list[list.length - 1]
-}
-
-proto.push = function(name, block) {
-  (this.blocks[name] = this.blocks[name] || []).push(block)
-}
-
-proto.pop = function(name) {
-  return (this.blocks[name] = this.blocks[name] || []).pop()
-}
-
-},{}],17:[function(require,module,exports){
+},{"./safe":65}],15:[function(require,module,exports){
 module.exports = { time: time_format, date: format, DateFormat: DateFormat }
 
 try { require('tz') } catch(e) { }
@@ -2715,7 +2675,47 @@ function time_format(value, format_string) {
   return tf.format(format_string)
 }
 
-},{"tz":84}],83:[function(require,module,exports){
+},{"tz":84}],82:[function(require,module,exports){
+module.exports = BlockContext
+
+function BlockContext() {
+  this.blocks = {}
+}
+
+var cons = BlockContext
+  , proto = cons.prototype
+
+cons.KEY = '__BLOCK_CONTEXT__'
+
+cons.from = function(context) {
+  return context[this.KEY]
+}
+
+cons.into = function(context) {
+  return context[this.KEY] = new this()
+}
+
+proto.add = function(blocks) {
+  for(var name in blocks) {
+    (this.blocks[name] = this.blocks[name] || []).unshift(blocks[name])
+  }
+}
+
+proto.get = function(name) {
+  var list = this.blocks[name] || []
+
+  return list[list.length - 1]
+}
+
+proto.push = function(name, block) {
+  (this.blocks[name] = this.blocks[name] || []).push(block)
+}
+
+proto.pop = function(name) {
+  return (this.blocks[name] = this.blocks[name] || []).pop()
+}
+
+},{}],83:[function(require,module,exports){
 module.exports = IfParser
 
 var LiteralToken = require('./literal')
@@ -4029,5 +4029,5 @@ Date.prototype.tzoffset = function() {
   return 'GMT'+get_offset_fmt(this.getTimezoneOffset())
 }
 
-},{"./tz":90,"dst":18}]},{},[16])
+},{"./tz":90,"dst":16}]},{},[14])
 ;
