@@ -7,7 +7,7 @@ Plate
 ----------
 * Plays nicely with the event loop and async code. Plate makes it easy to parallelize your view code!
 * Aims to be compatible with the latest version of the Django Template Language. If you've got a template in Django, it should render just fine in Plate.
-* Thoroughly tested using the [Platoon](http://github.com/chrisdickinson/platoon) testing framework.
+* Thoroughly tested using tape.
 * Designed to work nicely in a Node.js environment
 * Extensible -- It makes use of plugins to provide capabilities (e.g., template loading).
 
@@ -75,7 +75,7 @@ require(['plate.min'], function(plate) {
 Documentation
 -------------
 
-Plate is documented on [it's github wiki](https://github.com/chrisdickinson/plate/wiki). There are "Getting Started"
+Plate is documented on [its github wiki](https://github.com/chrisdickinson/plate/wiki). There are "Getting Started"
 guides for both in-browser as well as in-node environments.
 
 Contributing
@@ -103,22 +103,6 @@ In node:
 
 $ npm install plate
 $ npm test plate
-
-````
-
-### In browser:
-
-* [Your current browser](http://chrisdickinson.github.com/plate/test.html)
-
-### Locally, in browser:
-
-````bash
-
-$ git clone git@github.com:chrisdickinson/plate.git
-$ cd plate
-$ make browsertest
-$ python -m SimpleHTTPServer &
-$ open http://localhost:8000/test.html
 
 ````
 

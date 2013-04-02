@@ -1,4 +1,11 @@
 ;(function(e,t,n){function i(n,s){if(!t[n]){if(!e[n]){var o=typeof require=="function"&&require;if(!s&&o)return o(n,!0);if(r)return r(n,!0);throw new Error("Cannot find module '"+n+"'")}var u=t[n]={exports:{}};e[n][0](function(t){var r=e[n][1][t];return i(r?r:t)},u,u.exports)}return t[n].exports}var r=typeof require=="function"&&require;for(var s=0;s<n.length;s++)i(n[s]);return i})({1:[function(require,module,exports){
+module.exports = {
+    log: function(value) { console.log(value) }
+  , error: function(err) { console.error(err, err && err.stack) }
+  , info: function(value) { } 
+}
+
+},{}],2:[function(require,module,exports){
 module.exports = Promise
 
 function Promise() {
@@ -22,7 +29,7 @@ proto.once = function(ev, fn) {
   this.trigger = fn  
 }
 
-},{}],2:[function(require,module,exports){
+},{}],3:[function(require,module,exports){
 (function(global){var FilterToken = require('./filter_token')
   , TagToken = require('./tag_token')
   , CommentToken = require('./comment_token')
@@ -175,7 +182,7 @@ cons.tokenize = function(content) {
 }
 
 })(window)
-},{"./tag_token":3,"./filter_token":4,"./comment_token":5,"./text_token":6,"./parser":7,"./context":8,"./meta":9,"./promise":1,"./libraries":10}],11:[function(require,module,exports){
+},{"./filter_token":4,"./tag_token":5,"./comment_token":6,"./text_token":7,"./libraries":8,"./parser":9,"./context":10,"./meta":11,"./promise":2}],12:[function(require,module,exports){
 require('dst')
 
 var plate = require('./lib/index')
@@ -185,6 +192,7 @@ if(typeof define !== 'undefined' && define.amd) {
   window.plate = plate
 }
 
+plate.debug = require('./lib/debug')
 plate.utils = plate.date = require('./lib/date')
 plate.utils.Promise = require('./lib/promise')
 plate.utils.SafeString = function(str) {
@@ -194,7 +202,7 @@ plate.utils.SafeString = function(str) {
 }
 plate.libraries = require('./lib/libraries')
 
-},{"./lib/index":2,"./lib/date":12,"./lib/promise":1,"./lib/libraries":10,"dst":13}],10:[function(require,module,exports){
+},{"./lib/index":3,"./lib/debug":1,"./lib/date":13,"./lib/promise":2,"./lib/libraries":8,"dst":14}],8:[function(require,module,exports){
 module.exports = {
     Library: require('./library')
   , DefaultPluginLibrary: require('./library')
@@ -202,7 +210,31 @@ module.exports = {
   , DefaultFilterLibrary: require('./defaultfilters')
 } 
 
-},{"./library":14,"./defaulttags":15,"./defaultfilters":16}],13:[function(require,module,exports){
+},{"./library":15,"./defaulttags":16,"./defaultfilters":17}],10:[function(require,module,exports){
+module.exports = Context
+
+function Context(from) {
+  if(from && from.constructor === Context) {
+    return from
+  }
+
+  from = from || {}
+  for(var key in from) if(from.hasOwnProperty(key)) {
+    this[key] = from[key]
+  }
+}
+
+var cons = Context
+  , proto = cons.prototype
+
+proto.copy = function() {
+  var F = Function()
+  F.name = cons.name
+  F.prototype = this
+  return new F
+}
+
+},{}],14:[function(require,module,exports){
 ;(function() {
 
 // so, the only way we (reliably) get access to DST in javascript
@@ -276,31 +308,7 @@ if(typeof module !== 'undefined') {
 
 })()
 
-},{}],8:[function(require,module,exports){
-module.exports = Context
-
-function Context(from) {
-  if(from && from.constructor === Context) {
-    return from
-  }
-
-  from = from || {}
-  for(var key in from) if(from.hasOwnProperty(key)) {
-    this[key] = from[key]
-  }
-}
-
-var cons = Context
-  , proto = cons.prototype
-
-proto.copy = function() {
-  var F = Function()
-  F.name = cons.name
-  F.prototype = this
-  return new F
-}
-
-},{}],14:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 module.exports = Library
 
 function Library(lib) {
@@ -337,66 +345,7 @@ function errorOnNull(fn, msg) {
 }
 
 
-},{}],6:[function(require,module,exports){
-module.exports = TextToken
-
-var Token = require('./token')
-  , TextNode = require('./text_node')
-
-function TextToken(content, line) {
-  Token.call(this, content, line)
-}
-
-var cons = TextToken
-  , proto = cons.prototype = new Token
-
-proto.constructor = cons
-
-proto.node = function(parser) {
-  return new TextNode(this.content)
-}
-
-},{"./token":17,"./text_node":18}],5:[function(require,module,exports){
-module.exports = CommentToken
-
-var Token = require('./token')
-
-function CommentToken(content, line) {
-  Token.call(this, content, line)
-}
-
-var cons = CommentToken
-  , proto = cons.prototype = new Token
-
-proto.constructor = cons
-
-proto.node = function(parser) {
-  // no-operation
-  return null
-}
-
-
-},{"./token":17}],4:[function(require,module,exports){
-var Token = require('./token')
-  , FilterNode = require('./filter_node')
-
-module.exports = FilterToken
-
-function FilterToken(content, line) {
-  Token.call(this, content, line)
-}
-
-var cons = FilterToken
-  , proto = cons.prototype = new Token
-
-proto.constructor = cons
-
-proto.node = function(parser) {
-  return new FilterNode(parser.compile(this.content))
-}
-
-
-},{"./token":17,"./filter_node":19}],3:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 module.exports = TagToken
 
 var Token = require('./token')
@@ -416,7 +365,66 @@ proto.node = function(parser) {
   return tag(this.content, parser)
 }
 
-},{"./token":17}],7:[function(require,module,exports){
+},{"./token":18}],6:[function(require,module,exports){
+module.exports = CommentToken
+
+var Token = require('./token')
+
+function CommentToken(content, line) {
+  Token.call(this, content, line)
+}
+
+var cons = CommentToken
+  , proto = cons.prototype = new Token
+
+proto.constructor = cons
+
+proto.node = function(parser) {
+  // no-operation
+  return null
+}
+
+
+},{"./token":18}],4:[function(require,module,exports){
+var Token = require('./token')
+  , FilterNode = require('./filter_node')
+
+module.exports = FilterToken
+
+function FilterToken(content, line) {
+  Token.call(this, content, line)
+}
+
+var cons = FilterToken
+  , proto = cons.prototype = new Token
+
+proto.constructor = cons
+
+proto.node = function(parser) {
+  return new FilterNode(parser.compile(this.content))
+}
+
+
+},{"./token":18,"./filter_node":19}],7:[function(require,module,exports){
+module.exports = TextToken
+
+var Token = require('./token')
+  , TextNode = require('./text_node')
+
+function TextToken(content, line) {
+  Token.call(this, content, line)
+}
+
+var cons = TextToken
+  , proto = cons.prototype = new Token
+
+proto.constructor = cons
+
+proto.node = function(parser) {
+  return new TextNode(this.content)
+}
+
+},{"./token":18,"./text_node":20}],9:[function(require,module,exports){
 module.exports = Parser
 
 var NodeList = require('./node_list')
@@ -634,7 +642,7 @@ proto.compile = function(content) {
   return output
 }
 
-},{"./node_list":20,"./filter_chain":21,"./filter_lookup":22,"./filter_application":23}],9:[function(require,module,exports){
+},{"./node_list":21,"./filter_chain":22,"./filter_lookup":23,"./filter_application":24}],11:[function(require,module,exports){
 var libraries = require('./libraries')
 
 module.exports = Meta
@@ -692,7 +700,33 @@ function createLibrary(name) {
 }
 
 
-},{"./libraries":10}],16:[function(require,module,exports){
+},{"./libraries":8}],16:[function(require,module,exports){
+var Library = require('./library')
+
+module.exports = DefaultTags
+
+function DefaultTags() {
+  Library.call(this, this.builtins)
+}
+
+var cons = DefaultTags
+  , proto = cons.prototype = new Library
+
+proto.constructor = cons
+
+proto.builtins = {
+    'block': require('./tags/block').parse
+  , 'comment': require('./tags/comment').parse
+  , 'debug': require('./tags/debug').parse
+  , 'extends': require('./tags/extends').parse
+  , 'for': require('./tags/for').parse
+  , 'if': require('./tags/if/node').parse
+  , 'include': require('./tags/include').parse
+  , 'now': require('./tags/now').parse
+  , 'with': require('./tags/with').parse
+}
+
+},{"./library":15,"./tags/block":25,"./tags/comment":26,"./tags/debug":27,"./tags/extends":28,"./tags/for":29,"./tags/if/node":30,"./tags/include":31,"./tags/now":32,"./tags/with":33}],17:[function(require,module,exports){
 var Library = require('./library')
 
 module.exports = DefaultFilters
@@ -743,6 +777,7 @@ proto.builtins = {
   , 'safe': require('./filters/safe')
   , 'slice': require('./filters/slice')
   , 'slugify': require('./filters/slugify')
+  , 'split': require('./filters/split')
   , 'striptags': require('./filters/striptags')
   , 'timesince': require('./filters/timesince')
   , 'timeuntil': require('./filters/timeuntil')
@@ -760,32 +795,7 @@ proto.builtins = {
 }
 
 
-},{"./library":14,"./filters/add":24,"./filters/addslashes":25,"./filters/capfirst":26,"./filters/center":27,"./filters/cut":28,"./filters/date":29,"./filters/default":30,"./filters/dictsort":31,"./filters/dictsortreversed":32,"./filters/divisibleby":33,"./filters/escape":34,"./filters/filesizeformat":35,"./filters/first":36,"./filters/floatformat":37,"./filters/force_escape":38,"./filters/get_digit":39,"./filters/index":40,"./filters/iteritems":41,"./filters/iriencode":42,"./filters/join":43,"./filters/last":44,"./filters/length":45,"./filters/length_is":46,"./filters/linebreaks":47,"./filters/linebreaksbr":48,"./filters/linenumbers":49,"./filters/ljust":50,"./filters/lower":51,"./filters/make_list":52,"./filters/phone2numeric":53,"./filters/pluralize":54,"./filters/random":55,"./filters/rjust":56,"./filters/safe":57,"./filters/slice":58,"./filters/slugify":59,"./filters/striptags":60,"./filters/timesince":61,"./filters/timeuntil":62,"./filters/title":63,"./filters/truncatechars":64,"./filters/truncatewords":65,"./filters/unordered_list":66,"./filters/upper":67,"./filters/urlencode":68,"./filters/urlize":69,"./filters/urlizetrunc":70,"./filters/wordcount":71,"./filters/wordwrap":72,"./filters/yesno":73}],15:[function(require,module,exports){
-var Library = require('./library')
-
-module.exports = DefaultTags
-
-function DefaultTags() {
-  Library.call(this, this.builtins)
-}
-
-var cons = DefaultTags
-  , proto = cons.prototype = new Library
-
-proto.constructor = cons
-
-proto.builtins = {
-    'block': require('./tags/block').parse
-  , 'comment': require('./tags/comment').parse
-  , 'extends': require('./tags/extends').parse
-  , 'for': require('./tags/for').parse
-  , 'if': require('./tags/if/node').parse
-  , 'include': require('./tags/include').parse
-  , 'now': require('./tags/now').parse
-  , 'with': require('./tags/with').parse
-}
-
-},{"./library":14,"./tags/block":74,"./tags/comment":75,"./tags/extends":76,"./tags/for":77,"./tags/if/node":78,"./tags/include":79,"./tags/now":80,"./tags/with":81}],17:[function(require,module,exports){
+},{"./library":15,"./filters/add":34,"./filters/addslashes":35,"./filters/capfirst":36,"./filters/center":37,"./filters/cut":38,"./filters/date":39,"./filters/default":40,"./filters/dictsort":41,"./filters/dictsortreversed":42,"./filters/divisibleby":43,"./filters/escape":44,"./filters/filesizeformat":45,"./filters/first":46,"./filters/floatformat":47,"./filters/force_escape":48,"./filters/get_digit":49,"./filters/index":50,"./filters/iteritems":51,"./filters/iriencode":52,"./filters/join":53,"./filters/last":54,"./filters/length":55,"./filters/length_is":56,"./filters/linebreaks":57,"./filters/linebreaksbr":58,"./filters/linenumbers":59,"./filters/ljust":60,"./filters/lower":61,"./filters/make_list":62,"./filters/phone2numeric":63,"./filters/pluralize":64,"./filters/random":65,"./filters/rjust":66,"./filters/safe":67,"./filters/slice":68,"./filters/slugify":69,"./filters/split":70,"./filters/striptags":71,"./filters/timesince":72,"./filters/timeuntil":73,"./filters/title":74,"./filters/truncatechars":75,"./filters/truncatewords":76,"./filters/unordered_list":77,"./filters/upper":78,"./filters/urlencode":79,"./filters/urlize":80,"./filters/urlizetrunc":81,"./filters/wordcount":82,"./filters/wordwrap":83,"./filters/yesno":84}],18:[function(require,module,exports){
 module.exports = Token
 
 function Token(content, line) {
@@ -813,7 +823,7 @@ proto.is = function(names) {
   return false
 }
 
-},{}],18:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 module.exports = TextNode
 
 function TextNode(content) {
@@ -827,7 +837,7 @@ proto.render = function(context) {
   return this.content
 }
 
-},{}],21:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 module.exports = FilterChain
 
 function FilterChain(bits) {
@@ -858,29 +868,44 @@ proto.resolve = function(context) {
 }
 
 
-},{}],24:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
+module.exports = CommentNode
+
+function CommentNode() {
+  // no-op.
+}
+
+var cons = CommentNode
+  , proto = cons.prototype
+
+proto.render = function(context) {
+  return ''
+}
+
+cons.parse = function(contents, parser) {
+  nl = parser.parse(['endcomment'])
+  parser.tokens.shift()
+
+  return new cons
+}
+
+},{}],34:[function(require,module,exports){
 module.exports = function(input, value) {
   return parseInt(input, 10) + parseInt(value, 10)
 }
 
-},{}],25:[function(require,module,exports){
+},{}],35:[function(require,module,exports){
 module.exports = function(input) {
   return input.toString().replace(/'/g, "\\'")
 }
 
-},{}],26:[function(require,module,exports){
+},{}],36:[function(require,module,exports){
 module.exports = function(input) {
   var str = input.toString();
   return [str.slice(0,1).toUpperCase(), str.slice(1)].join('')
 }
 
-},{}],28:[function(require,module,exports){
-module.exports = function(input, value) {
-  var str = input.toString()
-  return str.replace(new RegExp(value, "g"), '')
-}
-
-},{}],27:[function(require,module,exports){
+},{}],37:[function(require,module,exports){
 module.exports = function(input, len, ready) {
   if(ready === undefined)
     len = 0
@@ -910,12 +935,18 @@ module.exports = function(input, len, ready) {
   return str
 }
 
-},{}],30:[function(require,module,exports){
+},{}],38:[function(require,module,exports){
+module.exports = function(input, value) {
+  var str = input.toString()
+  return str.replace(new RegExp(value, "g"), '')
+}
+
+},{}],40:[function(require,module,exports){
 module.exports = function(input, def, ready) {
   return input ? input : def
 }
 
-},{}],31:[function(require,module,exports){
+},{}],41:[function(require,module,exports){
 module.exports = function(input, key) {
   return input.sort(function(x, y) {
     if(x[key] > y[key]) return 1
@@ -924,12 +955,12 @@ module.exports = function(input, key) {
   })
 }
 
-},{}],33:[function(require,module,exports){
+},{}],43:[function(require,module,exports){
 module.exports = function(input, num) {
   return input % parseInt(num, 10) == 0
 }
 
-},{}],35:[function(require,module,exports){
+},{}],45:[function(require,module,exports){
 module.exports = function(input) {
   var num = (new Number(input)).valueOf()
     , singular = num == 1 ? '' : 's'
@@ -944,14 +975,12 @@ module.exports = function(input) {
   return value
 }
 
-},{}],36:[function(require,module,exports){
+},{}],46:[function(require,module,exports){
 module.exports = function(input) {
   return input[0]
 }
 
-},{}],40:[function(require,module,exports){
-
-},{}],37:[function(require,module,exports){
+},{}],47:[function(require,module,exports){
 module.exports = function(input, val) {
   val = parseInt(val, 10)
   val = isNaN(val) ? -1 : val
@@ -984,7 +1013,7 @@ module.exports = function(input, val) {
   return asString
 }
 
-},{}],39:[function(require,module,exports){
+},{}],49:[function(require,module,exports){
 module.exports = function(input, digit) {
   var isNum = !isNaN(parseInt(input, 10))
     , str = input.toString()
@@ -998,7 +1027,9 @@ module.exports = function(input, digit) {
   return input
 }
 
-},{}],41:[function(require,module,exports){
+},{}],50:[function(require,module,exports){
+
+},{}],51:[function(require,module,exports){
 module.exports = function(input) {
   var output = []
   for(var name in input) if(input.hasOwnProperty(name)) {
@@ -1007,25 +1038,25 @@ module.exports = function(input) {
   return output
 }
 
-},{}],43:[function(require,module,exports){
+},{}],52:[function(require,module,exports){
+module.exports = function(input) {
+  return input
+}
+
+},{}],53:[function(require,module,exports){
 module.exports = function(input, glue) {
   input = input instanceof Array ? input : input.toString().split('')
   return input.join(glue)
 }
 
-},{}],42:[function(require,module,exports){
-module.exports = function(input) {
-  return input
-}
-
-},{}],44:[function(require,module,exports){
+},{}],54:[function(require,module,exports){
 module.exports = function(input) {
   var cb = input.charAt || function(ind) { return input[ind]; }
 
   return cb.call(input, input.length-1);
 }
 
-},{}],45:[function(require,module,exports){
+},{}],55:[function(require,module,exports){
 module.exports = function(input, ready) {
   if(input && typeof input.length === 'function') {
     return input.length(ready)
@@ -1033,7 +1064,7 @@ module.exports = function(input, ready) {
   return input.length
 }
 
-},{}],46:[function(require,module,exports){
+},{}],56:[function(require,module,exports){
 module.exports = function(input, expected, ready) {
   var tmp
   if(input && typeof input.length === 'function') {
@@ -1047,7 +1078,7 @@ module.exports = function(input, expected, ready) {
   return input.length === expected
 }
 
-},{}],49:[function(require,module,exports){
+},{}],59:[function(require,module,exports){
 module.exports = function(input) {
   var str = input.toString()
     , bits = str.split('\n')
@@ -1061,12 +1092,7 @@ module.exports = function(input) {
   return out.join('\n')
 }
 
-},{}],51:[function(require,module,exports){
-module.exports = function(input) {
-  return input.toString().toLowerCase()
-}
-
-},{}],50:[function(require,module,exports){
+},{}],60:[function(require,module,exports){
 module.exports = function(input, num) {
   var bits = (input === null || input === undefined ? '' : input).toString().split('')
     , difference = num - bits.length
@@ -1079,14 +1105,19 @@ module.exports = function(input, num) {
   return bits.join('')
 }
 
-},{}],52:[function(require,module,exports){
+},{}],61:[function(require,module,exports){
+module.exports = function(input) {
+  return input.toString().toLowerCase()
+}
+
+},{}],62:[function(require,module,exports){
 module.exports = function(input) {
   input = input instanceof Array ? input : input.toString().split('')
 
   return input
 }
 
-},{}],53:[function(require,module,exports){
+},{}],63:[function(require,module,exports){
 
 var LETTERS = {
 'a': '2', 'b': '2', 'c': '2', 'd': '3', 'e': '3',
@@ -1108,7 +1139,7 @@ module.exports = function(input) {
   return out.join('')
 }
 
-},{}],54:[function(require,module,exports){
+},{}],64:[function(require,module,exports){
 module.exports = function(input, plural) {
   plural = (plural || 's').split(',')
 
@@ -1123,7 +1154,7 @@ module.exports = function(input, plural) {
   return suffix
 }
 
-},{}],55:[function(require,module,exports){
+},{}],65:[function(require,module,exports){
 module.exports = function(input) {
   var cb = input.charAt || function(idx) {
     return this[idx];
@@ -1132,7 +1163,7 @@ module.exports = function(input) {
   return cb.call(input, Math.floor(Math.random() * input.length))
 }
 
-},{}],56:[function(require,module,exports){
+},{}],66:[function(require,module,exports){
 module.exports = function(input, num) {
   var bits = (input === null || input === undefined ? '' : input).toString().split('')
     , difference = num - bits.length
@@ -1146,7 +1177,7 @@ module.exports = function(input, num) {
   return bits.join('')
 }
 
-},{}],58:[function(require,module,exports){
+},{}],68:[function(require,module,exports){
 module.exports = function(input, by) {
   by = by.toString()
   if(by.charAt(0) === ':') {
@@ -1166,7 +1197,7 @@ module.exports = function(input, by) {
   return slice.apply(input, splitBy)
 }
 
-},{}],59:[function(require,module,exports){
+},{}],69:[function(require,module,exports){
 module.exports = function(input) {
   input = input.toString()
   return input
@@ -1177,13 +1208,20 @@ module.exports = function(input) {
         .toLowerCase()
 }
 
-},{}],60:[function(require,module,exports){
+},{}],70:[function(require,module,exports){
+module.exports = function(input, by, ready) {
+  by = arguments.length === 2 ? ',' : by
+  input = ''+input
+  return input.split(by)
+}
+
+},{}],71:[function(require,module,exports){
 module.exports = function(input) {
   var str = input.toString()
   return str.replace(/<[^>]*?>/g, '')
 }
 
-},{}],61:[function(require,module,exports){
+},{}],72:[function(require,module,exports){
 module.exports = function(input, n, ready) {
   var input = new Date(input)
     , now   = ready === undefined ? new Date() : new Date(n)
@@ -1223,7 +1261,37 @@ module.exports = function(input, n, ready) {
   }
 }
 
-},{}],65:[function(require,module,exports){
+},{}],74:[function(require,module,exports){
+module.exports = function(input) {
+  var str = input.toString()
+    , bits = str.split(/\s{1}/g)
+    , out = []
+  
+  while(bits.length) {
+    var word = bits.pop()
+    word = word.charAt(0).toUpperCase() + word.slice(1)
+    out.push(word)
+  }
+
+  out = out.join(' ')
+  return out.replace(/([a-z])'([A-Z])/g, function(a, m, x) { return x.toLowerCase() })
+}
+
+},{}],75:[function(require,module,exports){
+module.exports = function(input, n) {
+  var str = input.toString()
+    , num = parseInt(n, 10)
+
+  if(isNaN(num))
+    return input
+
+  if(input.length <= num)
+    return input
+
+  return input.slice(0, num)+'...'
+}
+
+},{}],76:[function(require,module,exports){
 module.exports = function(input, n) {
   var str = input.toString()
     , num = parseInt(n, 10)
@@ -1240,47 +1308,17 @@ module.exports = function(input, n) {
   return words.slice(0, num).join(' ')+'...'
 }
 
-},{}],63:[function(require,module,exports){
-module.exports = function(input) {
-  var str = input.toString()
-    , bits = str.split(/\s{1}/g)
-    , out = []
-  
-  while(bits.length) {
-    var word = bits.pop()
-    word = word.charAt(0).toUpperCase() + word.slice(1)
-    out.push(word)
-  }
-
-  out = out.join(' ')
-  return out.replace(/([a-z])'([A-Z])/g, function(a, m, x) { return x.toLowerCase() })
-}
-
-},{}],64:[function(require,module,exports){
-module.exports = function(input, n) {
-  var str = input.toString()
-    , num = parseInt(n, 10)
-
-  if(isNaN(num))
-    return input
-
-  if(input.length <= num)
-    return input
-
-  return input.slice(0, num)+'...'
-}
-
-},{}],67:[function(require,module,exports){
+},{}],78:[function(require,module,exports){
 module.exports = function(input) {
   return input.toString().toUpperCase()
 }
 
-},{}],68:[function(require,module,exports){
+},{}],79:[function(require,module,exports){
 module.exports = function(input) {
   return escape(input.toString())
 }
 
-},{}],71:[function(require,module,exports){
+},{}],82:[function(require,module,exports){
 module.exports = function(input) {
   var str = input.toString()
     , bits = str.split(/\s+/g)
@@ -1288,7 +1326,20 @@ module.exports = function(input) {
   return bits.length
 }
 
-},{}],73:[function(require,module,exports){
+},{}],83:[function(require,module,exports){
+module.exports = function(input, len) {
+  var words = input.toString().split(/\s+/g)
+    , out = []
+    , len = parseInt(len, 10) || words.length
+
+  while(words.length) {
+    out.unshift(words.splice(0, len).join(' '))
+  }
+
+  return out.join('\n')
+}
+
+},{}],84:[function(require,module,exports){
 module.exports = function(input, map) {
   var ourMap = map.toString().split(',')
     , value
@@ -1304,41 +1355,7 @@ module.exports = function(input, map) {
   return value
 }
 
-},{}],72:[function(require,module,exports){
-module.exports = function(input, len) {
-  var words = input.toString().split(/\s+/g)
-    , out = []
-    , len = parseInt(len, 10) || words.length
-
-  while(words.length) {
-    out.unshift(words.splice(0, len).join(' '))
-  }
-
-  return out.join('\n')
-}
-
-},{}],75:[function(require,module,exports){
-module.exports = CommentNode
-
-function CommentNode() {
-  // no-op.
-}
-
-var cons = CommentNode
-  , proto = cons.prototype
-
-proto.render = function(context) {
-  return ''
-}
-
-cons.parse = function(contents, parser) {
-  nl = parser.parse(['endcomment'])
-  parser.tokens.shift()
-
-  return new cons
-}
-
-},{}],12:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 module.exports = { time: time_format, date: format, DateFormat: DateFormat }
 
 try { require('tz') } catch(e) { }
@@ -1747,10 +1764,11 @@ function time_format(value, format_string) {
   return tf.format(format_string)
 }
 
-},{"tz":82}],19:[function(require,module,exports){
+},{"tz":85}],19:[function(require,module,exports){
 module.exports = FilterNode
 
 var Promise = require('./promise')
+  , debug = require('./debug')
 
 function FilterNode(filter) {
   this.filter = filter
@@ -1798,6 +1816,7 @@ function safely(fn) {
     try {
       return fn.call(this, context)
     } catch(err) {
+      debug.info(err) 
       return ''
     }
   }
@@ -1812,7 +1831,7 @@ function escapeHTML(str) {
     .replace(/'/g, '&#39;')
 }
 
-},{"./promise":1}],20:[function(require,module,exports){
+},{"./promise":2,"./debug":1}],21:[function(require,module,exports){
 module.exports = NodeList
 
 var Promise = require('./promise')
@@ -1871,7 +1890,7 @@ function bind(num, fn) {
   }
 }
 
-},{"./promise":1}],22:[function(require,module,exports){
+},{"./promise":2}],23:[function(require,module,exports){
 module.exports = FilterLookup
 
 var Promise = require('./promise')
@@ -1935,7 +1954,7 @@ proto.resolve = function(context, fromIDX) {
   return current
 }
 
-},{"./promise":1}],23:[function(require,module,exports){
+},{"./promise":2}],24:[function(require,module,exports){
 module.exports = FilterApplication
 
 var Promise = require('./promise')
@@ -2026,135 +2045,7 @@ proto.resolve = function(context, value, fromIDX, argValues) {
   }
 }
 
-},{"./promise":1}],29:[function(require,module,exports){
-var format = require('../date').date
-  
-module.exports = function(input, value, ready) {
-  if (ready === undefined)
-    value = 'N j, Y'
-
-  return format(input.getFullYear ? input : new Date(input), value)
-}
-
-},{"../date":12}],32:[function(require,module,exports){
-var dictsort = require('./dictsort');
-
-module.exports = function(input, key) {
-  return dictsort(input, key).reverse()
-}
-
-},{"./dictsort":31}],34:[function(require,module,exports){
-var FilterNode = require('../filter_node')
-
-module.exports = function(input) {
-  if(input && input.safe) {
-    return input
-  }
-
-  input = new String(FilterNode.escape(input))
-  input.safe = true
-  return input
-}
-
-},{"../filter_node":19}],38:[function(require,module,exports){
-var FilterNode = require('../filter_node')
-
-module.exports = function(input) {
-  var x = new String(FilterNode.escape(input+''))
-  x.safe = true
-  return x
-}
-
-},{"../filter_node":19}],47:[function(require,module,exports){
-var safe = require('./safe')
-
-module.exports = function(input) {
-  var str = input.toString()
-    , paras = str.split('\n\n')
-    , out = []
-
-  while(paras.length) {
-    out.unshift(paras.pop().replace(/\n/g, '<br />'))
-  }
-
-  return safe('<p>'+out.join('</p><p>')+'</p>')
-}
-
-},{"./safe":57}],48:[function(require,module,exports){
-var safe = require('./safe')
-
-module.exports = function(input) {
-  var str = input.toString()
-  return safe(str.replace(/\n/g, '<br />'))
-}
-
-},{"./safe":57}],57:[function(require,module,exports){
-var FilterNode = require('../filter_node')
-
-module.exports = function(input) {
-  input = new String(input)
-  input.safe = true
-  return input
-}
-
-},{"../filter_node":19}],62:[function(require,module,exports){
-var timesince = require('./timesince').timesince
-
-module.exports = function(input, n) {
-  var now = n ? new Date(n) : new Date()
-  return timesince(now, input)
-}
-
-},{"./timesince":61}],66:[function(require,module,exports){
-var safe = require('./safe');
-
-var ulparser = function(list) {
-  var out = []
-    , l = list.slice()
-    , item
-
-  while(l.length) {
-    item = l.pop()
-
-    if(item instanceof Array)
-      out.unshift('<ul>'+ulparser(item)+'</ul>')
-    else
-      out.unshift('</li><li>'+item)
-  }
-
-  // get rid of the leading </li>, if any. add trailing </li>.
-  return out.join('').replace(/^<\/li>/, '') + '</li>'
-}
-
-module.exports = function(input) {
-  return input instanceof Array ?
-    safe(ulparser(input)) :
-    input
-}
-
-},{"./safe":57}],69:[function(require,module,exports){
-var safe = require('./safe')
-
-module.exports = function(input) {
-  var str = input.toString()
-  return safe(str.replace(/(((http(s)?:\/\/)|(mailto:))([\w\d\-\.:@\/])+)/g, function() {
-    return '<a href="'+arguments[0]+'">'+arguments[0]+'</a>'; 
-  }))
-}
-
-},{"./safe":57}],70:[function(require,module,exports){
-var safe = require('./safe')
-
-module.exports = function(input, len) {
-  var str = input.toString()
-  len = parseInt(len, 10) || 1000
-  return safe(str.replace(/(((http(s)?:\/\/)|(mailto:))([\w\d\-\.:@])+)/g, function() {
-    var ltr = arguments[0].length > len ? arguments[0].slice(0, len) + '...' : arguments[0];
-    return '<a href="'+arguments[0]+'">'+ltr+'</a>'; 
-  }))
-}
-
-},{"./safe":57}],74:[function(require,module,exports){
+},{"./promise":2}],25:[function(require,module,exports){
 module.exports = BlockNode
 
 var Promise = require('../promise')
@@ -2238,7 +2129,56 @@ cons.parse = function(contents, parser) {
   return new cons(name, nodes)  
 }
 
-},{"../promise":1,"../block_context":83}],76:[function(require,module,exports){
+},{"../promise":2,"../block_context":86}],27:[function(require,module,exports){
+module.exports = DebugNode
+
+var Promise = require('../promise')
+  , Context = require('../context')
+  , debug = require('../debug')
+
+function DebugNode(varname) {
+  this.varname = varname
+}
+
+var cons = DebugNode
+  , proto = cons.prototype
+
+proto.render = function(context, value) {
+  var self = this
+    , target = context
+    , promise
+
+  if(self.varname !== null) {
+    value = arguments.length === 2 ? value : self.varname.resolve(context)
+    if(value && value.constructor === Promise) {
+      promise = new Promise
+      value.once('done', function(data) {
+        promise.resolve(self.render(context, data))
+      })
+      return promise
+    }
+    target = value
+  }
+
+  if(target === context) {
+    while(target !== Context.prototype) {
+      debug.log(target)
+      target = Object.getPrototypeOf(target)
+    }
+    return ''
+  }
+  debug.log(target)
+  return ''
+}
+
+cons.parse = function(contents, parser) {
+  var bits = contents.split(' ')
+
+  return new DebugNode(bits[1] ? parser.compile(bits[1]) : null)
+}
+
+
+},{"../promise":2,"../context":10,"../debug":1}],28:[function(require,module,exports){
 module.exports = ExtendsNode
 
 var Promise = require('../promise')
@@ -2340,7 +2280,7 @@ cons.parse = function(contents, parser) {
   return new cons(parent, nodes, loader)
 }
 
-},{"../promise":1,"../block_context":83}],77:[function(require,module,exports){
+},{"../promise":2,"../block_context":86}],29:[function(require,module,exports){
 module.exports = ForNode
 
 var NodeList = require('../node_list')
@@ -2466,7 +2406,7 @@ cons.parse = function(contents, parser) {
   return new cons(target, unpack, nodelist, empty, reversed);
 }
 
-},{"../node_list":20,"../promise":1}],79:[function(require,module,exports){
+},{"../node_list":21,"../promise":2}],31:[function(require,module,exports){
 module.exports = IncludeNode
 
 var Promise = require('../promise')
@@ -2533,7 +2473,7 @@ proto.get_template = function(target) {
   return target
 }
 
-},{"../promise":1}],80:[function(require,module,exports){
+},{"../promise":2}],32:[function(require,module,exports){
 module.exports = NowNode
 
 var format = require('../date').date
@@ -2564,7 +2504,7 @@ cons.parse = function(contents, parser) {
   return new NowNode(fmt || 'N j, Y')
 }
 
-},{"../date":12}],81:[function(require,module,exports){
+},{"../date":13}],33:[function(require,module,exports){
 module.exports = WithNode
 
 var Promise = require('../promise')
@@ -2613,7 +2553,135 @@ proto.render = function(context, value) {
   return result
 }
 
-},{"../promise":1}],78:[function(require,module,exports){
+},{"../promise":2}],39:[function(require,module,exports){
+var format = require('../date').date
+  
+module.exports = function(input, value, ready) {
+  if (ready === undefined)
+    value = 'N j, Y'
+
+  return format(input.getFullYear ? input : new Date(input), value)
+}
+
+},{"../date":13}],42:[function(require,module,exports){
+var dictsort = require('./dictsort');
+
+module.exports = function(input, key) {
+  return dictsort(input, key).reverse()
+}
+
+},{"./dictsort":41}],44:[function(require,module,exports){
+var FilterNode = require('../filter_node')
+
+module.exports = function(input) {
+  if(input && input.safe) {
+    return input
+  }
+
+  input = new String(FilterNode.escape(input))
+  input.safe = true
+  return input
+}
+
+},{"../filter_node":19}],48:[function(require,module,exports){
+var FilterNode = require('../filter_node')
+
+module.exports = function(input) {
+  var x = new String(FilterNode.escape(input+''))
+  x.safe = true
+  return x
+}
+
+},{"../filter_node":19}],57:[function(require,module,exports){
+var safe = require('./safe')
+
+module.exports = function(input) {
+  var str = input.toString()
+    , paras = str.split('\n\n')
+    , out = []
+
+  while(paras.length) {
+    out.unshift(paras.pop().replace(/\n/g, '<br />'))
+  }
+
+  return safe('<p>'+out.join('</p><p>')+'</p>')
+}
+
+},{"./safe":67}],58:[function(require,module,exports){
+var safe = require('./safe')
+
+module.exports = function(input) {
+  var str = input.toString()
+  return safe(str.replace(/\n/g, '<br />'))
+}
+
+},{"./safe":67}],67:[function(require,module,exports){
+var FilterNode = require('../filter_node')
+
+module.exports = function(input) {
+  input = new String(input)
+  input.safe = true
+  return input
+}
+
+},{"../filter_node":19}],73:[function(require,module,exports){
+var timesince = require('./timesince').timesince
+
+module.exports = function(input, n) {
+  var now = n ? new Date(n) : new Date()
+  return timesince(now, input)
+}
+
+},{"./timesince":72}],77:[function(require,module,exports){
+var safe = require('./safe');
+
+var ulparser = function(list) {
+  var out = []
+    , l = list.slice()
+    , item
+
+  while(l.length) {
+    item = l.pop()
+
+    if(item instanceof Array)
+      out.unshift('<ul>'+ulparser(item)+'</ul>')
+    else
+      out.unshift('</li><li>'+item)
+  }
+
+  // get rid of the leading </li>, if any. add trailing </li>.
+  return out.join('').replace(/^<\/li>/, '') + '</li>'
+}
+
+module.exports = function(input) {
+  return input instanceof Array ?
+    safe(ulparser(input)) :
+    input
+}
+
+},{"./safe":67}],80:[function(require,module,exports){
+var safe = require('./safe')
+
+module.exports = function(input) {
+  var str = input.toString()
+  return safe(str.replace(/(((http(s)?:\/\/)|(mailto:))([\w\d\-\.:@\/])+)/g, function() {
+    return '<a href="'+arguments[0]+'">'+arguments[0]+'</a>'; 
+  }))
+}
+
+},{"./safe":67}],81:[function(require,module,exports){
+var safe = require('./safe')
+
+module.exports = function(input, len) {
+  var str = input.toString()
+  len = parseInt(len, 10) || 1000
+  return safe(str.replace(/(((http(s)?:\/\/)|(mailto:))([\w\d\-\.:@])+)/g, function() {
+    var ltr = arguments[0].length > len ? arguments[0].slice(0, len) + '...' : arguments[0];
+    return '<a href="'+arguments[0]+'">'+ltr+'</a>'; 
+  }))
+}
+
+},{"./safe":67}],30:[function(require,module,exports){
 module.exports = IfNode
 
 var Promise = require('../../promise')
@@ -2675,7 +2743,7 @@ cons.parse = function(contents, parser) {
   return new cons(predicate, when_true, when_false)
 }
 
-},{"../../promise":1,"../../node_list":20,"./parser":84}],83:[function(require,module,exports){
+},{"../../promise":2,"../../node_list":21,"./parser":87}],86:[function(require,module,exports){
 module.exports = BlockContext
 
 function BlockContext() {
@@ -2715,7 +2783,7 @@ proto.pop = function(name) {
   return (this.blocks[name] = this.blocks[name] || []).pop()
 }
 
-},{}],85:[function(require,module,exports){
+},{}],88:[function(require,module,exports){
 module.exports = {
   "+0900": [
     {
@@ -3606,7 +3674,7 @@ module.exports = {
   ]
 }
 
-},{}],84:[function(require,module,exports){
+},{}],87:[function(require,module,exports){
 module.exports = IfParser
 
 var LiteralToken = require('./literal')
@@ -3688,7 +3756,7 @@ proto.expression = function(rbp) {
   return left
 }
 
-},{"./literal":86,"./end":87,"./operators":88}],86:[function(require,module,exports){
+},{"./literal":89,"./end":90,"./operators":91}],89:[function(require,module,exports){
 module.exports = LiteralToken
 
 function LiteralToken(value, original) {
@@ -3717,14 +3785,14 @@ proto.evaluate = function(context) {
   return this.value.resolve(context)
 }
 
-},{}],87:[function(require,module,exports){
+},{}],90:[function(require,module,exports){
 module.exports = EndToken
 
 function EndToken() {
   this.lbp = 0
 }
 
-},{}],82:[function(require,module,exports){
+},{}],85:[function(require,module,exports){
 var tz = require('./tz')
   , isDST = require('dst')
 
@@ -3784,7 +3852,7 @@ Date.prototype.tzoffset = function() {
   return 'GMT'+get_offset_fmt(this.getTimezoneOffset())
 }
 
-},{"./tz":85,"dst":13}],88:[function(require,module,exports){
+},{"./tz":88,"dst":14}],91:[function(require,module,exports){
 var InfixOperator = require('./infix')
   , PrefixOperator = require('./prefix')
 
@@ -3926,7 +3994,7 @@ function in_operator(x, y) {
   return found
 }
 
-},{"./infix":89,"./prefix":90}],89:[function(require,module,exports){
+},{"./infix":92,"./prefix":93}],92:[function(require,module,exports){
 module.exports = InfixOperator
 
 var Promise = require('../../promise')
@@ -3984,7 +4052,7 @@ proto.evaluate = function(context, first, second, sentFirst, sentSecond) {
 }
 
 
-},{"../../promise":1}],90:[function(require,module,exports){
+},{"../../promise":2}],93:[function(require,module,exports){
 module.exports = PrefixOperator
 
 var Promise = require('../../promise')
@@ -4029,5 +4097,5 @@ proto.evaluate = function(context, first, times) {
   return self.cmp(first)
 }
 
-},{"../../promise":1}]},{},[11])
+},{"../../promise":2}]},{},[12])
 ;
