@@ -14,6 +14,27 @@ test("Test that the add filter works as expected", mocktimeout(function(assert) 
     })
 )
 
+test("test that the split filter works as expected", mocktimeout(function(assert) {
+  var tpl_by_char = new plate.Template('{% for i in test|split:"" %}{{ i }}\n{% endfor %}')
+    , tpl_with_none = new plate.Template('{% for i in test|split %}{{ i }}\n{% endfor %}')
+    , tpl_split_by_pattern = new plate.Template('{% for i in test|split:"," %}{{ i }}\n{% endfor %}')
+
+  tpl_by_char.render({test: 'hey there'}, function(err, data) {
+    assert.ok(!err)
+    assert.equal(data, 'hey there'.split('').join('\n')+'\n')
+  })
+
+  tpl_with_none.render({test: 'anything'}, function(err, data) {
+    assert.ok(!err)
+    assert.equal(data, 'anything\n')
+  })
+
+  tpl_split_by_pattern.render({test: 'hey,there'}, function(err, data) {
+    assert.ok(!err)
+    assert.equal(data, 'hey\nthere\n')
+  })
+}))
+
 test("Test that the addslashes filter works as expected", mocktimeout(function(assert) {
         
         var tpl = new plate.Template("{{ test|addslashes }}"),
