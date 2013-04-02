@@ -17,9 +17,9 @@ Can I use it in my browser?
 Yes. Plate was designed to work well in the standard suite of browsers. Each minor point release will target
 compatibility with IE7+, FF3+, Chrome, and Safari 4+.
 
-You can [download a minified, precompiled version here](https://raw.github.com/chrisdickinson/plate/master/plate.min.js).
+You can [download a minified, precompiled version here](https://raw.github.com/chrisdickinson/plate/master/dist/plate.min.js).
 
-If you're having trouble, try using the [debug version, with source maps](https://raw.github.com/chrisdickinson/plate/master/plate.debug.js).
+If you're having trouble, try using the [debug version, with source maps](https://raw.github.com/chrisdickinson/plate/master/dist/plate.debug.js).
 
 
 How do I use it?
