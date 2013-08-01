@@ -6,6 +6,15 @@ var plate = require('../index')
 
 var format = utils.date
 
+test("Test malformed {% if %} tag", mocktimeout(function(assert) {
+  var tpl = new plate.Template('{% if x %}1{{ endif }}')
+
+  tpl.render('anything', function(err, html) {
+    assert.ok(err)
+  })
+
+}))
+
 test("Test that for is enabled by default", mocktimeout(function(assert) {
         
         var tpl = new plate.Template("{% for x in y %}{% empty %}{% endfor %}");
