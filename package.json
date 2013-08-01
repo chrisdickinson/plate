@@ -11,19 +11,19 @@
     "lib": "./lib"
   },
   "dependencies": {
-    "tz": "0.0.4",
-    "dst": "0.X.X"
+    "tz": "~0.0.5",
+    "dst": "~0.0.4"
   },
   "devDependencies": {
     "tape": "~0.1.5",
     "mold-source-map": "~0.2.0",
-    "browserify": "~2.11.0"
+    "browserify": "~2.25.1"
   },
   "scripts": {
     "test": "node tests/index.js"
   },
   "license": "MIT",
-  "main": "./index",
+  "main": "./index.js",
   "testling": {
     "files": "tests/index.js",
     "scripts": [

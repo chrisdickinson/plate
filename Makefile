@@ -1,9 +1,9 @@
 build:
-	npm install --dev
-	./node_modules/.bin/browserify browser.js > dist/plate.js
-	./node_modules/.bin/browserify browser.js | uglifyjs > dist/plate.min.js
+	npm install
+	./node_modules/.bin/browserify -s plate browser.js > dist/plate.js
+	cat dist/plate.js | uglifyjs > dist/plate.min.js
 	node ./support/build-debug.js > dist/plate.debug.js
 
 test:
-	npm install --dev
+	npm install
 	npm test
