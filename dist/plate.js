@@ -1,188 +1,5 @@
-;(function(e,t,n){function i(n,s){if(!t[n]){if(!e[n]){var o=typeof require=="function"&&require;if(!s&&o)return o(n,!0);if(r)return r(n,!0);throw new Error("Cannot find module '"+n+"'")}var u=t[n]={exports:{}};e[n][0](function(t){var r=e[n][1][t];return i(r?r:t)},u,u.exports)}return t[n].exports}var r=typeof require=="function"&&require;for(var s=0;s<n.length;s++)i(n[s]);return i})({1:[function(require,module,exports){
-module.exports = {
-    log: function(value) { console.log(value) }
-  , error: function(err) { console.error(err, err && err.stack) }
-  , info: function(value) { } 
-}
-
-},{}],2:[function(require,module,exports){
-module.exports = Promise
-
-function Promise() {
-  this.trigger = null
-}
-
-var cons = Promise
-  , proto = cons.prototype
-
-proto.resolve = function(value) {
-  var trigger = this.trigger
-
-  if(!value || value.constructor !== cons) {
-    return trigger(value)
-  }
-
-  value.once('done', trigger)
-}
-
-proto.once = function(ev, fn) {
-  this.trigger = fn  
-}
-
-},{}],3:[function(require,module,exports){
-(function(global){var FilterToken = require('./filter_token')
-  , TagToken = require('./tag_token')
-  , CommentToken = require('./comment_token')
-  , TextToken = require('./text_token') 
-  , libraries = require('./libraries')
-  , Parser = require('./parser')
-  , Context = require('./context')
-  , Meta = require('./meta')
-  , Promise = require('./promise')
-
-module.exports = Template
-
-// circular alias to support old
-// versions of plate.
-Template.Template = Template
-Template.Context = Context
-
-var later = typeof global !== 'undefined' ? 
-    function(fn) { global.setTimeout(fn, 0) } :
-    function(fn) { this.setTimeout(fn, 0) }
-
-function Template(raw, libraries, parser) {
-  if(typeof raw !== 'string') {
-    throw new TypeError('input should be a string')
-  }
-
-  this.raw = raw
-
-  libraries = libraries || {}
-
-  this.tagLibrary =
-    libraries.tag_library || Template.Meta.createTagLibrary()
-
-  this.filterLibrary = 
-    libraries.filter_library || Template.Meta.createFilterLibrary()
-
-  this.pluginLibrary = 
-    libraries.plugin_library || Template.Meta.createPluginLibrary()
-
-  this.parser = parser || Parser
-
-  this.tokens = null
-}
-
-var cons = Template
-  , proto = cons.prototype
-  , meta = cons.Meta = new Meta
-
-cons.createPluginLibrary = function() {
-  return new libraries.DefaultPluginLibrary()
-}
-
-proto.getNodeList = function() {
-  this.nodelist = this.nodelist || this.parse()
-
-  return this.nodelist
-}
-
-proto.parse = function() {
-  var parser
-
-  this.tokens = this.tokens || cons.tokenize(this.raw)
-
-  parser = new this.parser(
-      this.tokens
-    , this.tagLibrary
-    , this.filterLibrary
-    , this.pluginLibrary
-    , this
-  )
-
-  return parser.parse()
-}
-
-proto.render = protect(function(context, ready) {
-  context = new Context(context)
-
-  var result
-
-  result = 
-  this
-    .getNodeList()
-    .render(context)
-
-  if(result.constructor === Promise) {
-    result.once('done', function(data) {
-      ready(null, data)
-    })
-  } else {
-    later(function() {
-      ready(null, result)
-    }, 0)
-  }
-
-})
-
-function protect(fn) {
-  return function(context, ready) {
-    if(!context || !ready) {
-      throw new TypeError()
-    }
-
-    try {
-      return fn.call(this, context, ready)
-    } catch(e) {
-      later(function() {
-        ready(e, null)
-      }, 0)
-    }
-  }
-}
-
-cons.MATCH_RE = /\{[%#\{](.*?)[\}#%]\}/
-
-cons.tokenize = function(content) {
-  var match = null
-    , tokens = []
-    , lineNo = 1
-    , incLineNo = function(str) { lineNo += str.split('\n').length }
-    , map = {
-          '%': TagToken
-        , '#': CommentToken
-        , '{': FilterToken
-      }
-    , rex = this.MATCH_RE
-    , literal
-
-  do {
-    match = rex.exec(content)
-    if(!match)
-      continue
-
-    literal = content.slice(0, match.index)
-    incLineNo(literal)
-    if(match.index)
-      tokens.push(new TextToken(literal.slice(0, match.index, lineNo)))
-
-    match[1] = match[1]
-      .replace(/^\s+/, '')
-      .replace(/\s+$/, '')
-
-    tokens.push(new map[match[0].charAt(1)](match[1], lineNo))
-
-    content = content.slice(match.index + match[0].length)
-  } while(content.length && match)
-
-  tokens.push(new TextToken(content))
-
-  return tokens
-}
-
-})(window)
-},{"./filter_token":4,"./tag_token":5,"./comment_token":6,"./text_token":7,"./libraries":8,"./parser":9,"./context":10,"./meta":11,"./promise":2}],12:[function(require,module,exports){
+(function(e){if("function"==typeof bootstrap)bootstrap("plate",e);else if("object"==typeof exports)module.exports=e();else if("function"==typeof define&&define.amd)define(e);else if("undefined"!=typeof ses){if(!ses.ok())return;ses.makePlate=e}else"undefined"!=typeof window?window.plate=e():global.plate=e()})(function(){var define,ses,bootstrap,module,exports;
+return (function(e,t,n){function i(n,s){if(!t[n]){if(!e[n]){var o=typeof require=="function"&&require;if(!s&&o)return o(n,!0);if(r)return r(n,!0);throw new Error("Cannot find module '"+n+"'")}var u=t[n]={exports:{}};e[n][0].call(u.exports,function(t){var r=e[n][1][t];return i(r?r:t)},u,u.exports)}return t[n].exports}var r=typeof require=="function"&&require;for(var s=0;s<n.length;s++)i(n[s]);return i})({1:[function(require,module,exports){
 require('dst')
 
 var plate = require('./lib/index')
@@ -202,15 +19,67 @@ plate.utils.SafeString = function(str) {
 }
 plate.libraries = require('./lib/libraries')
 
-},{"./lib/debug":1,"./lib/index":3,"./lib/date":13,"./lib/libraries":8,"./lib/promise":2,"dst":14}],8:[function(require,module,exports){
-module.exports = {
-    Library: require('./library')
-  , DefaultPluginLibrary: require('./library')
-  , DefaultTagLibrary: require('./defaulttags')
-  , DefaultFilterLibrary: require('./defaultfilters')
-} 
+},{"./lib/date":5,"./lib/debug":6,"./lib/index":65,"./lib/libraries":66,"./lib/promise":71,"dst":91}],2:[function(require,module,exports){
+module.exports = BlockContext
 
-},{"./library":15,"./defaulttags":16,"./defaultfilters":17}],10:[function(require,module,exports){
+function BlockContext() {
+  this.blocks = {}
+}
+
+var cons = BlockContext
+  , proto = cons.prototype
+
+cons.KEY = '__BLOCK_CONTEXT__'
+
+cons.from = function(context) {
+  return context[this.KEY]
+}
+
+cons.into = function(context) {
+  return context[this.KEY] = new this()
+}
+
+proto.add = function(blocks) {
+  for(var name in blocks) {
+    (this.blocks[name] = this.blocks[name] || []).unshift(blocks[name])
+  }
+}
+
+proto.get = function(name) {
+  var list = this.blocks[name] || []
+
+  return list[list.length - 1]
+}
+
+proto.push = function(name, block) {
+  (this.blocks[name] = this.blocks[name] || []).push(block)
+}
+
+proto.pop = function(name) {
+  return (this.blocks[name] = this.blocks[name] || []).pop()
+}
+
+},{}],3:[function(require,module,exports){
+module.exports = CommentToken
+
+var Token = require('./token')
+
+function CommentToken(content, line) {
+  Token.call(this, content, line)
+}
+
+var cons = CommentToken
+  , proto = cons.prototype = new Token
+
+proto.constructor = cons
+
+proto.node = function(parser) {
+  // no-operation
+  return null
+}
+
+
+},{"./token":90}],4:[function(require,module,exports){
 module.exports = Context
 
 function Context(from) {
@@ -234,1128 +103,7 @@ proto.copy = function() {
   return new F
 }
 
-},{}],14:[function(require,module,exports){
-;(function() {
-
-// so, the only way we (reliably) get access to DST in javascript
-// is via `Date#getTimezoneOffset`.
-//
-// this value will switch for a given date based on the presence or absence
-// of DST at that date.
-
-function find_dst_threshold (near, far) {
-  var near_date = new Date(near)
-    , far_date = new Date(far)
-    , near_offs = near_date.getTimezoneOffset()
-    , far_offs = far_date.getTimezoneOffset()
-
-  if(near_offs === far_offs) return 0
-
-  if(Math.abs(near_date - far_date) < 1000) return near_date
-
-  return find_dst_threshold(near, near+(far-near)/2) || find_dst_threshold(near+(far-near)/2, far)
-}
-
-
-function find_dst_thresholds() {
-  var d = new Date()
-    , d = new Date(d.getFullYear(), 0, 1)
-    , f = new Date(d.getFullYear(), 11, 31)
-    , x
-    , first
-    , second
-
-  x = (f - d) / -2
-  first = find_dst_threshold(+d, d - x)
-  second = find_dst_threshold(d - x, +f)
-
-  return {
-    spring_forward  : first ? (first.getTimezoneOffset() < second.getTimezoneOffset() ? second : first) - new Date(d.getFullYear(), 0, 1, 0, 0) : 0
-  , fall_back       : first ? (first.getTimezoneOffset() < second.getTimezoneOffset() ? first : second) - new Date(d.getFullYear(), 0, 1, 0, 0) : 0
-  }
-}
-
-var THRESHOLDS = find_dst_thresholds()
-
-function is_dst(datetime, thresholds) {
-
-  thresholds = thresholds || THRESHOLDS
-
-  if(thresholds.spring_forward === thresholds.fall_back)
-    return false
-
-  var offset = datetime - new Date(datetime.getFullYear(), 0, 1, 0, 0)
-    , dst_is_reversed = thresholds.spring_forward > thresholds.fall_back
-    , max = Math.max(thresholds.fall_back, thresholds.spring_forward)
-    , min = Math.min(thresholds.fall_back, thresholds.spring_forward)
-
-  if(min < offset && offset < max)
-    return !dst_is_reversed
-  return dst_is_reversed
-}
-
-Date.prototype.isDST = function(thresholds) {
-  return is_dst(this, thresholds) 
-}
-
-is_dst.find_thresholds = find_dst_thresholds
-
-if(typeof module !== 'undefined') {
-  module.exports = is_dst
-} else {
-  window.is_dst = is_dst 
-}
-
-})()
-
-},{}],15:[function(require,module,exports){
-module.exports = Library
-
-function Library(lib) {
-  this.registry = lib || {}
-}
-
-var cons = Library
-  , proto = cons.prototype
-
-proto.lookup = errorOnNull(function(name) {
-  return this.registry[name] || null  
-}, "Could not find {0}!")
-
-proto.register = errorOnNull(function(name, item) {
-  if(this.registry[name])
-    return null
-
-  this.registry[name] = item
-}, "{0} is already registered!")
-
-
-function errorOnNull(fn, msg) {
-  return function() {
-    var result = fn.call(this, arguments[0], arguments[1])
-      , args = arguments
-
-    if(result === null)
-      throw new Error(msg.replace(/\{(\d+?)\}/g, function(a, m) {
-        return args[+m]
-      }))
-
-    return result
-  }
-}
-
-
-},{}],4:[function(require,module,exports){
-var Token = require('./token')
-  , FilterNode = require('./filter_node')
-
-module.exports = FilterToken
-
-function FilterToken(content, line) {
-  Token.call(this, content, line)
-}
-
-var cons = FilterToken
-  , proto = cons.prototype = new Token
-
-proto.constructor = cons
-
-proto.node = function(parser) {
-  return new FilterNode(parser.compile(this.content))
-}
-
-
-},{"./token":18,"./filter_node":19}],5:[function(require,module,exports){
-module.exports = TagToken
-
-var Token = require('./token')
-
-function TagToken(content, line) {
-  Token.call(this, content, line)
-}
-
-var cons = TagToken
-  , proto = cons.prototype = new Token
-
-proto.constructor = cons
-
-proto.node = function(parser) {
-  var tag = parser.tags.lookup(this.name)
-
-  return tag(this.content, parser)
-}
-
-},{"./token":18}],6:[function(require,module,exports){
-module.exports = CommentToken
-
-var Token = require('./token')
-
-function CommentToken(content, line) {
-  Token.call(this, content, line)
-}
-
-var cons = CommentToken
-  , proto = cons.prototype = new Token
-
-proto.constructor = cons
-
-proto.node = function(parser) {
-  // no-operation
-  return null
-}
-
-
-},{"./token":18}],7:[function(require,module,exports){
-module.exports = TextToken
-
-var Token = require('./token')
-  , TextNode = require('./text_node')
-
-function TextToken(content, line) {
-  Token.call(this, content, line)
-}
-
-var cons = TextToken
-  , proto = cons.prototype = new Token
-
-proto.constructor = cons
-
-proto.node = function(parser) {
-  return new TextNode(this.content)
-}
-
-},{"./token":18,"./text_node":20}],9:[function(require,module,exports){
-module.exports = Parser
-
-var NodeList = require('./node_list')
-
-var FilterChain = require('./filter_chain')
-  , FilterLookup = require('./filter_lookup')
-  , FilterApplication = require('./filter_application')
-
-function Parser(tokens, tags, filters, plugins) {
-  this.tokens = tokens
-  this.tags = tags
-  this.filters = filters
-  this.plugins = plugins
-
-  // for use with extends / block tags
-  this.loadedBlocks = []
-}
-
-var cons = Parser
-  , proto = cons.prototype
-
-proto.cache = {}
-
-proto.parse = function(until) {
-  var output = []
-    , token = null
-    , node
-
-  while(this.tokens.length > 0) {
-    token = this.tokens.shift()
-
-    if(until && token.is(until)) {
-      this.tokens.unshift(token)
-      break
-    } else if(node = token.node(this)) {
-      output.push(node)
-    }
-  }
-
-  return new NodeList(output)
-}
-
-proto.compileNumber = function(content, idx, output) {
-  var c
-    , decimal = content.charAt(idx) === '.'
-    , bits = decimal ? ['0.'] : []
-
-  do {
-    c = content.charAt(idx)
-    if(c === '.') {
-      if(decimal)
-        break
-      decimal = true
-      bits.push('.')
-    } else if(/\d/.test(c)) {
-      bits.push(c)
-    }
-  } while(++idx < content.length)
-
-  output.push((decimal ? parseFloat : parseInt)(bits.join(''), 10))
-
-  return idx
-}
-
-proto.compileString = function(content, idx, output) {
-  var type = content.charAt(idx)
-    , escaped = false
-    , bits = []
-    , c
-
-  ++idx
-
-  do {
-    c = content.charAt(idx)
-
-    if(escaped) {
-      if(!/['"\\]/.test(c))
-        bits.push('\\')
-
-      bits.push(c)
-      escaped = false
-    } else {
-      if(c === '\\') {
-        escaped = true
-      } else if(c === type) {
-        break
-      } else {
-        bits.push(c)
-      }
-    }
-
-  } while(++idx < content.length)
-
-  output.push(bits.join(''))
-
-  return idx
-}
-
-proto.compileName = function(content, idx, output) {
-  var out = []
-    , c
-
-  do {
-    c = content.charAt(idx)
-    if(/[^\w\d\_]/.test(c))
-      break
-
-    out.push(c)
-  } while(++idx < content.length)
-
-  output.push(out.join(''))
-
-  return idx
-}
-
-proto.compileFilter = function(content, idx, output) {
-  var filterName
-    , oldLen
-    , bits
-
-  ++idx
-
-  idx = this.compileName(content, idx, output)
-  filterName = output.pop()
-
-  if(content.charAt(idx) !== ':') {
-    output.push(new FilterApplication(filterName, []))
-    return idx - 1
-  }
-
-  ++idx
-
-  oldLen = output.length
-  idx = this.compileFull(content, idx, output, true)
-  bits = output.splice(oldLen, output.length - oldLen)
-
-  output.push(new FilterApplication(filterName, bits))
-
-  return idx
-}
-
-proto.compileLookup = function(content, idx, output) {
-  var bits = []
-
-  do {
-    idx = this.compileName(content, idx, output)
-    bits.push(output.pop())
-
-    if(content.charAt(idx) !== '.')
-      break
-
-  } while(++idx < content.length)
-
-  output.push(new FilterLookup(bits))
-
-  return idx - 1
-}
-
-proto.compileFull = function(content, idx, output, omitPipe) {
-  var c
-  output = output || [] 
-  idx = idx || 0
-
-  // something|filtername[:arg, arg]
-  // "quotes"
-  // 1
-  // 1.2
-  // true | false
-
-  // swallow leading whitespace.
-  while(/\s/.test(content.charAt(idx)))
-    ++idx
-
-  do {
-    c = content.charAt(idx)
-
-    if(/[,\s]/.test(c))
-      break
-
-    if(omitPipe && c === '|') {
-      --idx
-      break
-    }
-
-    switch(true) {
-      case /[\d\.]/.test(c):
-        idx = this.compileNumber(content, idx, output)
-        break
-      case /['"]/.test(c):
-        idx = this.compileString(content, idx, output)
-        break
-      case c === '|':
-        idx = this.compileFilter(content, idx, output)
-        break
-      default:
-        idx = this.compileLookup(content, idx, output)
-        break
-    }
-  } while(++idx < content.length)
-
-  return idx
-}
-
-proto.compile = function(content) {
-  var output = []
-
-  if(this.cache[content])
-    return this.cache[content]
-
-  this.compileFull(content, 0, output)
-
-  output = this.cache[content] = new FilterChain(output, this)
-  output.attach(this)
-
-  return output
-}
-
-},{"./node_list":21,"./filter_chain":22,"./filter_lookup":23,"./filter_application":24}],11:[function(require,module,exports){
-var libraries = require('./libraries')
-
-module.exports = Meta
-
-function Meta() {
-  this._autoregister = {
-      plugin: {}
-    , tag: {}
-    , filter: {}
-  }
-
-  this._cache = {}
-
-  this._classes = {
-      filter: libraries.DefaultFilterLibrary
-    , plugin: libraries.DefaultPluginLibrary
-    , tag: libraries.DefaultTagLibrary
-  }
-}
-
-var cons = Meta
-  , proto = cons.prototype
-
-proto.createPluginLibrary = createLibrary('plugin')
-proto.createFilterLibrary = createLibrary('filter')
-proto.createTagLibrary = createLibrary('tag')
-
-proto.registerPlugin = createAutoregister('plugin')
-proto.registerFilter = createAutoregister('filter')
-proto.registerTag = createAutoregister('tag')
-
-function createAutoregister(name) {
-  return function(key, item) {
-    if(this._cache[name])
-      this._cache[name].register(key, item);
-    else
-      this._autoregister[name][key] = item;
-  }
-}
-
-function createLibrary(name) {
-  return function() {
-    if(this._cache[name])
-      return this._cache[name]; 
-
-    var lib = new this._classes[name]
-
-    for(var key in this._autoregister[name]) {
-      lib.register(key, this._autoregister[name][key])
-    }
-
-    this._cache[name] = lib
-    return lib
-  }
-}
-
-
-},{"./libraries":8}],16:[function(require,module,exports){
-var Library = require('./library')
-
-module.exports = DefaultTags
-
-function DefaultTags() {
-  Library.call(this, this.builtins)
-}
-
-var cons = DefaultTags
-  , proto = cons.prototype = new Library
-
-proto.constructor = cons
-
-proto.builtins = {
-    'block': require('./tags/block').parse
-  , 'comment': require('./tags/comment').parse
-  , 'debug': require('./tags/debug').parse
-  , 'extends': require('./tags/extends').parse
-  , 'for': require('./tags/for').parse
-  , 'if': require('./tags/if/node').parse
-  , 'include': require('./tags/include').parse
-  , 'now': require('./tags/now').parse
-  , 'with': require('./tags/with').parse
-}
-
-},{"./library":15,"./tags/block":25,"./tags/comment":26,"./tags/debug":27,"./tags/extends":28,"./tags/for":29,"./tags/if/node":30,"./tags/include":31,"./tags/now":32,"./tags/with":33}],17:[function(require,module,exports){
-var Library = require('./library')
-
-module.exports = DefaultFilters
-
-function DefaultFilters() {
-  Library.call(this, this.builtins)
-}
-
-var cons = DefaultFilters
-  , proto = cons.prototype = new Library
-
-proto.constructor = cons
-
-proto.builtins = {
-    'add': require('./filters/add')
-  , 'addslashes': require('./filters/addslashes')
-  , 'capfirst': require('./filters/capfirst')
-  , 'center': require('./filters/center')
-  , 'cut': require('./filters/cut')
-  , 'date': require('./filters/date')
-  , 'default': require('./filters/default')
-  , 'dictsort': require('./filters/dictsort')
-  , 'dictsortreversed': require('./filters/dictsortreversed')
-  , 'divisibleby': require('./filters/divisibleby')
-  , 'escape': require('./filters/escape')
-  , 'filesizeformat': require('./filters/filesizeformat')
-  , 'first': require('./filters/first')
-  , 'floatformat': require('./filters/floatformat')
-  , 'force_escape': require('./filters/force_escape')
-  , 'get_digit': require('./filters/get_digit')
-  , 'index': require('./filters/index')
-  , 'iteritems': require('./filters/iteritems')
-  , 'iriencode': require('./filters/iriencode')
-  , 'join': require('./filters/join')
-  , 'last': require('./filters/last')
-  , 'length': require('./filters/length')
-  , 'length_is': require('./filters/length_is')
-  , 'linebreaks': require('./filters/linebreaks')
-  , 'linebreaksbr': require('./filters/linebreaksbr')
-  , 'linenumbers': require('./filters/linenumbers')
-  , 'ljust': require('./filters/ljust')
-  , 'lower': require('./filters/lower')
-  , 'make_list': require('./filters/make_list')
-  , 'phone2numeric': require('./filters/phone2numeric')
-  , 'pluralize': require('./filters/pluralize')
-  , 'random': require('./filters/random')
-  , 'rjust': require('./filters/rjust')
-  , 'safe': require('./filters/safe')
-  , 'slice': require('./filters/slice')
-  , 'slugify': require('./filters/slugify')
-  , 'split': require('./filters/split')
-  , 'striptags': require('./filters/striptags')
-  , 'timesince': require('./filters/timesince')
-  , 'timeuntil': require('./filters/timeuntil')
-  , 'title': require('./filters/title')
-  , 'truncatechars': require('./filters/truncatechars')
-  , 'truncatewords': require('./filters/truncatewords')
-  , 'unordered_list': require('./filters/unordered_list')
-  , 'upper': require('./filters/upper')
-  , 'urlencode': require('./filters/urlencode')
-  , 'urlize': require('./filters/urlize')
-  , 'urlizetrunc': require('./filters/urlizetrunc')
-  , 'wordcount': require('./filters/wordcount')
-  , 'wordwrap': require('./filters/wordwrap')
-  , 'yesno': require('./filters/yesno')
-}
-
-
-},{"./library":15,"./filters/add":34,"./filters/addslashes":35,"./filters/capfirst":36,"./filters/center":37,"./filters/cut":38,"./filters/date":39,"./filters/default":40,"./filters/dictsort":41,"./filters/dictsortreversed":42,"./filters/divisibleby":43,"./filters/escape":44,"./filters/filesizeformat":45,"./filters/first":46,"./filters/floatformat":47,"./filters/force_escape":48,"./filters/get_digit":49,"./filters/iteritems":50,"./filters/index":51,"./filters/iriencode":52,"./filters/join":53,"./filters/last":54,"./filters/length":55,"./filters/linebreaks":56,"./filters/length_is":57,"./filters/linebreaksbr":58,"./filters/linenumbers":59,"./filters/ljust":60,"./filters/lower":61,"./filters/make_list":62,"./filters/phone2numeric":63,"./filters/pluralize":64,"./filters/random":65,"./filters/rjust":66,"./filters/safe":67,"./filters/slice":68,"./filters/slugify":69,"./filters/split":70,"./filters/striptags":71,"./filters/timesince":72,"./filters/timeuntil":73,"./filters/title":74,"./filters/truncatechars":75,"./filters/truncatewords":76,"./filters/unordered_list":77,"./filters/upper":78,"./filters/urlencode":79,"./filters/urlize":80,"./filters/urlizetrunc":81,"./filters/wordcount":82,"./filters/wordwrap":83,"./filters/yesno":84}],18:[function(require,module,exports){
-module.exports = Token
-
-function Token(content, line) {
-  this.content = content
-  this.line = line
-
-  this.name = content && content.split(' ')[0]
-}
-
-var cons = Token
-  , proto = cons.prototype
-
-proto.toString = function() {
-  // NB: this should only be
-  // debug output, so it's
-  // probably safe to use
-  // JSON.stringify here.
-  return '<'+this.constructor.name+': '+JSON.stringify(this.content)+'>'
-}
-
-proto.is = function(names) {
-  for(var i = 0, len = names.length; i < len; ++i)
-    if(names[i] === this.name)
-      return true
-  return false
-}
-
-},{}],20:[function(require,module,exports){
-module.exports = TextNode
-
-function TextNode(content) {
-  this.content = content
-}
-
-var cons = TextNode
-  , proto = cons.prototype
-
-proto.render = function(context) {
-  return this.content
-}
-
-},{}],22:[function(require,module,exports){
-module.exports = FilterChain
-
-function FilterChain(bits) {
-  this.bits = bits
-}
-
-var cons = FilterChain
-  , proto = cons.prototype
-
-proto.attach = function(parser) {
-  for(var i = 0, len = this.bits.length; i < len; ++i) {
-    if(this.bits[i] && this.bits[i].attach) { 
-      this.bits[i].attach(parser)
-    }
-  }
-}
-
-proto.resolve = function(context) {
-  var result = this.bits[0].resolve ?
-      this.bits[0].resolve(context) :
-      this.bits[0]
-
-  for(var i = 1, len = this.bits.length; i < len; ++i) {
-    result = this.bits[i].resolve(context, result)
-  }
-
-  return result
-}
-
-
-},{}],26:[function(require,module,exports){
-module.exports = CommentNode
-
-function CommentNode() {
-  // no-op.
-}
-
-var cons = CommentNode
-  , proto = cons.prototype
-
-proto.render = function(context) {
-  return ''
-}
-
-cons.parse = function(contents, parser) {
-  nl = parser.parse(['endcomment'])
-  parser.tokens.shift()
-
-  return new cons
-}
-
-},{}],34:[function(require,module,exports){
-module.exports = function(input, value) {
-  return parseInt(input, 10) + parseInt(value, 10)
-}
-
-},{}],35:[function(require,module,exports){
-module.exports = function(input) {
-  return input.toString().replace(/'/g, "\\'")
-}
-
-},{}],36:[function(require,module,exports){
-module.exports = function(input) {
-  var str = input.toString();
-  return [str.slice(0,1).toUpperCase(), str.slice(1)].join('')
-}
-
-},{}],37:[function(require,module,exports){
-module.exports = function(input, len, ready) {
-  if(ready === undefined)
-    len = 0
-
-  var str = input.toString()
-    , value = ' '
-
-  len -= str.length
-  if(len < 0) { 
-    return str
-  }
-
-  var len_half = len/2.0
-    , arr = []
-    , idx = Math.floor(len_half)
-
-  while(idx-- > 0) {
-    arr.push(value)
-  }
-
-  arr = arr.join('')
-  str = arr + str + arr
-  if((len_half - Math.floor(len_half)) > 0) {
-    str = input.toString().length % 2 == 0 ? value + str : str + value
-  }
-  
-  return str
-}
-
-},{}],38:[function(require,module,exports){
-module.exports = function(input, value) {
-  var str = input.toString()
-  return str.replace(new RegExp(value, "g"), '')
-}
-
-},{}],40:[function(require,module,exports){
-module.exports = function(input, def, ready) {
-  return input ? input : def
-}
-
-},{}],43:[function(require,module,exports){
-module.exports = function(input, num) {
-  return input % parseInt(num, 10) == 0
-}
-
-},{}],45:[function(require,module,exports){
-module.exports = function(input) {
-  var num = (new Number(input)).valueOf()
-    , singular = num == 1 ? '' : 's'
-    , value 
-    
-  value =
-    num < 1024 ? num + ' byte'+singular :
-    num < (1024*1024) ? (num/1024)+' KB' :
-    num < (1024*1024*1024) ? (num / (1024*1024)) + ' MB' :
-    num / (1024*1024*1024) + ' GB'
-
-  return value
-}
-
-},{}],47:[function(require,module,exports){
-module.exports = function(input, val) {
-  val = parseInt(val, 10)
-  val = isNaN(val) ? -1 : val
-
-  var isPositive = val >= 0
-    , asNumber = parseFloat(input)
-    , absValue = Math.abs(val)
-    , pow = Math.pow(10, absValue)
-    , pow_minus_one = Math.pow(10, Math.max(absValue-1, 0))
-    , asString
-
-  asNumber = Math.round((pow * asNumber) / pow_minus_one)
-
-  if(val !== 0)
-    asNumber /= 10
-
-  asString = asNumber.toString()
-
-  if(isPositive) {
-    var split = asString.split('.')
-      , decimal = split.length > 1 ? split[1] : ''
-
-    while(decimal.length < val) {
-      decimal += '0'
-    }
-
-    asString = decimal.length ? [split[0], decimal].join('.') : split[0]
-  }
-
-  return asString
-}
-
-},{}],49:[function(require,module,exports){
-module.exports = function(input, digit) {
-  var isNum = !isNaN(parseInt(input, 10))
-    , str = input.toString()
-    , len = str.split('').length
-
-  digit = parseInt(digit, 10)
-  if(isNum && !isNaN(digit) && digit <= len) {
-    return str.charAt(len - digit)
-  }
-
-  return input
-}
-
-},{}],50:[function(require,module,exports){
-module.exports = function(input) {
-  var output = []
-  for(var name in input) if(input.hasOwnProperty(name)) {
-    output.push([name, input[name]])
-  }
-  return output
-}
-
-},{}],46:[function(require,module,exports){
-module.exports = function(input) {
-  return input[0]
-}
-
-},{}],51:[function(require,module,exports){
-
-},{}],52:[function(require,module,exports){
-module.exports = function(input) {
-  return input
-}
-
-},{}],54:[function(require,module,exports){
-module.exports = function(input) {
-  var cb = input.charAt || function(ind) { return input[ind]; }
-
-  return cb.call(input, input.length-1);
-}
-
-},{}],41:[function(require,module,exports){
-module.exports = function(input, key) {
-  return input.sort(function(x, y) {
-    if(x[key] > y[key]) return 1
-    if(x[key] == y[key]) return 0
-    if(x[key] < y[key]) return -1
-  })
-}
-
-},{}],53:[function(require,module,exports){
-module.exports = function(input, glue) {
-  input = input instanceof Array ? input : input.toString().split('')
-  return input.join(glue)
-}
-
-},{}],57:[function(require,module,exports){
-module.exports = function(input, expected, ready) {
-  var tmp
-  if(input && typeof input.length === 'function') {
-    tmp = input.length(function(err, len) {
-      ready(err, err ? null : len === expected)
-    })
-
-    return tmp === undefined ? undefined : tmp === expected
-  }
-
-  return input.length === expected
-}
-
-},{}],59:[function(require,module,exports){
-module.exports = function(input) {
-  var str = input.toString()
-    , bits = str.split('\n')
-    , out = []
-    , len = bits.length
-
-  while(bits.length) {
-    out.unshift(len - out.length + '. ' + bits.pop())
-  }
-
-  return out.join('\n')
-}
-
-},{}],60:[function(require,module,exports){
-module.exports = function(input, num) {
-  var bits = (input === null || input === undefined ? '' : input).toString().split('')
-    , difference = num - bits.length
-
-  // push returns new length of array.
-  while(difference > 0) {
-    difference = num - bits.push(' ')
-  }
-
-  return bits.join('')
-}
-
-},{}],61:[function(require,module,exports){
-module.exports = function(input) {
-  return input.toString().toLowerCase()
-}
-
-},{}],62:[function(require,module,exports){
-module.exports = function(input) {
-  input = input instanceof Array ? input : input.toString().split('')
-
-  return input
-}
-
-},{}],64:[function(require,module,exports){
-module.exports = function(input, plural) {
-  plural = (plural || 's').split(',')
-
-  var val = Number(input)
-    , suffix
-
-  suffix = plural[plural.length-1];
-  if(val === 1) {
-    suffix = plural.length > 1 ? plural[0] : '';    
-  }
-
-  return suffix
-}
-
-},{}],65:[function(require,module,exports){
-module.exports = function(input) {
-  var cb = input.charAt || function(idx) {
-    return this[idx];
-  };
-
-  return cb.call(input, Math.floor(Math.random() * input.length))
-}
-
-},{}],66:[function(require,module,exports){
-module.exports = function(input, num) {
-  var bits = (input === null || input === undefined ? '' : input).toString().split('')
-    , difference = num - bits.length
-
-  // push returns new length of array.
-  // NB: [].unshift returns `undefined` in IE<9.
-  while(difference > 0) {
-    difference = (bits.unshift(' '), num - bits.length)
-  }
-
-  return bits.join('')
-}
-
-},{}],63:[function(require,module,exports){
-
-var LETTERS = {
-'a': '2', 'b': '2', 'c': '2', 'd': '3', 'e': '3',
-'f': '3', 'g': '4', 'h': '4', 'i': '4', 'j': '5', 'k': '5', 'l': '5',
-'m': '6', 'n': '6', 'o': '6', 'p': '7', 'q': '7', 'r': '7', 's': '7',
-'t': '8', 'u': '8', 'v': '8', 'w': '9', 'x': '9', 'y': '9', 'z': '9'
-};
-
-module.exports = function(input) {
-  var str = input.toString().toLowerCase().split('')
-    , out = []
-    , ltr
-
-  while(str.length) {
-    ltr = str.pop()
-    out.unshift(LETTERS[ltr] ? LETTERS[ltr] : ltr)
-  }
-
-  return out.join('')
-}
-
-},{}],68:[function(require,module,exports){
-module.exports = function(input, by) {
-  by = by.toString()
-  if(by.charAt(0) === ':') {
-    by = '0'+by
-  }
-
-  if(by.charAt(by.length-1) === ':') {
-    by = by.slice(0, -1)
-  }
-
-  var splitBy = by.split(':')
-    , slice = input.slice || (function() {
-        input = this.toString()
-        return input.slice
-      })()
-
-  return slice.apply(input, splitBy)
-}
-
-},{}],69:[function(require,module,exports){
-module.exports = function(input) {
-  input = input.toString()
-  return input
-        .replace(/[^\w\s\d\-]/g, '')
-        .replace(/^\s*/, '')
-        .replace(/\s*$/, '')
-        .replace(/[\-\s]+/g, '-')
-        .toLowerCase()
-}
-
-},{}],70:[function(require,module,exports){
-module.exports = function(input, by, ready) {
-  by = arguments.length === 2 ? ',' : by
-  input = ''+input
-  return input.split(by)
-}
-
-},{}],72:[function(require,module,exports){
-module.exports = function(input, n, ready) {
-  var input = new Date(input)
-    , now   = ready === undefined ? new Date() : new Date(n)
-    , diff  = input - now
-    , since = Math.abs(diff)
-
-  if(diff > 0)
-    return '0 minutes'
-
-  // 365.25 * 24 * 60 * 60 * 1000 === years
-  var years =   ~~(since / 31557600000)
-    , months =  ~~((since - (years*31557600000)) / 2592000000)
-    , days =    ~~((since - (years * 31557600000 + months * 2592000000)) / 86400000)
-    , hours =   ~~((since - (years * 31557600000 + months * 2592000000 + days * 86400000)) / 3600000)
-    , minutes = ~~((since - (years * 31557600000 + months * 2592000000 + days * 86400000 + hours * 3600000)) / 60000)
-    , result = [
-        years   ? pluralize(years,    'year') : null
-      , months  ? pluralize(months,   'month') : null
-      , days    ? pluralize(days,     'day') : null
-      , hours   ? pluralize(hours,    'hour') : null
-      , minutes ? pluralize(minutes,  'minute') : null
-    ]
-    , out = []
-
-  for(var i = 0, len = result.length; i < len; ++i) {
-    result[i] !== null && out.push(result[i])
-  }
-
-  if(!out.length) {
-    return '0 minutes'
-  }
-
-  return out[0] + (out[1] ? ', ' + out[1] : '')
-
-  function pluralize(x, str) {
-    return x + ' ' + str + (x === 1 ? '' : 's')
-  }
-}
-
-},{}],74:[function(require,module,exports){
-module.exports = function(input) {
-  var str = input.toString()
-    , bits = str.split(/\s{1}/g)
-    , out = []
-  
-  while(bits.length) {
-    var word = bits.pop()
-    word = word.charAt(0).toUpperCase() + word.slice(1)
-    out.push(word)
-  }
-
-  out = out.join(' ')
-  return out.replace(/([a-z])'([A-Z])/g, function(a, m, x) { return x.toLowerCase() })
-}
-
-},{}],75:[function(require,module,exports){
-module.exports = function(input, n) {
-  var str = input.toString()
-    , num = parseInt(n, 10)
-
-  if(isNaN(num))
-    return input
-
-  if(input.length <= num)
-    return input
-
-  return input.slice(0, num)+'...'
-}
-
-},{}],76:[function(require,module,exports){
-module.exports = function(input, n) {
-  var str = input.toString()
-    , num = parseInt(n, 10)
-    , words
-
-  if(isNaN(num))
-    return input
-
-  words = input.split(/\s+/)
-
-  if(words.length <= num)
-    return input
-
-  return words.slice(0, num).join(' ')+'...'
-}
-
-},{}],78:[function(require,module,exports){
-module.exports = function(input) {
-  return input.toString().toUpperCase()
-}
-
-},{}],79:[function(require,module,exports){
-module.exports = function(input) {
-  return escape(input.toString())
-}
-
-},{}],82:[function(require,module,exports){
-module.exports = function(input) {
-  var str = input.toString()
-    , bits = str.split(/\s+/g)
-
-  return bits.length
-}
-
-},{}],83:[function(require,module,exports){
-module.exports = function(input, len) {
-  var words = input.toString().split(/\s+/g)
-    , out = []
-    , len = parseInt(len, 10) || words.length
-
-  while(words.length) {
-    out.unshift(words.splice(0, len).join(' '))
-  }
-
-  return out.join('\n')
-}
-
-},{}],84:[function(require,module,exports){
-module.exports = function(input, map) {
-  var ourMap = map.toString().split(',')
-    , value
-
-  ourMap.length < 3 && ourMap.push(ourMap[1])
-
-  value = ourMap[
-    input ? 0 :
-    input === false ? 1 :
-    2
-  ]
-
-  return value
-}
-
-},{}],71:[function(require,module,exports){
-module.exports = function(input) {
-  var str = input.toString()
-  return str.replace(/<[^>]*?>/g, '')
-}
-
-},{}],55:[function(require,module,exports){
-module.exports = function(input, ready) {
-  if(input && typeof input.length === 'function') {
-    return input.length(ready)
-  }
-  return input.length
-}
-
-},{}],13:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 module.exports = { time: time_format, date: format, DateFormat: DateFormat }
 
 try { require('tz') } catch(e) { }
@@ -1764,197 +512,109 @@ function time_format(value, format_string) {
   return tf.format(format_string)
 }
 
-},{"tz":85}],19:[function(require,module,exports){
-module.exports = FilterNode
-
-var Promise = require('./promise')
-  , debug = require('./debug')
-
-function FilterNode(filter) {
-  this.filter = filter
+},{"tz":92}],6:[function(require,module,exports){
+module.exports = {
+    log: function(value) { console.log(value) }
+  , error: function(err) { console.error(err, err && err.stack) }
+  , info: function(value) { } 
 }
 
-var cons = FilterNode
-  , proto = cons.prototype
+},{}],7:[function(require,module,exports){
+var Library = require('./library')
 
-cons.escape = escapeHTML
+module.exports = DefaultFilters
 
-proto.render = safely(function(context) {
-  var self = this
-    , result = self.filter.resolve(context)
-    , promise
-
-  if(result === undefined)
-    return ''
-
-  if(result && result.constructor === Promise) {
-    promise = new Promise
-
-    result.once('done', function(result) {
-      promise.resolve(self.format(result))
-    })
-
-    return promise
-  }
-
-  return self.format(result)
-})
-
-proto.format = function(result) {
-  if(result && result.safe) {
-    return result.toString()
-  }
-
-  if(result === null || result === undefined)
-    return ''
-
-  return escapeHTML(result+'')
+function DefaultFilters() {
+  Library.call(this, this.builtins)
 }
 
-function safely(fn) {
-  return function(context) {
-    try {
-      return fn.call(this, context)
-    } catch(err) {
-      debug.info(err) 
-      return ''
-    }
-  }
+var cons = DefaultFilters
+  , proto = cons.prototype = new Library
+
+proto.constructor = cons
+
+proto.builtins = {
+    'add': require('./filters/add')
+  , 'addslashes': require('./filters/addslashes')
+  , 'capfirst': require('./filters/capfirst')
+  , 'center': require('./filters/center')
+  , 'cut': require('./filters/cut')
+  , 'date': require('./filters/date')
+  , 'default': require('./filters/default')
+  , 'dictsort': require('./filters/dictsort')
+  , 'dictsortreversed': require('./filters/dictsortreversed')
+  , 'divisibleby': require('./filters/divisibleby')
+  , 'escape': require('./filters/escape')
+  , 'filesizeformat': require('./filters/filesizeformat')
+  , 'first': require('./filters/first')
+  , 'floatformat': require('./filters/floatformat')
+  , 'force_escape': require('./filters/force_escape')
+  , 'get_digit': require('./filters/get_digit')
+  , 'index': require('./filters/index')
+  , 'iteritems': require('./filters/iteritems')
+  , 'iriencode': require('./filters/iriencode')
+  , 'join': require('./filters/join')
+  , 'last': require('./filters/last')
+  , 'length': require('./filters/length')
+  , 'length_is': require('./filters/length_is')
+  , 'linebreaks': require('./filters/linebreaks')
+  , 'linebreaksbr': require('./filters/linebreaksbr')
+  , 'linenumbers': require('./filters/linenumbers')
+  , 'ljust': require('./filters/ljust')
+  , 'lower': require('./filters/lower')
+  , 'make_list': require('./filters/make_list')
+  , 'phone2numeric': require('./filters/phone2numeric')
+  , 'pluralize': require('./filters/pluralize')
+  , 'random': require('./filters/random')
+  , 'rjust': require('./filters/rjust')
+  , 'safe': require('./filters/safe')
+  , 'slice': require('./filters/slice')
+  , 'slugify': require('./filters/slugify')
+  , 'split': require('./filters/split')
+  , 'striptags': require('./filters/striptags')
+  , 'timesince': require('./filters/timesince')
+  , 'timeuntil': require('./filters/timeuntil')
+  , 'title': require('./filters/title')
+  , 'truncatechars': require('./filters/truncatechars')
+  , 'truncatewords': require('./filters/truncatewords')
+  , 'unordered_list': require('./filters/unordered_list')
+  , 'upper': require('./filters/upper')
+  , 'urlencode': require('./filters/urlencode')
+  , 'urlize': require('./filters/urlize')
+  , 'urlizetrunc': require('./filters/urlizetrunc')
+  , 'wordcount': require('./filters/wordcount')
+  , 'wordwrap': require('./filters/wordwrap')
+  , 'yesno': require('./filters/yesno')
 }
 
-function escapeHTML(str) {
-  return str
-    .replace(/\&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;')
+
+},{"./filters/add":14,"./filters/addslashes":15,"./filters/capfirst":16,"./filters/center":17,"./filters/cut":18,"./filters/date":19,"./filters/default":20,"./filters/dictsort":21,"./filters/dictsortreversed":22,"./filters/divisibleby":23,"./filters/escape":24,"./filters/filesizeformat":25,"./filters/first":26,"./filters/floatformat":27,"./filters/force_escape":28,"./filters/get_digit":29,"./filters/index":30,"./filters/iriencode":31,"./filters/iteritems":32,"./filters/join":33,"./filters/last":34,"./filters/length":35,"./filters/length_is":36,"./filters/linebreaks":37,"./filters/linebreaksbr":38,"./filters/linenumbers":39,"./filters/ljust":40,"./filters/lower":41,"./filters/make_list":42,"./filters/phone2numeric":43,"./filters/pluralize":44,"./filters/random":45,"./filters/rjust":46,"./filters/safe":47,"./filters/slice":48,"./filters/slugify":49,"./filters/split":50,"./filters/striptags":51,"./filters/timesince":52,"./filters/timeuntil":53,"./filters/title":54,"./filters/truncatechars":55,"./filters/truncatewords":56,"./filters/unordered_list":57,"./filters/upper":58,"./filters/urlencode":59,"./filters/urlize":60,"./filters/urlizetrunc":61,"./filters/wordcount":62,"./filters/wordwrap":63,"./filters/yesno":64,"./library":67}],8:[function(require,module,exports){
+var Library = require('./library')
+
+module.exports = DefaultTags
+
+function DefaultTags() {
+  Library.call(this, this.builtins)
 }
 
-},{"./promise":2,"./debug":1}],21:[function(require,module,exports){
-module.exports = NodeList
+var cons = DefaultTags
+  , proto = cons.prototype = new Library
 
-var Promise = require('./promise')
+proto.constructor = cons
 
-function NodeList(nodes) {
-  this.nodes = nodes
+proto.builtins = {
+    'block': require('./tags/block').parse
+  , 'comment': require('./tags/comment').parse
+  , 'debug': require('./tags/debug').parse
+  , 'extends': require('./tags/extends').parse
+  , 'for': require('./tags/for').parse
+  , 'if': require('./tags/if/node').parse
+  , 'include': require('./tags/include').parse
+  , 'now': require('./tags/now').parse
+  , 'with': require('./tags/with').parse
 }
 
-var cons = NodeList
-  , proto = cons.prototype
-
-proto.render = function(context) {
-  var promises = []
-    , results = []
-    , nodes = this.nodes
-    , result
-
-  for(var i = 0, len = nodes.length; i < len; ++i) {
-    results[i] = result = nodes[i].render(context)
-
-    if(result.constructor === Promise) {
-      promises.push(result)
-    }
-  }
-
-  if(promises.length) {
-    return this.resolvePromises(results, promises) 
-  }
-
-  return results.join('')
-}
-
-proto.resolvePromises = function(results, promises) {
-  var self = this
-    , promise = new Promise
-    , total = promises.length
-
-  for(var i = 0, p = 0, len = results.length; i < len; ++i) {
-    if(results[i].constructor !== Promise) 
-      continue
-
-    promises[p++].once('done', bind(i, function(idx, result) {
-      results[idx] = result
-
-      if(!--total)
-        promise.resolve(results.join(''))
-    }))
-  }
-
-  return promise
-}
-
-function bind(num, fn) {
-  return function(result) {
-    return fn(num, result)
-  }
-}
-
-},{"./promise":2}],23:[function(require,module,exports){
-module.exports = FilterLookup
-
-var Promise = require('./promise')
-
-function FilterLookup(bits) {
-  this.bits = bits
-}
-
-var cons = FilterLookup
-  , proto = cons.prototype
-
-proto.resolve = function(context, fromIDX) {
-  fromIDX = fromIDX || 0
-
-  var self = this
-    , bits = self.bits
-    , current = context
-    , temporary = null
-    , promise
-    , result
-    , next
-
-  for(var i = fromIDX, len = bits.length; i < len; ++i) {
-    if(current === undefined || current === null) {
-      break
-    }
-
-    // fix for IE:
-    if(bits[i] === 'super') {
-      bits[i] = '_super'
-    }
-
-    next = current[bits[i]]
-
-    // could be async, could be sync.
-    if(typeof next === 'function') {
-      promise = new Promise
-
-      promise.once('done', function(data) {
-        temporary = data
-      })
-
-      current = next.call(current, function(err, data) {
-        promise.resolve(err ? null : self.resolve(data, i+1))
-      })
-
-      if(temporary !== null)
-        current = temporary
-
-      promise.trigger = temporary = null
-
-      if(current === undefined)
-        return promise
-
-    } else {
-      current = next
-    }
-
-  } 
-
-  return current
-}
-
-},{"./promise":2}],24:[function(require,module,exports){
+},{"./library":67,"./tags/block":73,"./tags/comment":74,"./tags/debug":75,"./tags/extends":76,"./tags/for":77,"./tags/if/node":81,"./tags/include":85,"./tags/now":86,"./tags/with":87}],9:[function(require,module,exports){
 module.exports = FilterApplication
 
 var Promise = require('./promise')
@@ -2045,7 +705,1387 @@ proto.resolve = function(context, value, fromIDX, argValues) {
   }
 }
 
-},{"./promise":2}],25:[function(require,module,exports){
+},{"./promise":71}],10:[function(require,module,exports){
+module.exports = FilterChain
+
+function FilterChain(bits) {
+  this.bits = bits
+}
+
+var cons = FilterChain
+  , proto = cons.prototype
+
+proto.attach = function(parser) {
+  for(var i = 0, len = this.bits.length; i < len; ++i) {
+    if(this.bits[i] && this.bits[i].attach) { 
+      this.bits[i].attach(parser)
+    }
+  }
+}
+
+proto.resolve = function(context) {
+  var result = this.bits[0].resolve ?
+      this.bits[0].resolve(context) :
+      this.bits[0]
+
+  for(var i = 1, len = this.bits.length; i < len; ++i) {
+    result = this.bits[i].resolve(context, result)
+  }
+
+  return result
+}
+
+
+},{}],11:[function(require,module,exports){
+module.exports = FilterLookup
+
+var Promise = require('./promise')
+
+function FilterLookup(bits) {
+  this.bits = bits
+}
+
+var cons = FilterLookup
+  , proto = cons.prototype
+
+proto.resolve = function(context, fromIDX) {
+  fromIDX = fromIDX || 0
+
+  var self = this
+    , bits = self.bits
+    , current = context
+    , temporary = null
+    , promise
+    , result
+    , next
+
+  for(var i = fromIDX, len = bits.length; i < len; ++i) {
+    if(current === undefined || current === null) {
+      break
+    }
+
+    // fix for IE:
+    if(bits[i] === 'super') {
+      bits[i] = '_super'
+    }
+
+    next = current[bits[i]]
+
+    // could be async, could be sync.
+    if(typeof next === 'function') {
+      promise = new Promise
+
+      promise.once('done', function(data) {
+        temporary = data
+      })
+
+      current = next.call(current, function(err, data) {
+        promise.resolve(err ? null : self.resolve(data, i+1))
+      })
+
+      if(temporary !== null)
+        current = temporary
+
+      promise.trigger = temporary = null
+
+      if(current === undefined)
+        return promise
+
+    } else {
+      current = next
+    }
+
+  } 
+
+  return current
+}
+
+},{"./promise":71}],12:[function(require,module,exports){
+module.exports = FilterNode
+
+var Promise = require('./promise')
+  , debug = require('./debug')
+
+function FilterNode(filter) {
+  this.filter = filter
+}
+
+var cons = FilterNode
+  , proto = cons.prototype
+
+cons.escape = escapeHTML
+
+proto.render = safely(function(context) {
+  var self = this
+    , result = self.filter.resolve(context)
+    , promise
+
+  if(result === undefined)
+    return ''
+
+  if(result && result.constructor === Promise) {
+    promise = new Promise
+
+    result.once('done', function(result) {
+      promise.resolve(self.format(result))
+    })
+
+    return promise
+  }
+
+  return self.format(result)
+})
+
+proto.format = function(result) {
+  if(result && result.safe) {
+    return result.toString()
+  }
+
+  if(result === null || result === undefined)
+    return ''
+
+  return escapeHTML(result+'')
+}
+
+function safely(fn) {
+  return function(context) {
+    try {
+      return fn.call(this, context)
+    } catch(err) {
+      debug.info(err) 
+      return ''
+    }
+  }
+}
+
+function escapeHTML(str) {
+  return str
+    .replace(/\&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
+},{"./debug":6,"./promise":71}],13:[function(require,module,exports){
+var Token = require('./token')
+  , FilterNode = require('./filter_node')
+
+module.exports = FilterToken
+
+function FilterToken(content, line) {
+  Token.call(this, content, line)
+}
+
+var cons = FilterToken
+  , proto = cons.prototype = new Token
+
+proto.constructor = cons
+
+proto.node = function(parser) {
+  return new FilterNode(parser.compile(this.content))
+}
+
+
+},{"./filter_node":12,"./token":90}],14:[function(require,module,exports){
+module.exports = function(input, value) {
+  return parseInt(input, 10) + parseInt(value, 10)
+}
+
+},{}],15:[function(require,module,exports){
+module.exports = function(input) {
+  return input.toString().replace(/'/g, "\\'")
+}
+
+},{}],16:[function(require,module,exports){
+module.exports = function(input) {
+  var str = input.toString();
+  return [str.slice(0,1).toUpperCase(), str.slice(1)].join('')
+}
+
+},{}],17:[function(require,module,exports){
+module.exports = function(input, len, ready) {
+  if(ready === undefined)
+    len = 0
+
+  var str = input.toString()
+    , value = ' '
+
+  len -= str.length
+  if(len < 0) { 
+    return str
+  }
+
+  var len_half = len/2.0
+    , arr = []
+    , idx = Math.floor(len_half)
+
+  while(idx-- > 0) {
+    arr.push(value)
+  }
+
+  arr = arr.join('')
+  str = arr + str + arr
+  if((len_half - Math.floor(len_half)) > 0) {
+    str = input.toString().length % 2 == 0 ? value + str : str + value
+  }
+  
+  return str
+}
+
+},{}],18:[function(require,module,exports){
+module.exports = function(input, value) {
+  var str = input.toString()
+  return str.replace(new RegExp(value, "g"), '')
+}
+
+},{}],19:[function(require,module,exports){
+var format = require('../date').date
+  
+module.exports = function(input, value, ready) {
+  if (ready === undefined)
+    value = 'N j, Y'
+
+  return format(input.getFullYear ? input : new Date(input), value)
+}
+
+},{"../date":5}],20:[function(require,module,exports){
+module.exports = function(input, def, ready) {
+  return input ? input : def
+}
+
+},{}],21:[function(require,module,exports){
+module.exports = function(input, key) {
+  return input.sort(function(x, y) {
+    if(x[key] > y[key]) return 1
+    if(x[key] == y[key]) return 0
+    if(x[key] < y[key]) return -1
+  })
+}
+
+},{}],22:[function(require,module,exports){
+var dictsort = require('./dictsort');
+
+module.exports = function(input, key) {
+  return dictsort(input, key).reverse()
+}
+
+},{"./dictsort":21}],23:[function(require,module,exports){
+module.exports = function(input, num) {
+  return input % parseInt(num, 10) == 0
+}
+
+},{}],24:[function(require,module,exports){
+var FilterNode = require('../filter_node')
+
+module.exports = function(input) {
+  if(input && input.safe) {
+    return input
+  }
+
+  input = new String(FilterNode.escape(input))
+  input.safe = true
+  return input
+}
+
+},{"../filter_node":12}],25:[function(require,module,exports){
+module.exports = function(input) {
+  var num = (new Number(input)).valueOf()
+    , singular = num == 1 ? '' : 's'
+    , value 
+    
+  value =
+    num < 1024 ? num + ' byte'+singular :
+    num < (1024*1024) ? (num/1024)+' KB' :
+    num < (1024*1024*1024) ? (num / (1024*1024)) + ' MB' :
+    num / (1024*1024*1024) + ' GB'
+
+  return value
+}
+
+},{}],26:[function(require,module,exports){
+module.exports = function(input) {
+  return input[0]
+}
+
+},{}],27:[function(require,module,exports){
+module.exports = function(input, val) {
+  val = parseInt(val, 10)
+  val = isNaN(val) ? -1 : val
+
+  var isPositive = val >= 0
+    , asNumber = parseFloat(input)
+    , absValue = Math.abs(val)
+    , pow = Math.pow(10, absValue)
+    , pow_minus_one = Math.pow(10, Math.max(absValue-1, 0))
+    , asString
+
+  asNumber = Math.round((pow * asNumber) / pow_minus_one)
+
+  if(val !== 0)
+    asNumber /= 10
+
+  asString = asNumber.toString()
+
+  if(isPositive) {
+    var split = asString.split('.')
+      , decimal = split.length > 1 ? split[1] : ''
+
+    while(decimal.length < val) {
+      decimal += '0'
+    }
+
+    asString = decimal.length ? [split[0], decimal].join('.') : split[0]
+  }
+
+  return asString
+}
+
+},{}],28:[function(require,module,exports){
+var FilterNode = require('../filter_node')
+
+module.exports = function(input) {
+  var x = new String(FilterNode.escape(input+''))
+  x.safe = true
+  return x
+}
+
+},{"../filter_node":12}],29:[function(require,module,exports){
+module.exports = function(input, digit) {
+  var isNum = !isNaN(parseInt(input, 10))
+    , str = input.toString()
+    , len = str.split('').length
+
+  digit = parseInt(digit, 10)
+  if(isNum && !isNaN(digit) && digit <= len) {
+    return str.charAt(len - digit)
+  }
+
+  return input
+}
+
+},{}],30:[function(require,module,exports){
+
+},{}],31:[function(require,module,exports){
+module.exports = function(input) {
+  return input
+}
+
+},{}],32:[function(require,module,exports){
+module.exports = function(input) {
+  var output = []
+  for(var name in input) if(input.hasOwnProperty(name)) {
+    output.push([name, input[name]])
+  }
+  return output
+}
+
+},{}],33:[function(require,module,exports){
+module.exports = function(input, glue) {
+  input = input instanceof Array ? input : input.toString().split('')
+  return input.join(glue)
+}
+
+},{}],34:[function(require,module,exports){
+module.exports = function(input) {
+  var cb = input.charAt || function(ind) { return input[ind]; }
+
+  return cb.call(input, input.length-1);
+}
+
+},{}],35:[function(require,module,exports){
+module.exports = function(input, ready) {
+  if(input && typeof input.length === 'function') {
+    return input.length(ready)
+  }
+  return input.length
+}
+
+},{}],36:[function(require,module,exports){
+module.exports = function(input, expected, ready) {
+  var tmp
+  if(input && typeof input.length === 'function') {
+    tmp = input.length(function(err, len) {
+      ready(err, err ? null : len === expected)
+    })
+
+    return tmp === undefined ? undefined : tmp === expected
+  }
+
+  return input.length === expected
+}
+
+},{}],37:[function(require,module,exports){
+var safe = require('./safe')
+
+module.exports = function(input) {
+  var str = input.toString()
+    , paras = str.split('\n\n')
+    , out = []
+
+  while(paras.length) {
+    out.unshift(paras.pop().replace(/\n/g, '<br />'))
+  }
+
+  return safe('<p>'+out.join('</p><p>')+'</p>')
+}
+
+},{"./safe":47}],38:[function(require,module,exports){
+var safe = require('./safe')
+
+module.exports = function(input) {
+  var str = input.toString()
+  return safe(str.replace(/\n/g, '<br />'))
+}
+
+},{"./safe":47}],39:[function(require,module,exports){
+module.exports = function(input) {
+  var str = input.toString()
+    , bits = str.split('\n')
+    , out = []
+    , len = bits.length
+
+  while(bits.length) {
+    out.unshift(len - out.length + '. ' + bits.pop())
+  }
+
+  return out.join('\n')
+}
+
+},{}],40:[function(require,module,exports){
+module.exports = function(input, num) {
+  var bits = (input === null || input === undefined ? '' : input).toString().split('')
+    , difference = num - bits.length
+
+  // push returns new length of array.
+  while(difference > 0) {
+    difference = num - bits.push(' ')
+  }
+
+  return bits.join('')
+}
+
+},{}],41:[function(require,module,exports){
+module.exports = function(input) {
+  return input.toString().toLowerCase()
+}
+
+},{}],42:[function(require,module,exports){
+module.exports = function(input) {
+  input = input instanceof Array ? input : input.toString().split('')
+
+  return input
+}
+
+},{}],43:[function(require,module,exports){
+
+var LETTERS = {
+'a': '2', 'b': '2', 'c': '2', 'd': '3', 'e': '3',
+'f': '3', 'g': '4', 'h': '4', 'i': '4', 'j': '5', 'k': '5', 'l': '5',
+'m': '6', 'n': '6', 'o': '6', 'p': '7', 'q': '7', 'r': '7', 's': '7',
+'t': '8', 'u': '8', 'v': '8', 'w': '9', 'x': '9', 'y': '9', 'z': '9'
+};
+
+module.exports = function(input) {
+  var str = input.toString().toLowerCase().split('')
+    , out = []
+    , ltr
+
+  while(str.length) {
+    ltr = str.pop()
+    out.unshift(LETTERS[ltr] ? LETTERS[ltr] : ltr)
+  }
+
+  return out.join('')
+}
+
+},{}],44:[function(require,module,exports){
+module.exports = function(input, plural) {
+  plural = (typeof plural === 'string' ? plural : 's').split(',')
+
+  var val = Number(input)
+    , suffix
+
+  suffix = plural[plural.length-1];
+  if(val === 1) {
+    suffix = plural.length > 1 ? plural[0] : '';    
+  }
+
+  return suffix
+}
+
+},{}],45:[function(require,module,exports){
+module.exports = function(input) {
+  var cb = input.charAt || function(idx) {
+    return this[idx];
+  };
+
+  return cb.call(input, Math.floor(Math.random() * input.length))
+}
+
+},{}],46:[function(require,module,exports){
+module.exports = function(input, num) {
+  var bits = (input === null || input === undefined ? '' : input).toString().split('')
+    , difference = num - bits.length
+
+  // push returns new length of array.
+  // NB: [].unshift returns `undefined` in IE<9.
+  while(difference > 0) {
+    difference = (bits.unshift(' '), num - bits.length)
+  }
+
+  return bits.join('')
+}
+
+},{}],47:[function(require,module,exports){
+var FilterNode = require('../filter_node')
+
+module.exports = function(input) {
+  input = new String(input)
+  input.safe = true
+  return input
+}
+
+},{"../filter_node":12}],48:[function(require,module,exports){
+module.exports = function(input, by) {
+  by = by.toString()
+  if(by.charAt(0) === ':') {
+    by = '0'+by
+  }
+
+  if(by.charAt(by.length-1) === ':') {
+    by = by.slice(0, -1)
+  }
+
+  var splitBy = by.split(':')
+    , slice = input.slice || (function() {
+        input = this.toString()
+        return input.slice
+      })()
+
+  return slice.apply(input, splitBy)
+}
+
+},{}],49:[function(require,module,exports){
+module.exports = function(input) {
+  input = input.toString()
+  return input
+        .replace(/[^\w\s\d\-]/g, '')
+        .replace(/^\s*/, '')
+        .replace(/\s*$/, '')
+        .replace(/[\-\s]+/g, '-')
+        .toLowerCase()
+}
+
+},{}],50:[function(require,module,exports){
+module.exports = function(input, by, ready) {
+  by = arguments.length === 2 ? ',' : by
+  input = ''+input
+  return input.split(by)
+}
+
+},{}],51:[function(require,module,exports){
+module.exports = function(input) {
+  var str = input.toString()
+  return str.replace(/<[^>]*?>/g, '')
+}
+
+},{}],52:[function(require,module,exports){
+module.exports = function(input, n, ready) {
+  var input = new Date(input)
+    , now   = ready === undefined ? new Date() : new Date(n)
+    , diff  = input - now
+    , since = Math.abs(diff)
+
+  if(diff > 0)
+    return '0 minutes'
+
+  // 365.25 * 24 * 60 * 60 * 1000 === years
+  var years =   ~~(since / 31557600000)
+    , months =  ~~((since - (years*31557600000)) / 2592000000)
+    , days =    ~~((since - (years * 31557600000 + months * 2592000000)) / 86400000)
+    , hours =   ~~((since - (years * 31557600000 + months * 2592000000 + days * 86400000)) / 3600000)
+    , minutes = ~~((since - (years * 31557600000 + months * 2592000000 + days * 86400000 + hours * 3600000)) / 60000)
+    , result = [
+        years   ? pluralize(years,    'year') : null
+      , months  ? pluralize(months,   'month') : null
+      , days    ? pluralize(days,     'day') : null
+      , hours   ? pluralize(hours,    'hour') : null
+      , minutes ? pluralize(minutes,  'minute') : null
+    ]
+    , out = []
+
+  for(var i = 0, len = result.length; i < len; ++i) {
+    result[i] !== null && out.push(result[i])
+  }
+
+  if(!out.length) {
+    return '0 minutes'
+  }
+
+  return out[0] + (out[1] ? ', ' + out[1] : '')
+
+  function pluralize(x, str) {
+    return x + ' ' + str + (x === 1 ? '' : 's')
+  }
+}
+
+},{}],53:[function(require,module,exports){
+var timesince = require('./timesince').timesince
+
+module.exports = function(input, n) {
+  var now = n ? new Date(n) : new Date()
+  return timesince(now, input)
+}
+
+},{"./timesince":52}],54:[function(require,module,exports){
+module.exports = function(input) {
+  var str = input.toString()
+    , bits = str.split(/\s{1}/g)
+    , out = []
+  
+  while(bits.length) {
+    var word = bits.pop()
+    word = word.charAt(0).toUpperCase() + word.slice(1)
+    out.push(word)
+  }
+
+  out = out.join(' ')
+  return out.replace(/([a-z])'([A-Z])/g, function(a, m, x) { return x.toLowerCase() })
+}
+
+},{}],55:[function(require,module,exports){
+module.exports = function(input, n) {
+  var str = input.toString()
+    , num = parseInt(n, 10)
+
+  if(isNaN(num))
+    return input
+
+  if(input.length <= num)
+    return input
+
+  return input.slice(0, num)+'...'
+}
+
+},{}],56:[function(require,module,exports){
+module.exports = function(input, n) {
+  var str = input.toString()
+    , num = parseInt(n, 10)
+    , words
+
+  if(isNaN(num))
+    return input
+
+  words = input.split(/\s+/)
+
+  if(words.length <= num)
+    return input
+
+  return words.slice(0, num).join(' ')+'...'
+}
+
+},{}],57:[function(require,module,exports){
+var safe = require('./safe');
+
+var ulparser = function(list) {
+  var out = []
+    , l = list.slice()
+    , item
+
+  while(l.length) {
+    item = l.pop()
+
+    if(item instanceof Array)
+      out.unshift('<ul>'+ulparser(item)+'</ul>')
+    else
+      out.unshift('</li><li>'+item)
+  }
+
+  // get rid of the leading </li>, if any. add trailing </li>.
+  return out.join('').replace(/^<\/li>/, '') + '</li>'
+}
+
+module.exports = function(input) {
+  return input instanceof Array ?
+    safe(ulparser(input)) :
+    input
+}
+
+},{"./safe":47}],58:[function(require,module,exports){
+module.exports = function(input) {
+  return input.toString().toUpperCase()
+}
+
+},{}],59:[function(require,module,exports){
+module.exports = function(input) {
+  return escape(input.toString())
+}
+
+},{}],60:[function(require,module,exports){
+var safe = require('./safe')
+
+module.exports = function(input) {
+  var str = input.toString()
+  return safe(str.replace(/(((http(s)?:\/\/)|(mailto:))([\w\d\-\.:@\/])+)/g, function() {
+    return '<a href="'+arguments[0]+'">'+arguments[0]+'</a>'; 
+  }))
+}
+
+},{"./safe":47}],61:[function(require,module,exports){
+var safe = require('./safe')
+
+module.exports = function(input, len) {
+  var str = input.toString()
+  len = parseInt(len, 10) || 1000
+  return safe(str.replace(/(((http(s)?:\/\/)|(mailto:))([\w\d\-\.:@])+)/g, function() {
+    var ltr = arguments[0].length > len ? arguments[0].slice(0, len) + '...' : arguments[0];
+    return '<a href="'+arguments[0]+'">'+ltr+'</a>'; 
+  }))
+}
+
+},{"./safe":47}],62:[function(require,module,exports){
+module.exports = function(input) {
+  var str = input.toString()
+    , bits = str.split(/\s+/g)
+
+  return bits.length
+}
+
+},{}],63:[function(require,module,exports){
+module.exports = function(input, len) {
+  var words = input.toString().split(/\s+/g)
+    , out = []
+    , len = parseInt(len, 10) || words.length
+
+  while(words.length) {
+    out.unshift(words.splice(0, len).join(' '))
+  }
+
+  return out.join('\n')
+}
+
+},{}],64:[function(require,module,exports){
+module.exports = function(input, map) {
+  var ourMap = map.toString().split(',')
+    , value
+
+  ourMap.length < 3 && ourMap.push(ourMap[1])
+
+  value = ourMap[
+    input ? 0 :
+    input === false ? 1 :
+    2
+  ]
+
+  return value
+}
+
+},{}],65:[function(require,module,exports){
+(function(global){var FilterToken = require('./filter_token')
+  , TagToken = require('./tag_token')
+  , CommentToken = require('./comment_token')
+  , TextToken = require('./text_token') 
+  , libraries = require('./libraries')
+  , Parser = require('./parser')
+  , Context = require('./context')
+  , Meta = require('./meta')
+  , Promise = require('./promise')
+
+module.exports = Template
+
+// circular alias to support old
+// versions of plate.
+Template.Template = Template
+Template.Context = Context
+
+var later = typeof global !== 'undefined' ? 
+    function(fn) { global.setTimeout(fn, 0) } :
+    function(fn) { this.setTimeout(fn, 0) }
+
+function Template(raw, libraries, parser) {
+  if(typeof raw !== 'string') {
+    throw new TypeError('input should be a string')
+  }
+
+  this.raw = raw
+
+  libraries = libraries || {}
+
+  this.tagLibrary =
+    libraries.tag_library || Template.Meta.createTagLibrary()
+
+  this.filterLibrary = 
+    libraries.filter_library || Template.Meta.createFilterLibrary()
+
+  this.pluginLibrary = 
+    libraries.plugin_library || Template.Meta.createPluginLibrary()
+
+  this.parser = parser || Parser
+
+  this.tokens = null
+}
+
+var cons = Template
+  , proto = cons.prototype
+  , meta = cons.Meta = new Meta
+
+cons.createPluginLibrary = function() {
+  return new libraries.DefaultPluginLibrary()
+}
+
+proto.getNodeList = function() {
+  this.nodelist = this.nodelist || this.parse()
+
+  return this.nodelist
+}
+
+proto.parse = function() {
+  var parser
+
+  this.tokens = this.tokens || cons.tokenize(this.raw)
+
+  parser = new this.parser(
+      this.tokens
+    , this.tagLibrary
+    , this.filterLibrary
+    , this.pluginLibrary
+    , this
+  )
+
+  return parser.parse()
+}
+
+proto.render = protect(function(context, ready) {
+  context = new Context(context)
+
+  var result
+
+  result = 
+  this
+    .getNodeList()
+    .render(context)
+
+  if(result.constructor === Promise) {
+    result.once('done', function(data) {
+      ready(null, data)
+    })
+  } else {
+    later(function() {
+      ready(null, result)
+    }, 0)
+  }
+
+})
+
+function protect(fn) {
+  return function(context, ready) {
+    if(!context || !ready) {
+      throw new TypeError()
+    }
+
+    try {
+      return fn.call(this, context, ready)
+    } catch(e) {
+      later(function() {
+        ready(e, null)
+      }, 0)
+    }
+  }
+}
+
+cons.MATCH_RE = /\{[%#\{](.*?)[\}#%]\}/
+
+cons.tokenize = function(content) {
+  var match = null
+    , tokens = []
+    , lineNo = 1
+    , incLineNo = function(str) { lineNo += str.split('\n').length }
+    , map = {
+          '%': TagToken
+        , '#': CommentToken
+        , '{': FilterToken
+      }
+    , rex = this.MATCH_RE
+    , literal
+
+  do {
+    match = rex.exec(content)
+    if(!match)
+      continue
+
+    literal = content.slice(0, match.index)
+    incLineNo(literal)
+    if(match.index)
+      tokens.push(new TextToken(literal.slice(0, match.index, lineNo)))
+
+    match[1] = match[1]
+      .replace(/^\s+/, '')
+      .replace(/\s+$/, '')
+
+    tokens.push(new map[match[0].charAt(1)](match[1], lineNo))
+
+    content = content.slice(match.index + match[0].length)
+  } while(content.length && match)
+
+  tokens.push(new TextToken(content))
+
+  return tokens
+}
+
+})(self)
+},{"./comment_token":3,"./context":4,"./filter_token":13,"./libraries":66,"./meta":68,"./parser":70,"./promise":71,"./tag_token":72,"./text_token":89}],66:[function(require,module,exports){
+module.exports = {
+    Library: require('./library')
+  , DefaultPluginLibrary: require('./library')
+  , DefaultTagLibrary: require('./defaulttags')
+  , DefaultFilterLibrary: require('./defaultfilters')
+} 
+
+},{"./defaultfilters":7,"./defaulttags":8,"./library":67}],67:[function(require,module,exports){
+module.exports = Library
+
+function Library(lib) {
+  this.registry = lib || {}
+}
+
+var cons = Library
+  , proto = cons.prototype
+
+proto.lookup = errorOnNull(function(name) {
+  return this.registry[name] || null  
+}, "Could not find {0}!")
+
+proto.register = errorOnNull(function(name, item) {
+  if(this.registry[name])
+    return null
+
+  this.registry[name] = item
+}, "{0} is already registered!")
+
+
+function errorOnNull(fn, msg) {
+  return function() {
+    var result = fn.call(this, arguments[0], arguments[1])
+      , args = arguments
+
+    if(result === null)
+      throw new Error(msg.replace(/\{(\d+?)\}/g, function(a, m) {
+        return args[+m]
+      }))
+
+    return result
+  }
+}
+
+
+},{}],68:[function(require,module,exports){
+var libraries = require('./libraries')
+
+module.exports = Meta
+
+function Meta() {
+  this._autoregister = {
+      plugin: {}
+    , tag: {}
+    , filter: {}
+  }
+
+  this._cache = {}
+
+  this._classes = {
+      filter: libraries.DefaultFilterLibrary
+    , plugin: libraries.DefaultPluginLibrary
+    , tag: libraries.DefaultTagLibrary
+  }
+}
+
+var cons = Meta
+  , proto = cons.prototype
+
+proto.createPluginLibrary = createLibrary('plugin')
+proto.createFilterLibrary = createLibrary('filter')
+proto.createTagLibrary = createLibrary('tag')
+
+proto.registerPlugin = createAutoregister('plugin')
+proto.registerFilter = createAutoregister('filter')
+proto.registerTag = createAutoregister('tag')
+
+function createAutoregister(name) {
+  return function(key, item) {
+    if(this._cache[name])
+      this._cache[name].register(key, item);
+    else
+      this._autoregister[name][key] = item;
+  }
+}
+
+function createLibrary(name) {
+  return function() {
+    if(this._cache[name])
+      return this._cache[name]; 
+
+    var lib = new this._classes[name]
+
+    for(var key in this._autoregister[name]) {
+      lib.register(key, this._autoregister[name][key])
+    }
+
+    this._cache[name] = lib
+    return lib
+  }
+}
+
+
+},{"./libraries":66}],69:[function(require,module,exports){
+module.exports = NodeList
+
+var Promise = require('./promise')
+
+function NodeList(nodes) {
+  this.nodes = nodes
+}
+
+var cons = NodeList
+  , proto = cons.prototype
+
+proto.render = function(context) {
+  var promises = []
+    , results = []
+    , nodes = this.nodes
+    , result
+
+  for(var i = 0, len = nodes.length; i < len; ++i) {
+    results[i] = result = nodes[i].render(context)
+
+    if(result.constructor === Promise) {
+      promises.push(result)
+    }
+  }
+
+  if(promises.length) {
+    return this.resolvePromises(results, promises) 
+  }
+
+  return results.join('')
+}
+
+proto.resolvePromises = function(results, promises) {
+  var self = this
+    , promise = new Promise
+    , total = promises.length
+
+  for(var i = 0, p = 0, len = results.length; i < len; ++i) {
+    if(results[i].constructor !== Promise) 
+      continue
+
+    promises[p++].once('done', bind(i, function(idx, result) {
+      results[idx] = result
+
+      if(!--total)
+        promise.resolve(results.join(''))
+    }))
+  }
+
+  return promise
+}
+
+function bind(num, fn) {
+  return function(result) {
+    return fn(num, result)
+  }
+}
+
+},{"./promise":71}],70:[function(require,module,exports){
+module.exports = Parser
+
+var NodeList = require('./node_list')
+
+var FilterApplication = require('./filter_application')
+  , FilterLookup = require('./filter_lookup')
+  , FilterChain = require('./filter_chain')
+  , TagToken = require('./tag_token')
+
+function Parser(tokens, tags, filters, plugins) {
+  this.tokens = tokens
+  this.tags = tags
+  this.filters = filters
+  this.plugins = plugins
+
+  // for use with extends / block tags
+  this.loadedBlocks = []
+}
+
+var cons = Parser
+  , proto = cons.prototype
+
+proto.cache = {}
+
+proto.parse = function(until) {
+  var okay = !until
+    , token = null
+    , output = []
+    , node
+
+  while(this.tokens.length > 0) {
+    token = this.tokens.shift()
+
+    if(until && token.is(until) && token.constructor === TagToken) {
+      this.tokens.unshift(token)
+      okay = true
+
+      break
+    }
+
+    if(node = token.node(this)) {
+      output.push(node)
+    }
+  }
+
+  if(!okay) {
+    throw new Error('expected one of ' + until)
+  }
+
+  return new NodeList(output)
+}
+
+proto.compileNumber = function(content, idx, output) {
+  var decimal = content.charAt(idx) === '.'
+    , bits = decimal ? ['0.'] : []
+    , parse
+    , c
+
+  do {
+    c = content.charAt(idx)
+
+    if(c === '.') {
+      if(decimal) {
+        break
+      }
+
+      decimal = true
+      bits.push('.')
+    } else if(/\d/.test(c)) {
+      bits.push(c)
+    }
+  } while(++idx < content.length)
+
+  parse = decimal ? parseFloat : parseInt
+  output.push(parse(bits.join(''), 10))
+
+  return idx
+}
+
+proto.compileString = function(content, idx, output) {
+  var type = content.charAt(idx)
+    , escaped = false
+    , bits = []
+    , c
+
+  ++idx
+
+  do {
+    c = content.charAt(idx)
+
+    if(!escaped) {
+      if(c === '\\') {
+        escaped = true
+
+        continue
+      }
+
+      if(c === type) {
+        break
+      }
+
+      bits.push(c)
+    } else {
+      if(!/['"\\]/.test(c)) {
+        bits.push('\\')
+      }
+
+      bits.push(c)
+      escaped = false
+    }
+
+  } while(++idx < content.length)
+
+  output.push(bits.join(''))
+
+  return idx
+}
+
+proto.compileName = function(content, idx, output) {
+  var out = []
+    , c
+
+  do {
+    c = content.charAt(idx)
+
+    if(/[^\w\d\_]/.test(c)) {
+      break
+    }
+
+    out.push(c)
+  } while(++idx < content.length)
+
+  output.push(out.join(''))
+
+  return idx
+}
+
+proto.compileFilter = function(content, idx, output) {
+  var filterName
+    , oldLen
+    , bits
+
+  ++idx
+
+  idx = this.compileName(content, idx, output)
+  filterName = output.pop()
+
+  if(content.charAt(idx) !== ':') {
+    output.push(new FilterApplication(filterName, []))
+
+    return idx - 1
+  }
+
+  ++idx
+
+  oldLen = output.length
+  idx = this.compileFull(content, idx, output, true)
+  bits = output.splice(oldLen, output.length - oldLen)
+
+  output.push(new FilterApplication(filterName, bits))
+
+  return idx
+}
+
+proto.compileLookup = function(content, idx, output) {
+  var bits = []
+
+  do {
+    idx = this.compileName(content, idx, output)
+    bits.push(output.pop())
+
+    if(content.charAt(idx) !== '.') {
+      break
+    }
+  } while(++idx < content.length)
+
+  output.push(new FilterLookup(bits))
+
+  return idx - 1
+}
+
+proto.compileFull = function(content, idx, output, omitPipe) {
+  var c
+
+  output = output || []
+  idx = idx || 0
+  // something|filtername[:arg, arg]
+  // "quotes"
+  // 1
+  // 1.2
+  // true | false
+  // swallow leading whitespace.
+
+  while(/\s/.test(content.charAt(idx))) {
+    ++idx
+  }
+
+  do {
+    c = content.charAt(idx)
+
+    if(/[,\s]/.test(c)) {
+      break
+    }
+
+    if(omitPipe && c === '|') {
+      --idx
+
+      break
+    }
+
+    switch(true) {
+      case /[\d\.]/.test(c):
+        idx = this.compileNumber(content, idx, output)
+        break
+      case /['"]/.test(c):
+        idx = this.compileString(content, idx, output)
+        break
+      case c === '|':
+        idx = this.compileFilter(content, idx, output)
+        break
+      default:
+        idx = this.compileLookup(content, idx, output)
+        break
+    }
+  } while(++idx < content.length)
+
+  return idx
+}
+
+proto.compile = function(content) {
+  var output = []
+
+  if(this.cache[content]) {
+    return this.cache[content]
+  }
+
+  this.compileFull(content, 0, output)
+
+  output = this.cache[content] = new FilterChain(output, this)
+  output.attach(this)
+
+  return output
+}
+
+},{"./filter_application":9,"./filter_chain":10,"./filter_lookup":11,"./node_list":69,"./tag_token":72}],71:[function(require,module,exports){
+module.exports = Promise
+
+function Promise() {
+  this.trigger = null
+}
+
+var cons = Promise
+  , proto = cons.prototype
+
+proto.resolve = function(value) {
+  var trigger = this.trigger
+
+  if(!value || value.constructor !== cons) {
+    return trigger(value)
+  }
+
+  value.once('done', trigger)
+}
+
+proto.once = function(ev, fn) {
+  this.trigger = fn  
+}
+
+},{}],72:[function(require,module,exports){
+module.exports = TagToken
+
+var Token = require('./token')
+
+function TagToken(content, line) {
+  Token.call(this, content, line)
+}
+
+var cons = TagToken
+  , proto = cons.prototype = new Token
+
+proto.constructor = cons
+
+proto.node = function(parser) {
+  var tag = parser.tags.lookup(this.name)
+
+  return tag(this.content, parser)
+}
+
+},{"./token":90}],73:[function(require,module,exports){
 module.exports = BlockNode
 
 var Promise = require('../promise')
@@ -2129,7 +2169,28 @@ cons.parse = function(contents, parser) {
   return new cons(name, nodes)  
 }
 
-},{"../promise":2,"../block_context":86}],27:[function(require,module,exports){
+},{"../block_context":2,"../promise":71}],74:[function(require,module,exports){
+module.exports = CommentNode
+
+function CommentNode() {
+  // no-op.
+}
+
+var cons = CommentNode
+  , proto = cons.prototype
+
+proto.render = function(context) {
+  return ''
+}
+
+cons.parse = function(contents, parser) {
+  nl = parser.parse(['endcomment'])
+  parser.tokens.shift()
+
+  return new cons
+}
+
+},{}],75:[function(require,module,exports){
 module.exports = DebugNode
 
 var Promise = require('../promise')
@@ -2178,7 +2239,7 @@ cons.parse = function(contents, parser) {
 }
 
 
-},{"../context":10,"../promise":2,"../debug":1}],28:[function(require,module,exports){
+},{"../context":4,"../debug":6,"../promise":71}],76:[function(require,module,exports){
 module.exports = ExtendsNode
 
 var Promise = require('../promise')
@@ -2280,7 +2341,7 @@ cons.parse = function(contents, parser) {
   return new cons(parent, nodes, loader)
 }
 
-},{"../promise":2,"../block_context":86}],29:[function(require,module,exports){
+},{"../block_context":2,"../promise":71}],77:[function(require,module,exports){
 module.exports = ForNode
 
 var NodeList = require('../node_list')
@@ -2406,38 +2467,432 @@ cons.parse = function(contents, parser) {
   return new cons(target, unpack, nodelist, empty, reversed);
 }
 
-},{"../node_list":21,"../promise":2}],32:[function(require,module,exports){
-module.exports = NowNode
+},{"../node_list":69,"../promise":71}],78:[function(require,module,exports){
+module.exports = EndToken
 
-var format = require('../date').date
-
-function NowNode(formatString) {
-  this.format = formatString
+function EndToken() {
+  this.lbp = 0
 }
 
-var cons = NowNode
+},{}],79:[function(require,module,exports){
+module.exports = InfixOperator
+
+var Promise = require('../../promise')
+
+function InfixOperator(bp, cmp) {
+  this.lbp = bp
+  this.cmp = cmp
+
+  this.first = 
+  this.second = null
+} 
+
+var cons = InfixOperator
   , proto = cons.prototype
 
-proto.render = function(context) {
-  return format(new Date, this.format)
+proto.nud = function(parser) {
+  throw new Error("Unexpected token")
+}
+
+proto.led = function(lhs, parser) {
+  this.first = lhs
+  this.second = parser.expression(this.lbp)
+  return this
+}
+
+proto.evaluate = function(context, first, second, sentFirst, sentSecond) {
+  var self = this
+    , promise
+
+  first = sentFirst ? first : self.first.evaluate(context)
+
+  if(first && first.constructor === Promise) {
+    promise = new Promise
+
+    first.once('done', function(data) {
+      promise.resolve(self.evaluate(context, data, null, true, false))
+    })
+
+    return promise
+  }
+
+  second = sentSecond ? second : self.second.evaluate(context)
+
+  if(second && second.constructor === Promise) {
+    promise = new Promise
+
+    second.once('done', function(data) {
+      promise.resolve(self.evaluate(context, first, data, true, true))
+    })
+
+    return promise
+  }
+
+  return self.cmp(first, second)
+}
+
+
+},{"../../promise":71}],80:[function(require,module,exports){
+module.exports = LiteralToken
+
+function LiteralToken(value, original) {
+  this.lbp = 0
+  this.value = value
+}
+
+var cons = LiteralToken
+  , proto = cons.prototype
+
+proto.nud = function(parser) {
+  return this
+}
+
+proto.led = function() {
+  throw new Error()
+}
+
+proto.evaluate = function(context) {
+  if(!this.value)
+    return this.value
+
+  if(!this.value.resolve)
+    return this.value
+
+  return this.value.resolve(context)
+}
+
+},{}],81:[function(require,module,exports){
+module.exports = IfNode
+
+var Promise = require('../../promise')
+  , NodeList = require('../../node_list')
+  , Parser = require('./parser')
+
+function IfNode(predicate, when_true, when_false) {
+  this.predicate = predicate
+  this.when_true = when_true
+  this.when_false = when_false
+}
+
+var cons = IfNode
+  , proto = cons.prototype
+
+proto.render = function(context, result, times) {
+  var self = this
+    , promise
+
+  result = times === 1 ? result : this.predicate.evaluate(context)
+
+  if(result && result.constructor === Promise) {
+    promise = new Promise
+
+    result.once('done', function(value) {
+      promise.resolve(self.render(context, value, 1))
+    })
+
+    return promise
+  }
+
+  if(result) {
+    return this.when_true.render(context)
+  }
+  return this.when_false.render(context)
 }
 
 cons.parse = function(contents, parser) {
-  var bits = contents.split(' ')
-    , fmt = bits.slice(1).join(' ')
+  var bits = contents.split(' ').slice(1)
+    , ifp = new Parser(bits, parser)
+    , predicate
+    , when_true
+    , when_false
+    , next
 
-  fmt = fmt
-    .replace(/^\s+/, '')
-    .replace(/\s+$/, '')
+  predicate = ifp.parse()
 
-  if(/['"]/.test(fmt.charAt(0))) {
-    fmt = fmt.slice(1, -1)
+  when_true = parser.parse(['else', 'endif'])
+
+  next = parser.tokens.shift()
+
+  if(!next.is(['else'])) {
+    when_false = new NodeList([])
+  } else {
+    when_false = parser.parse(['endif'])
+    parser.tokens.shift()
   }
 
-  return new NowNode(fmt || 'N j, Y')
+  return new cons(predicate, when_true, when_false)
 }
 
-},{"../date":13}],31:[function(require,module,exports){
+},{"../../node_list":69,"../../promise":71,"./parser":83}],82:[function(require,module,exports){
+var InfixOperator = require('./infix')
+  , PrefixOperator = require('./prefix')
+
+var keys
+
+keys = Object.keys || keyshim
+
+function keyshim(obj) {
+  var accum = []
+
+  for(var n in obj) if(obj.hasOwnProperty(n)) {
+    accum.push(n)
+  }
+
+  return accum
+}
+
+module.exports = {
+    'or': function() {
+      return new InfixOperator(6, function(x, y) {
+          return x || y
+      })
+    }
+
+  , 'and': function() {
+      return new InfixOperator(7, function(x, y) {
+          return x && y
+      })
+    }
+
+  , 'not': function() {
+      return new PrefixOperator(8, function(x) {
+        return !x
+      })
+    }
+
+  , 'in': function() {
+      return new InfixOperator(9, in_operator)
+    }
+
+  , 'not in': function() {
+    return new InfixOperator(9, function(x, y) {
+      return !in_operator(x,y)
+    })
+  }
+
+  , '=': function() {
+    return new InfixOperator(10, function(x, y) { 
+      return x == y
+    })
+  }
+
+  , '==': function() {
+      return new InfixOperator(10, function(x, y) { 
+        return x == y
+      })
+    }
+
+  , '!=': function() {
+      return new InfixOperator(10, function(x, y) { 
+        return x !== y
+      })
+    }
+
+  , '>': function() {
+      return new InfixOperator(10, function(x, y) { 
+        return x > y
+      })
+    }
+
+  , '>=': function() {
+      return new InfixOperator(10, function(x, y) { 
+        return x >= y
+      })
+    }
+
+  , '<': function() {
+      return new InfixOperator(10, function(x, y) { 
+        return x < y
+      })
+    }
+
+  , '<=': function() {
+      return new InfixOperator(10, function(x, y) { 
+        return x <= y
+      })
+    }
+}
+
+function in_operator(x, y) {
+  if(!(x instanceof Object) && y instanceof Object) {
+    if(!(y && 'length' in y)) {
+      y = keys(y)
+    }
+  }
+
+  if(typeof(x) == 'string' && typeof(y) =='string') {
+    return y.indexOf(x) !== -1
+  }
+
+  if(x === undefined || x === null)
+    return false
+
+  if(y === undefined || y === null)
+    return false
+
+  for(var found = false, i = 0, len = y.length; i < len && !found; ++i) {
+    var rhs = y[i]
+    if(x instanceof Array) {
+      for(var idx = 0,
+        equal = x.length == rhs.length,
+        xlen = x.length;
+        idx < xlen && equal; ++idx) {
+
+        equal = (x[idx] === rhs[idx])
+      }
+      found = equal
+
+    } else if(x instanceof Object) {
+      if(x === rhs) {
+        return true
+      }
+      var xkeys = keys(x),
+        rkeys = keys(rhs)
+
+      if(xkeys.length === rkeys.length) { 
+        for(var i = 0, len = xkeys.length, equal = true;
+          i < len && equal;
+          ++i) {
+          equal = xkeys[i] === rkeys[i] &&
+              x[xkeys[i]] === rhs[rkeys[i]]
+        }
+        found = equal
+      } 
+    } else {
+      found = x == rhs
+    }
+  }
+  return found
+}
+
+},{"./infix":79,"./prefix":84}],83:[function(require,module,exports){
+module.exports = IfParser
+
+var LiteralToken = require('./literal')
+  , EndToken = require('./end')
+  , operators = require('./operators')
+
+function IfParser(tokens, parser) {
+  this.createVariable = function(token) {
+    return new LiteralToken(parser.compile(token), token)
+  }
+
+  var len = tokens.length
+    , i = 0
+    , mappedTokens = []
+    , token
+
+  while(i < len) {
+    token = tokens[i]
+    if(token == 'not' && tokens[i+1] == 'in') {
+      ++i
+      token = 'not in'
+    }
+    mappedTokens.push(this.translateToken(token))
+    ++i
+  }
+
+  this.pos = 0
+  this.tokens = mappedTokens
+  this.currentToken = this.next()
+}
+
+var cons = IfParser
+  , proto = cons.prototype
+
+proto.translateToken = function(token) {
+  var op = operators[token]
+
+  if(op === undefined) {
+    return this.createVariable(token)
+  }
+
+  return op()
+}
+
+proto.next = function() {
+  if(this.pos >= this.tokens.length) {
+    return new EndToken()
+  }
+  return this.tokens[this.pos++]
+}
+
+proto.parse = function() {
+  var retval = this.expression()
+
+  if(!(this.currentToken.constructor === EndToken)) {
+    throw new Error("Unused "+this.currentToken+" at end of if expression.")
+  }
+
+  return retval
+}
+
+proto.expression = function(rbp) {
+  rbp = rbp || 0
+
+  var t = this.currentToken
+    , left
+
+  this.currentToken = this.next()
+
+  left = t.nud(this)
+  while(rbp < this.currentToken.lbp) {
+    t = this.currentToken
+
+    this.currentToken = this.next()
+
+    left = t.led(left, this)
+  }
+
+  return left
+}
+
+},{"./end":78,"./literal":80,"./operators":82}],84:[function(require,module,exports){
+module.exports = PrefixOperator
+
+var Promise = require('../../promise')
+
+function PrefixOperator(bp, cmp) {
+  this.lbp = bp
+  this.cmp = cmp
+
+  this.first = 
+  this.second = null
+}
+
+var cons = PrefixOperator
+  , proto = cons.prototype
+
+proto.nud = function(parser) {
+  this.first = parser.expression(this.lbp)
+  this.second = null
+  return this
+}
+
+proto.led = function(first, parser) {
+  throw new Error("Unexpected token")
+}
+
+proto.evaluate = function(context, first, times) {
+  var self = this
+    , promise
+
+  first = times === 1 ? first : self.first.evaluate(context)
+
+  if(first && first.constructor === Promise) {
+    promise = new Promise
+
+    first.once('done', function(data) {
+      promise.resolve(self.evaluate(context, data, 1))
+    })
+
+    return promise
+  }
+
+  return self.cmp(first)
+}
+
+},{"../../promise":71}],85:[function(require,module,exports){
 module.exports = IncludeNode
 
 var Promise = require('../promise')
@@ -2504,7 +2959,38 @@ proto.get_template = function(target) {
   return target
 }
 
-},{"../promise":2}],33:[function(require,module,exports){
+},{"../promise":71}],86:[function(require,module,exports){
+module.exports = NowNode
+
+var format = require('../date').date
+
+function NowNode(formatString) {
+  this.format = formatString
+}
+
+var cons = NowNode
+  , proto = cons.prototype
+
+proto.render = function(context) {
+  return format(new Date, this.format)
+}
+
+cons.parse = function(contents, parser) {
+  var bits = contents.split(' ')
+    , fmt = bits.slice(1).join(' ')
+
+  fmt = fmt
+    .replace(/^\s+/, '')
+    .replace(/\s+$/, '')
+
+  if(/['"]/.test(fmt.charAt(0))) {
+    fmt = fmt.slice(1, -1)
+  }
+
+  return new NowNode(fmt || 'N j, Y')
+}
+
+},{"../date":5}],87:[function(require,module,exports){
 module.exports = WithNode
 
 var Promise = require('../promise')
@@ -2553,237 +3039,202 @@ proto.render = function(context, value) {
   return result
 }
 
-},{"../promise":2}],39:[function(require,module,exports){
-var format = require('../date').date
-  
-module.exports = function(input, value, ready) {
-  if (ready === undefined)
-    value = 'N j, Y'
+},{"../promise":71}],88:[function(require,module,exports){
+module.exports = TextNode
 
-  return format(input.getFullYear ? input : new Date(input), value)
+function TextNode(content) {
+  this.content = content
 }
 
-},{"../date":13}],42:[function(require,module,exports){
-var dictsort = require('./dictsort');
-
-module.exports = function(input, key) {
-  return dictsort(input, key).reverse()
-}
-
-},{"./dictsort":41}],44:[function(require,module,exports){
-var FilterNode = require('../filter_node')
-
-module.exports = function(input) {
-  if(input && input.safe) {
-    return input
-  }
-
-  input = new String(FilterNode.escape(input))
-  input.safe = true
-  return input
-}
-
-},{"../filter_node":19}],48:[function(require,module,exports){
-var FilterNode = require('../filter_node')
-
-module.exports = function(input) {
-  var x = new String(FilterNode.escape(input+''))
-  x.safe = true
-  return x
-}
-
-},{"../filter_node":19}],56:[function(require,module,exports){
-var safe = require('./safe')
-
-module.exports = function(input) {
-  var str = input.toString()
-    , paras = str.split('\n\n')
-    , out = []
-
-  while(paras.length) {
-    out.unshift(paras.pop().replace(/\n/g, '<br />'))
-  }
-
-  return safe('<p>'+out.join('</p><p>')+'</p>')
-}
-
-},{"./safe":67}],58:[function(require,module,exports){
-var safe = require('./safe')
-
-module.exports = function(input) {
-  var str = input.toString()
-  return safe(str.replace(/\n/g, '<br />'))
-}
-
-},{"./safe":67}],67:[function(require,module,exports){
-var FilterNode = require('../filter_node')
-
-module.exports = function(input) {
-  input = new String(input)
-  input.safe = true
-  return input
-}
-
-},{"../filter_node":19}],73:[function(require,module,exports){
-var timesince = require('./timesince').timesince
-
-module.exports = function(input, n) {
-  var now = n ? new Date(n) : new Date()
-  return timesince(now, input)
-}
-
-},{"./timesince":72}],77:[function(require,module,exports){
-var safe = require('./safe');
-
-var ulparser = function(list) {
-  var out = []
-    , l = list.slice()
-    , item
-
-  while(l.length) {
-    item = l.pop()
-
-    if(item instanceof Array)
-      out.unshift('<ul>'+ulparser(item)+'</ul>')
-    else
-      out.unshift('</li><li>'+item)
-  }
-
-  // get rid of the leading </li>, if any. add trailing </li>.
-  return out.join('').replace(/^<\/li>/, '') + '</li>'
-}
-
-module.exports = function(input) {
-  return input instanceof Array ?
-    safe(ulparser(input)) :
-    input
-}
-
-},{"./safe":67}],80:[function(require,module,exports){
-var safe = require('./safe')
-
-module.exports = function(input) {
-  var str = input.toString()
-  return safe(str.replace(/(((http(s)?:\/\/)|(mailto:))([\w\d\-\.:@\/])+)/g, function() {
-    return '<a href="'+arguments[0]+'">'+arguments[0]+'</a>'; 
-  }))
-}
-
-},{"./safe":67}],81:[function(require,module,exports){
-var safe = require('./safe')
-
-module.exports = function(input, len) {
-  var str = input.toString()
-  len = parseInt(len, 10) || 1000
-  return safe(str.replace(/(((http(s)?:\/\/)|(mailto:))([\w\d\-\.:@])+)/g, function() {
-    var ltr = arguments[0].length > len ? arguments[0].slice(0, len) + '...' : arguments[0];
-    return '<a href="'+arguments[0]+'">'+ltr+'</a>'; 
-  }))
-}
-
-},{"./safe":67}],30:[function(require,module,exports){
-module.exports = IfNode
-
-var Promise = require('../../promise')
-  , NodeList = require('../../node_list')
-  , Parser = require('./parser')
-
-function IfNode(predicate, when_true, when_false) {
-  this.predicate = predicate
-  this.when_true = when_true
-  this.when_false = when_false
-}
-
-var cons = IfNode
+var cons = TextNode
   , proto = cons.prototype
 
-proto.render = function(context, result, times) {
-  var self = this
-    , promise
-
-  result = times === 1 ? result : this.predicate.evaluate(context)
-
-  if(result && result.constructor === Promise) {
-    promise = new Promise
-
-    result.once('done', function(value) {
-      promise.resolve(self.render(context, value, 1))
-    })
-
-    return promise
-  }
-
-  if(result) {
-    return this.when_true.render(context)
-  }
-  return this.when_false.render(context)
+proto.render = function(context) {
+  return this.content
 }
 
-cons.parse = function(contents, parser) {
-  var bits = contents.split(' ').slice(1)
-    , ifp = new Parser(bits, parser)
-    , predicate
-    , when_true
-    , when_false
-    , next
+},{}],89:[function(require,module,exports){
+module.exports = TextToken
 
-  predicate = ifp.parse()
+var Token = require('./token')
+  , TextNode = require('./text_node')
 
-  when_true = parser.parse(['else', 'endif'])
-
-  next = parser.tokens.shift()
-
-  if(!next.is(['else'])) {
-    when_false = new NodeList([])
-  } else {
-    when_false = parser.parse(['endif'])
-    parser.tokens.shift()
-  }
-
-  return new cons(predicate, when_true, when_false)
+function TextToken(content, line) {
+  Token.call(this, content, line)
 }
 
-},{"../../promise":2,"../../node_list":21,"./parser":87}],86:[function(require,module,exports){
-module.exports = BlockContext
+var cons = TextToken
+  , proto = cons.prototype = new Token
 
-function BlockContext() {
-  this.blocks = {}
+proto.constructor = cons
+
+proto.node = function(parser) {
+  return new TextNode(this.content)
 }
 
-var cons = BlockContext
+},{"./text_node":88,"./token":90}],90:[function(require,module,exports){
+module.exports = Token
+
+function Token(content, line) {
+  this.content = content
+  this.line = line
+
+  this.name = content && content.split(' ')[0]
+}
+
+var cons = Token
   , proto = cons.prototype
 
-cons.KEY = '__BLOCK_CONTEXT__'
-
-cons.from = function(context) {
-  return context[this.KEY]
+proto.toString = function() {
+  // NB: this should only be
+  // debug output, so it's
+  // probably safe to use
+  // JSON.stringify here.
+  return '<'+this.constructor.name+': '+JSON.stringify(this.content)+'>'
 }
 
-cons.into = function(context) {
-  return context[this.KEY] = new this()
+proto.is = function(names) {
+  for(var i = 0, len = names.length; i < len; ++i)
+    if(names[i] === this.name)
+      return true
+  return false
 }
 
-proto.add = function(blocks) {
-  for(var name in blocks) {
-    (this.blocks[name] = this.blocks[name] || []).unshift(blocks[name])
+},{}],91:[function(require,module,exports){
+;(function() {
+
+// so, the only way we (reliably) get access to DST in javascript
+// is via `Date#getTimezoneOffset`.
+//
+// this value will switch for a given date based on the presence or absence
+// of DST at that date.
+
+function find_dst_threshold (near, far) {
+  var near_date = new Date(near)
+    , far_date = new Date(far)
+    , near_offs = near_date.getTimezoneOffset()
+    , far_offs = far_date.getTimezoneOffset()
+
+  if(near_offs === far_offs) return 0
+
+  if(Math.abs(near_date - far_date) < 1000) return near_date
+
+  return find_dst_threshold(near, near+(far-near)/2) || find_dst_threshold(near+(far-near)/2, far)
+}
+
+
+function find_dst_thresholds() {
+  var d = new Date()
+    , d = new Date(d.getFullYear(), 0, 1)
+    , f = new Date(d.getFullYear(), 11, 31)
+    , x
+    , first
+    , second
+
+  x = (f - d) / -2
+  first = find_dst_threshold(+d, d - x)
+  second = find_dst_threshold(d - x, +f)
+
+  return {
+    spring_forward  : first ? (first.getTimezoneOffset() < second.getTimezoneOffset() ? second : first) - new Date(d.getFullYear(), 0, 1, 0, 0) : 0
+  , fall_back       : first ? (first.getTimezoneOffset() < second.getTimezoneOffset() ? first : second) - new Date(d.getFullYear(), 0, 1, 0, 0) : 0
   }
 }
 
-proto.get = function(name) {
-  var list = this.blocks[name] || []
+var THRESHOLDS = find_dst_thresholds()
 
-  return list[list.length - 1]
+function is_dst(datetime, thresholds) {
+
+  thresholds = thresholds || THRESHOLDS
+
+  if(thresholds.spring_forward === thresholds.fall_back)
+    return false
+
+  var offset = datetime - new Date(datetime.getFullYear(), 0, 1, 0, 0)
+    , dst_is_reversed = thresholds.spring_forward > thresholds.fall_back
+    , max = Math.max(thresholds.fall_back, thresholds.spring_forward)
+    , min = Math.min(thresholds.fall_back, thresholds.spring_forward)
+
+  if(min < offset && offset < max)
+    return !dst_is_reversed
+  return dst_is_reversed
 }
 
-proto.push = function(name, block) {
-  (this.blocks[name] = this.blocks[name] || []).push(block)
+Date.prototype.isDST = function(thresholds) {
+  return is_dst(this, thresholds) 
 }
 
-proto.pop = function(name) {
-  return (this.blocks[name] = this.blocks[name] || []).pop()
+is_dst.find_thresholds = find_dst_thresholds
+
+if(typeof module !== 'undefined') {
+  module.exports = is_dst
+} else {
+  window.is_dst = is_dst 
 }
 
-},{}],88:[function(require,module,exports){
+})()
+
+},{}],92:[function(require,module,exports){
+var tz = require('./tz')
+  , isDST = require('dst')
+
+module.exports = tzinfo
+
+function get_offset_fmt(tzoffs) {
+  var offs = ~~(tzoffs / 60)
+    , mins = ('00' + ~~Math.abs(tzoffs % 60)).slice(-2)
+
+  offs = ((tzoffs > 0) ? '-' : '+') + ('00' + Math.abs(offs)).slice(-2) + mins
+
+  return offs
+}
+
+function tzinfo(date, tz_list, determine_dst, TZ) {
+
+  var fmt = get_offset_fmt(date.getTimezoneOffset())
+
+  TZ = TZ || tz
+  tz_list = tz_list || TZ[fmt]
+  determine_dst = determine_dst || isDST
+
+  var date_is_dst = determine_dst(date)
+    , date_dst_thresholds = determine_dst.find_thresholds()
+    , has_dst = date_dst_thresholds.spring_forward !== date_dst_thresholds.fall_back
+    , is_north = has_dst && date_dst_thresholds.spring_forward < date_dst_thresholds.fall_back 
+    , list = (tz_list || []).slice()
+    , filtered = []
+
+  if(!is_north)
+    list = list.reverse()
+
+  for(var i = 0, len = list.length; i < len; ++i) {
+    if(date_is_dst === /([Dd]aylight|[Ss]ummer)/.test(list[i].name)) {
+      filtered.push(list[i])
+    }
+  }
+  list = filtered
+  if(!list.length) return {}
+
+  return {
+      'name':     list[0].name
+    , 'loc':      list[0].loc
+    , 'abbr':     list[0].abbr
+    , 'offset':   fmt
+  }
+} 
+
+tzinfo.get_offset_format = get_offset_fmt
+tzinfo.tz_list = tz
+
+Date.prototype.tzinfo = function() {
+  return tzinfo(this)
+}
+
+Date.prototype.tzoffset = function() {
+  return 'GMT'+get_offset_fmt(this.getTimezoneOffset())
+}
+
+},{"./tz":93,"dst":91}],93:[function(require,module,exports){
 module.exports = {
   "+0900": [
     {
@@ -3674,428 +4125,6 @@ module.exports = {
   ]
 }
 
-},{}],87:[function(require,module,exports){
-module.exports = IfParser
-
-var LiteralToken = require('./literal')
-  , EndToken = require('./end')
-  , operators = require('./operators')
-
-function IfParser(tokens, parser) {
-  this.createVariable = function(token) {
-    return new LiteralToken(parser.compile(token), token)
-  }
-
-  var len = tokens.length
-    , i = 0
-    , mappedTokens = []
-    , token
-
-  while(i < len) {
-    token = tokens[i]
-    if(token == 'not' && tokens[i+1] == 'in') {
-      ++i
-      token = 'not in'
-    }
-    mappedTokens.push(this.translateToken(token))
-    ++i
-  }
-
-  this.pos = 0
-  this.tokens = mappedTokens
-  this.currentToken = this.next()
-}
-
-var cons = IfParser
-  , proto = cons.prototype
-
-proto.translateToken = function(token) {
-  var op = operators[token]
-
-  if(op === undefined) {
-    return this.createVariable(token)
-  }
-
-  return op()
-}
-
-proto.next = function() {
-  if(this.pos >= this.tokens.length) {
-    return new EndToken()
-  }
-  return this.tokens[this.pos++]
-}
-
-proto.parse = function() {
-  var retval = this.expression()
-
-  if(!(this.currentToken.constructor === EndToken)) {
-    throw new Error("Unused "+this.currentToken+" at end of if expression.")
-  }
-
-  return retval
-}
-
-proto.expression = function(rbp) {
-  rbp = rbp || 0
-
-  var t = this.currentToken
-    , left
-
-  this.currentToken = this.next()
-
-  left = t.nud(this)
-  while(rbp < this.currentToken.lbp) {
-    t = this.currentToken
-
-    this.currentToken = this.next()
-
-    left = t.led(left, this)
-  }
-
-  return left
-}
-
-},{"./literal":89,"./end":90,"./operators":91}],89:[function(require,module,exports){
-module.exports = LiteralToken
-
-function LiteralToken(value, original) {
-  this.lbp = 0
-  this.value = value
-}
-
-var cons = LiteralToken
-  , proto = cons.prototype
-
-proto.nud = function(parser) {
-  return this
-}
-
-proto.led = function() {
-  throw new Error()
-}
-
-proto.evaluate = function(context) {
-  if(!this.value)
-    return this.value
-
-  if(!this.value.resolve)
-    return this.value
-
-  return this.value.resolve(context)
-}
-
-},{}],90:[function(require,module,exports){
-module.exports = EndToken
-
-function EndToken() {
-  this.lbp = 0
-}
-
-},{}],85:[function(require,module,exports){
-var tz = require('./tz')
-  , isDST = require('dst')
-
-module.exports = tzinfo
-
-function get_offset_fmt(tzoffs) {
-  var offs = ~~(tzoffs / 60)
-    , mins = ('00' + ~~Math.abs(tzoffs % 60)).slice(-2)
-
-  offs = ((tzoffs > 0) ? '-' : '+') + ('00' + Math.abs(offs)).slice(-2) + mins
-
-  return offs
-}
-
-function tzinfo(date, tz_list, determine_dst, TZ) {
-
-  var fmt = get_offset_fmt(date.getTimezoneOffset())
-
-  TZ = TZ || tz
-  tz_list = tz_list || TZ[fmt]
-  determine_dst = determine_dst || isDST
-
-  var date_is_dst = determine_dst(date)
-    , date_dst_thresholds = determine_dst.find_thresholds()
-    , has_dst = date_dst_thresholds.spring_forward !== date_dst_thresholds.fall_back
-    , is_north = has_dst && date_dst_thresholds.spring_forward < date_dst_thresholds.fall_back 
-    , list = (tz_list || []).slice()
-    , filtered = []
-
-  if(!is_north)
-    list = list.reverse()
-
-  for(var i = 0, len = list.length; i < len; ++i) {
-    if(date_is_dst === /([Dd]aylight|[Ss]ummer)/.test(list[i].name)) {
-      filtered.push(list[i])
-    }
-  }
-  list = filtered
-  if(!list.length) return {}
-
-  return {
-      'name':     list[0].name
-    , 'loc':      list[0].loc
-    , 'abbr':     list[0].abbr
-    , 'offset':   fmt
-  }
-} 
-
-tzinfo.get_offset_format = get_offset_fmt
-tzinfo.tz_list = tz
-
-Date.prototype.tzinfo = function() {
-  return tzinfo(this)
-}
-
-Date.prototype.tzoffset = function() {
-  return 'GMT'+get_offset_fmt(this.getTimezoneOffset())
-}
-
-},{"./tz":88,"dst":14}],91:[function(require,module,exports){
-var InfixOperator = require('./infix')
-  , PrefixOperator = require('./prefix')
-
-var keys
-
-keys = Object.keys || keyshim
-
-function keyshim(obj) {
-  var accum = []
-
-  for(var n in obj) if(obj.hasOwnProperty(n)) {
-    accum.push(n)
-  }
-
-  return accum
-}
-
-module.exports = {
-    'or': function() {
-      return new InfixOperator(6, function(x, y) {
-          return x || y
-      })
-    }
-
-  , 'and': function() {
-      return new InfixOperator(7, function(x, y) {
-          return x && y
-      })
-    }
-
-  , 'not': function() {
-      return new PrefixOperator(8, function(x) {
-        return !x
-      })
-    }
-
-  , 'in': function() {
-      return new InfixOperator(9, in_operator)
-    }
-
-  , 'not in': function() {
-    return new InfixOperator(9, function(x, y) {
-      return !in_operator(x,y)
-    })
-  }
-
-  , '=': function() {
-    return new InfixOperator(10, function(x, y) { 
-      return x == y
-    })
-  }
-
-  , '==': function() {
-      return new InfixOperator(10, function(x, y) { 
-        return x == y
-      })
-    }
-
-  , '!=': function() {
-      return new InfixOperator(10, function(x, y) { 
-        return x !== y
-      })
-    }
-
-  , '>': function() {
-      return new InfixOperator(10, function(x, y) { 
-        return x > y
-      })
-    }
-
-  , '>=': function() {
-      return new InfixOperator(10, function(x, y) { 
-        return x >= y
-      })
-    }
-
-  , '<': function() {
-      return new InfixOperator(10, function(x, y) { 
-        return x < y
-      })
-    }
-
-  , '<=': function() {
-      return new InfixOperator(10, function(x, y) { 
-        return x <= y
-      })
-    }
-}
-
-function in_operator(x, y) {
-  if(!(x instanceof Object) && y instanceof Object) {
-    if(!(y && 'length' in y)) {
-      y = keys(y)
-    }
-  }
-
-  if(typeof(x) == 'string' && typeof(y) =='string') {
-    return y.indexOf(x) !== -1
-  }
-
-  if(x === undefined || x === null)
-    return false
-
-  if(y === undefined || y === null)
-    return false
-
-  for(var found = false, i = 0, len = y.length; i < len && !found; ++i) {
-    var rhs = y[i]
-    if(x instanceof Array) {
-      for(var idx = 0,
-        equal = x.length == rhs.length,
-        xlen = x.length;
-        idx < xlen && equal; ++idx) {
-
-        equal = (x[idx] === rhs[idx])
-      }
-      found = equal
-
-    } else if(x instanceof Object) {
-      if(x === rhs) {
-        return true
-      }
-      var xkeys = keys(x),
-        rkeys = keys(rhs)
-
-      if(xkeys.length === rkeys.length) { 
-        for(var i = 0, len = xkeys.length, equal = true;
-          i < len && equal;
-          ++i) {
-          equal = xkeys[i] === rkeys[i] &&
-              x[xkeys[i]] === rhs[rkeys[i]]
-        }
-        found = equal
-      } 
-    } else {
-      found = x == rhs
-    }
-  }
-  return found
-}
-
-},{"./infix":92,"./prefix":93}],92:[function(require,module,exports){
-module.exports = InfixOperator
-
-var Promise = require('../../promise')
-
-function InfixOperator(bp, cmp) {
-  this.lbp = bp
-  this.cmp = cmp
-
-  this.first = 
-  this.second = null
-} 
-
-var cons = InfixOperator
-  , proto = cons.prototype
-
-proto.nud = function(parser) {
-  throw new Error("Unexpected token")
-}
-
-proto.led = function(lhs, parser) {
-  this.first = lhs
-  this.second = parser.expression(this.lbp)
-  return this
-}
-
-proto.evaluate = function(context, first, second, sentFirst, sentSecond) {
-  var self = this
-    , promise
-
-  first = sentFirst ? first : self.first.evaluate(context)
-
-  if(first && first.constructor === Promise) {
-    promise = new Promise
-
-    first.once('done', function(data) {
-      promise.resolve(self.evaluate(context, data, null, true, false))
-    })
-
-    return promise
-  }
-
-  second = sentSecond ? second : self.second.evaluate(context)
-
-  if(second && second.constructor === Promise) {
-    promise = new Promise
-
-    second.once('done', function(data) {
-      promise.resolve(self.evaluate(context, first, data, true, true))
-    })
-
-    return promise
-  }
-
-  return self.cmp(first, second)
-}
-
-
-},{"../../promise":2}],93:[function(require,module,exports){
-module.exports = PrefixOperator
-
-var Promise = require('../../promise')
-
-function PrefixOperator(bp, cmp) {
-  this.lbp = bp
-  this.cmp = cmp
-
-  this.first = 
-  this.second = null
-}
-
-var cons = PrefixOperator
-  , proto = cons.prototype
-
-proto.nud = function(parser) {
-  this.first = parser.expression(this.lbp)
-  this.second = null
-  return this
-}
-
-proto.led = function(first, parser) {
-  throw new Error("Unexpected token")
-}
-
-proto.evaluate = function(context, first, times) {
-  var self = this
-    , promise
-
-  first = times === 1 ? first : self.first.evaluate(context)
-
-  if(first && first.constructor === Promise) {
-    promise = new Promise
-
-    first.once('done', function(data) {
-      promise.resolve(self.evaluate(context, data, 1))
-    })
-
-    return promise
-  }
-
-  return self.cmp(first)
-}
-
-},{"../../promise":2}]},{},[12])
+},{}]},{},[1])(1)
+});
 ;
