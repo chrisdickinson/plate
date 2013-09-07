@@ -19,6 +19,8 @@ plate.utils.SafeString = function(str) {
 }
 plate.libraries = require('./lib/libraries')
 
+module.exports = plate
+
 },{"./lib/date":5,"./lib/debug":6,"./lib/index":65,"./lib/libraries":66,"./lib/promise":71,"dst":91}],2:[function(require,module,exports){
 module.exports = BlockContext
 
@@ -1345,7 +1347,7 @@ module.exports = function(input) {
     , out = []
   
   while(bits.length) {
-    var word = bits.pop()
+    var word = bits.shift()
     word = word.charAt(0).toUpperCase() + word.slice(1)
     out.push(word)
   }
@@ -1645,6 +1647,8 @@ module.exports = {
 },{"./defaultfilters":7,"./defaulttags":8,"./library":67}],67:[function(require,module,exports){
 module.exports = Library
 
+var Promise = require('./promise')
+
 function Library(lib) {
   this.registry = lib || {}
 }
@@ -1653,7 +1657,13 @@ var cons = Library
   , proto = cons.prototype
 
 proto.lookup = errorOnNull(function(name) {
-  return this.registry[name] || null  
+  var out = this.registry[name] || null
+
+  if(typeof out === 'function' && out.length === 2 && name === 'loader') {
+    out = Promise.toPromise(out)
+  }
+
+  return out
 }, "Could not find {0}!")
 
 proto.register = errorOnNull(function(name, item) {
@@ -1679,7 +1689,7 @@ function errorOnNull(fn, msg) {
 }
 
 
-},{}],68:[function(require,module,exports){
+},{"./promise":71}],68:[function(require,module,exports){
 var libraries = require('./libraries')
 
 module.exports = Meta
@@ -2062,7 +2072,29 @@ proto.resolve = function(value) {
 }
 
 proto.once = function(ev, fn) {
-  this.trigger = fn  
+  this.trigger = fn
+}
+
+cons.toPromise = function(fn) {
+  return function promisified() {
+    var args = [].slice.call(arguments)
+      , promise = new cons
+      , self = this
+
+    args.push(onready)
+
+    setTimeout(bang, 0)
+
+    return promise
+
+    function bang() {
+      fn.apply(self, args)
+    }
+
+    function onready(err, data) {
+      promise.resolve(data)
+    }
+  }
 }
 
 },{}],72:[function(require,module,exports){
