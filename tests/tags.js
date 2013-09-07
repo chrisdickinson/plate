@@ -1,6 +1,7 @@
 var plate = require('../index')
   , utils = require('../lib/date')
   , platelib = require('../lib/libraries')
+  , library = require('../lib/library')
   , test = require('tape')
   , mocktimeout = require('./mocktimeout')
 
@@ -508,3 +509,21 @@ test("test that now can be configured with another argument", mocktimeout(functi
     })
 )
 
+test("test that olde-style loader plugins work", function(assert) {
+  var lib = new library() 
+  lib.register('loader', olde_loader)
+
+  var tpl = new plate.Template('{% include "xxx" %}', {plugin_library: lib})
+
+
+  tpl.render({}, function(err, data) {
+    assert.equal(data, 'ok')
+    assert.end()
+  })
+
+  function olde_loader(name, ready) {
+    setTimeout(function() {
+      ready(null, new plate.Template('ok'))
+    })
+  }
+}) 
