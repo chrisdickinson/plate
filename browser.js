@@ -16,3 +16,5 @@ plate.utils.SafeString = function(str) {
   return str
 }
 plate.libraries = require('./lib/libraries')
+
+module.exports = plate
