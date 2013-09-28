@@ -11,3 +11,4 @@ try {
 require('./plate')
 require('./filters')
 require('./utils')
+require('./if_tag')
