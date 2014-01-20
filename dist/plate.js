@@ -3238,6 +3238,24 @@ function tzinfo(date, tz_list, determine_dst, TZ) {
     , list = (tz_list || []).slice()
     , filtered = []
 
+  var datestroffset = /\((.*?)\)/.exec('' + new Date())
+
+  if(datestroffset) {
+    datestroffset = datestroffset[1]
+
+    for(var i = 0, len = list.length; i < len; ++i) {
+      if(list[i].abbr === datestroffset) {
+        return {
+            'name': list[i].name
+          , 'loc': list[i].loc
+          , 'abbr': list[i].abbr
+          , 'offset': fmt
+        }
+      }
+    }
+  }
+
+
   if(!is_north)
     list = list.reverse()
 
@@ -3275,6 +3293,11 @@ module.exports = {
       "loc": "Asia", 
       "abbr": "JST", 
       "name": "Japan Standard Time"
+    }, 
+    {
+      "loc": "Asia", 
+      "abbr": "KST", 
+      "name": "Korea Standard Time"
     }, 
     {
       "loc": "Australia", 
@@ -3751,6 +3774,11 @@ module.exports = {
     {
       "loc": "North America", 
       "abbr": "HAST", 
+      "name": "Hawaii-Aleutian Standard Time"
+    }, 
+    {
+      "loc": "North America", 
+      "abbr": "HST", 
       "name": "Hawaii-Aleutian Standard Time"
     }, 
     {
