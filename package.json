@@ -11,7 +11,7 @@
     "lib": "./lib"
   },
   "dependencies": {
-    "tz": "~0.0.5",
+    "tz": "0.1.1",
     "dst": "~0.0.4"
   },
   "devDependencies": {
