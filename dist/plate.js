@@ -3053,9 +3053,9 @@ proto.render = function(context, value) {
     , result
     , promise
 
-  value = value || self.with_var.resolve(context)
+  value = arguments.length === 2 ? value : self.with_var.resolve(context)
 
-  if(value.constructor === Promise) {
+  if(value && value.constructor === Promise) {
     promise = new Promise
 
     value.once('done', function(data) {
