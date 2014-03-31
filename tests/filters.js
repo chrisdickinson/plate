@@ -1100,10 +1100,10 @@ test("Test that urlencode encodes all appropriate characters by using the built-
 )
 
 test("Test that urlize will turn urls of the form http://whatever.com/whatever, https://whatever.org/whatever into links.", mocktimeout(function(assert) {
-      
-      var links = ['https://google.com/', 'http://neversaw.us/media/blah.png'],
-          para = ['hey there i love ', links[0], ' and(',links[1],')'].join(''),
-          result = 'hey there i love <a href="'+links[0]+'">'+links[0]+'</a> and(<a href="'+links[1]+'">'+links[1]+'</a>)';
+
+      var links = ['https://google.com/', 'http://neversaw.us/media/blah.png', 'http://example.com/?some=params&are=here'],
+          para = ['hey there i love ', links[0], ' and(',links[1],')', ' and paramed ', links[2]].join(''),
+          result = 'hey there i love <a href="'+links[0]+'">'+links[0]+'</a> and(<a href="'+links[1]+'">'+links[1]+'</a>) and paramed <a href="'+links[2]+'">'+links[2]+'</a>';
 
       var tpl = new plate.Template('{{ para|urlize }}');
 
