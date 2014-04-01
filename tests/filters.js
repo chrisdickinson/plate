@@ -4,7 +4,7 @@ var plate = require('../index')
   , mocktimeout = require('./mocktimeout')
 
 test("Test that the add filter works as expected", mocktimeout(function(assert) {
-        
+
         var tpl = new plate.Template("{{ test|add:3 }}"),
             rnd = ~~(Math.random()*10);
 
@@ -36,7 +36,7 @@ test("test that the split filter works as expected", mocktimeout(function(assert
 }))
 
 test("Test that the addslashes filter works as expected", mocktimeout(function(assert) {
-        
+
         var tpl = new plate.Template("{{ test|addslashes }}"),
             ctxt = {},
             inp = [],
@@ -54,7 +54,7 @@ test("Test that the addslashes filter works as expected", mocktimeout(function(a
 )
 
 test("Test that the capfirst filter works as expected", mocktimeout(function(assert) {
-        
+
         var corpus = ['a', 'fluffy bunny', '99 times', 'lol', '', 3.2, {'toString':function(){return 'lol';}}],
             template = new plate.Template("{{ test|capfirst }}"),
             emitter = function(item) {
@@ -102,7 +102,7 @@ test("Test that the center filter works as expected.", mocktimeout(function(asse
 }))
 
 test("Test that the cut filter works as expected", mocktimeout(function(assert) {
-        
+
         var corpus = 'abcdefghijklmnopqrstuvwxyz',
             template = new plate.Template("{{ test|cut:val }}"),
             rand = function() {
@@ -119,7 +119,7 @@ test("Test that the cut filter works as expected", mocktimeout(function(assert) 
 )
 
 test("Test that the date filter defaults to 'N j, Y'", mocktimeout(function(assert) {
-        
+
 
         var tpl = new plate.Template("{{ test|date }}")
           , dt
@@ -132,7 +132,7 @@ test("Test that the date filter defaults to 'N j, Y'", mocktimeout(function(asse
 )
 
 test("Test that the date filter accepts a format arg", mocktimeout(function(assert) {
-        
+
 
         var tpl = new plate.Template("{{ test|date:'jS o\\f F' }}")
           , dt
@@ -145,7 +145,7 @@ test("Test that the date filter accepts a format arg", mocktimeout(function(asse
 )
 
 test("Test that the date filter accepts non-date arguments", mocktimeout(function(assert) {
-        
+
 
         var tpl = new plate.Template("{{ test|date:'jS o\\f F' }}")
           , dt
@@ -162,7 +162,7 @@ test("Test that the date filter accepts non-date arguments", mocktimeout(functio
 )
 
 test("Test that the default filter works as expected", mocktimeout(function(assert) {
-        
+
         var random = ~~(Math.random() * 10),
             template = new plate.Template("{{ test|default:default }}"),
             corpus = ['truthy', 0, null, false, NaN, {'toString':function(){return'lol';}}],
@@ -179,7 +179,7 @@ test("Test that the default filter works as expected", mocktimeout(function(asse
 )
 
 test("Test that the dictsort filter works as expected", mocktimeout(function(assert) {
-        
+
         var F = function() {
                 var self = this;
                 this.value = ~~(Math.random() * 10);
@@ -209,7 +209,7 @@ test("Test that the dictsort filter works as expected", mocktimeout(function(ass
 )
 
 test("Test that the dictsortreversed filter works as expected", mocktimeout(function(assert) {
-        
+
         var F = function() {
                 var self = this;
                 this.value = ~~(Math.random() * 10);
@@ -239,7 +239,7 @@ test("Test that the dictsortreversed filter works as expected", mocktimeout(func
 )
 
 test("Test that the divisibleby filter works as expected", mocktimeout(function(assert) {
-        
+
         var pairs = (function(num) {
             var accum = [];
             for(;accum.length < num; accum.push([~~(Math.random()*10), ~~(Math.random()*10)]));
@@ -256,7 +256,7 @@ test("Test that the divisibleby filter works as expected", mocktimeout(function(
 )
 
 test("Test that the filesizeformat filter works as expected", mocktimeout(function(assert) {
-        
+
         var items = [],
             template = new plate.Template("{{ i|filesizeformat }}");
 
@@ -280,7 +280,7 @@ test("Test that the filesizeformat filter works as expected", mocktimeout(functi
 )
 
 test("Test that the first filter works as expected", mocktimeout(function(assert) {
-        
+
         var items = (function(len) {
                 var accum = [];
                 while(accum.length < len) {
@@ -296,7 +296,7 @@ test("Test that the first filter works as expected", mocktimeout(function(assert
 )
 
 test("Test that the floatformat filter works as expected", mocktimeout(function(assert) {
-        
+
         var tpl = new plate.Template(
                 "{% for x,y in values %}{{ forloop.counter0 }}:{{ x|floatformat:y }}\n{% endfor %}"
             ),
@@ -337,7 +337,7 @@ test("Test that the floatformat filter works as expected", mocktimeout(function(
 )
 
 test("Test that the get_digit filter works as expected.", mocktimeout(function(assert) {
-      
+
       var tpl = new plate.Template(
         "{% for x in digit|make_list %}{{ digit|get_digit:forloop.counter }}\n{% endfor %}"
       ),
@@ -354,7 +354,7 @@ test("Test that the get_digit filter works as expected.", mocktimeout(function(a
 )
 
 test("Test that get_digit returns the original input when given a bad digit", mocktimeout(function(assert) {
-      
+
       var tpl = new plate.Template(
           "{{ digit|get_digit:badfood }}"
         ),
@@ -370,7 +370,7 @@ test("Test that get_digit returns the original input when given a bad digit", mo
 )
 
 test("Test that the join filter works as expected.", mocktimeout(function(assert) {
-      
+
       var tpl = new plate.Template(
           "{{ a_list|join:value }}"
         ),
@@ -385,7 +385,7 @@ test("Test that the join filter works as expected.", mocktimeout(function(assert
 )
 
 test("Test that last grabs the last element of a list.", mocktimeout(function(assert) {
-      
+
       var tpl = new plate.Template(
         "{{ a_list|last }}"
       ),
@@ -401,7 +401,7 @@ test("Test that last grabs the last element of a list.", mocktimeout(function(as
 )
 
 test("Test that length works with simple arrays.", mocktimeout(function(assert) {
-      
+
       var tpl = new plate.Template(
         "{{ a_list|length }}"
       ),
@@ -421,7 +421,7 @@ test("Test that length works with simple arrays.", mocktimeout(function(assert) 
 )
 
 test("Test that length works with complex objects.", mocktimeout(function(assert) {
-      
+
       var randLen = ~~(Math.random()*10) + 1,
           lenFn = function(callback) {
             setTimeout(function() {
@@ -442,7 +442,7 @@ test("Test that length works with complex objects.", mocktimeout(function(assert
 )
 
 test("Test that length_is works with simple arrays.", mocktimeout(function(assert) {
-      
+
       var tpl = new plate.Template(
         "{{ a_list|length_is:a_list.length }}\n{{ a_list|length_is:0 }}"
       ),
@@ -462,7 +462,7 @@ test("Test that length_is works with simple arrays.", mocktimeout(function(asser
 )
 
 test("Test that length_is works with complex objects.", mocktimeout(function(assert) {
-      
+
       var randLen = ~~(Math.random()*10) + 1,
           lenFn = function(callback) {
             setTimeout(function() {
@@ -483,7 +483,7 @@ test("Test that length_is works with complex objects.", mocktimeout(function(ass
 )
 
 test("Test that linebreaks wraps all double-spaced elements in <p> tags.", mocktimeout(function(assert) {
-      
+
       var text = "Hi there\n\nI am new to world\n\nEnjoying time very much.",
           tpl = new plate.Template(
             "{{ text|linebreaks }}"
@@ -497,7 +497,7 @@ test("Test that linebreaks wraps all double-spaced elements in <p> tags.", mockt
 )
 
 test("Test that linebreaks creates <br /> tags for all single newline characters.", mocktimeout(function(assert) {
-      
+
       var text = "Hi there\nI am new to world\nEnjoying time very much.",
           tpl = new plate.Template(
             "{{ text|linebreaks }}"
@@ -511,7 +511,7 @@ test("Test that linebreaks creates <br /> tags for all single newline characters
 )
 
 test("Test that linebreaksbr converts all newlines to br elements", mocktimeout(function(assert) {
-      
+
       var text = "Hi there\n\nI am new\n to world\n\nEnjoying time very much.",
           tpl = new plate.Template(
             "{{ text|linebreaksbr }}"
@@ -525,7 +525,7 @@ test("Test that linebreaksbr converts all newlines to br elements", mocktimeout(
 )
 
 test("Test that linenumbers prepends line numbers to each line of input text.", mocktimeout(function(assert) {
-      
+
       var text = "Yes\nI\nLike\nJavascript\nIs\nVery\nGood",
           tpl = new plate.Template(
             "{{ text|linenumbers }}"
@@ -544,7 +544,7 @@ test("Test that linenumbers prepends line numbers to each line of input text.", 
 )
 
 test("Test that ljust left justifies as expected.", mocktimeout(function(assert) {
-      
+
       var tpl = new plate.Template(
         "{% for i in range %}{{ str|ljust:i }}\n{% endfor %}"
       ),
@@ -576,7 +576,7 @@ test("Test that ljust left justifies as expected.", mocktimeout(function(assert)
 )
 
 test("Test that lower works.", mocktimeout(function(assert) {
-      
+
       var tpl = new plate.Template(
         "{% for word in words %}{{ word|lower }}{% endfor %}"
       );
@@ -587,7 +587,7 @@ test("Test that lower works.", mocktimeout(function(assert) {
 )
 
 test("Test that make_list just passes through arrays.", mocktimeout(function(assert) {
-    
+
     var tpl = new plate.Template(
       '{% for i in item|make_list %}{{ i }}{% if not forloop.last %}\n{% endif %}{% endfor %}'
     ),
@@ -603,7 +603,7 @@ test("Test that make_list just passes through arrays.", mocktimeout(function(ass
 )
 
 test("Test that make_list works with strings.", mocktimeout(function(assert) {
-    
+
     var tpl = new plate.Template(
       '{% for i in item|make_list %}{{ i }}{% if not forloop.last %}\n{% endif %}{% endfor %}'
     ),
@@ -620,7 +620,7 @@ test("Test that make_list works with strings.", mocktimeout(function(assert) {
 )
 
 test("Test that make_list works with numbers.", mocktimeout(function(assert) {
-    
+
     var tpl = new plate.Template(
       '{% for i in item|make_list %}{{ i }}{% if not forloop.last %}\n{% endif %}{% endfor %}'
     ),
@@ -637,7 +637,7 @@ test("Test that make_list works with numbers.", mocktimeout(function(assert) {
 )
 
 test("Test that phone2numeric works as expected.", mocktimeout(function(assert) {
-      
+
       var phone = '1-800-4GO-OGLE',
           expected = '1-800-446-6453',
           tpl = new plate.Template(
@@ -651,7 +651,7 @@ test("Test that phone2numeric works as expected.", mocktimeout(function(assert) 
 )
 
 test("Assert that pluralize coerces single argument to plural case.", mocktimeout(function(assert) {
-      
+
       var values = [1,3],
           tpl = new plate.Template(
             '{% for i in items %}{{ i|pluralize:"s" }}:{% endfor %}'
@@ -663,7 +663,7 @@ test("Assert that pluralize coerces single argument to plural case.", mocktimeou
 )
 
 test("Assert that pluralize coerces two arguments to singular, plural.", mocktimeout(function(assert) {
-      
+
       var values = [1,3],
           tpl = new plate.Template(
             '{% for i in items %}{{ i|pluralize:"y,s" }}:{% endfor %}'
@@ -675,7 +675,7 @@ test("Assert that pluralize coerces two arguments to singular, plural.", mocktim
 )
 
 test("Assert that random pulls an item out of an array randomly.", mocktimeout(function(assert) {
-      
+
       var arr = [1,2,3,4,5,6,7,8,9,10],
           tpl = new plate.Template(
             '{% for i in list %}{{ list|random }}\n{% endfor %}'
@@ -694,7 +694,7 @@ test("Assert that random pulls an item out of an array randomly.", mocktimeout(f
 )
 
 test("Test that rjust right justifies as expected.", mocktimeout(function(assert) {
-      
+
       var tpl = new plate.Template(
         "{% for i in range %}{{ str|rjust:i }}\n{% endfor %}"
       ),
@@ -724,7 +724,7 @@ test("Test that rjust right justifies as expected.", mocktimeout(function(assert
 )
 
 test("Test that upper works.", mocktimeout(function(assert) {
-      
+
       var tpl = new plate.Template(
         "{% for word in words %}{{ word|upper }}{% endfor %}"
       );
@@ -735,7 +735,7 @@ test("Test that upper works.", mocktimeout(function(assert) {
 )
 
 test("Test that HTML characters are escaped by default", mocktimeout(function(assert) {
-      
+
 
       var tpl = new plate.Template('{{ value }}')
 
@@ -748,7 +748,7 @@ test("Test that HTML characters are escaped by default", mocktimeout(function(as
 )
 
 test("Test that HTML characters may be marked 'safe'", mocktimeout(function(assert) {
-      
+
 
       var tpl = new plate.Template('{{ value|safe }}')
         , x = '<>"\'&'
@@ -760,7 +760,7 @@ test("Test that HTML characters may be marked 'safe'", mocktimeout(function(asse
     })
 )
 test("Test that escape automatically escapes the input", mocktimeout(function(assert) {
-      
+
 
       var tpl = new plate.Template('{{ value|escape }}')
         , x   = '&'
@@ -774,7 +774,7 @@ test("Test that escape automatically escapes the input", mocktimeout(function(as
 )
 
 test("Test that escape does not double-escape the input", mocktimeout(function(assert) {
-      
+
 
       var tpl = new plate.Template('{{ value|escape|escape }}')
         , x   = '&'
@@ -788,7 +788,7 @@ test("Test that escape does not double-escape the input", mocktimeout(function(a
 )
 
 test("Test that escape respects 'safe'", mocktimeout(function(assert) {
-      
+
 
       var tpl = new plate.Template('{{ value|safe|escape }}')
         , x   = '&'
@@ -802,7 +802,7 @@ test("Test that escape respects 'safe'", mocktimeout(function(assert) {
 )
 
 test("Test that force_escape does not respect 'safe'", mocktimeout(function(assert) {
-      
+
 
       var tpl = new plate.Template('{{ value|safe|force_escape }}')
         , x   = '&'
@@ -815,7 +815,7 @@ test("Test that force_escape does not respect 'safe'", mocktimeout(function(asse
     })
 )
 test("Test that slice works with :N", mocktimeout(function(assert) {
-      
+
       var items = [1,2,3,4],
           rand = ~~(items.length * Math.random()),
           tpl = new plate.Template(
@@ -835,7 +835,7 @@ test("Test that slice works with :N", mocktimeout(function(assert) {
 )
 
 test("Test that slice works with N:", mocktimeout(function(assert) {
-      
+
       var items = [1,2,3,4],
           rand = ~~(items.length * Math.random()),
           tpl = new plate.Template(
@@ -855,7 +855,7 @@ test("Test that slice works with N:", mocktimeout(function(assert) {
 )
 
 test("Test that slugify removes unicode, turns spaces into dashes, lowercases everything.", mocktimeout(function(assert) {
-      
+
       var makeRandomString = function() {
         var len = ~~(Math.random()*1000),
             out = [];
@@ -872,7 +872,7 @@ test("Test that slugify removes unicode, turns spaces into dashes, lowercases ev
 )
 
 test("Test that timesince works as expected.", mocktimeout(function(assert) {
-    
+
     var times = [
           ['3 years', (+new Date) - 31557600000 * 3]
         , ['1 month', (+new Date) - 2592000000 * 1]
@@ -894,7 +894,7 @@ test("Test that timesince works as expected.", mocktimeout(function(assert) {
 )
 
 test("Test that timesince may accept an input.", mocktimeout(function(assert) {
-    
+
 
     var fake_now = +new Date() + ~~(Math.random() * 10000)
     var times = [
@@ -918,7 +918,7 @@ test("Test that timesince may accept an input.", mocktimeout(function(assert) {
 )
 
 test("Test that timesince displays the largest and second largest bit of multiple time values.", mocktimeout(function(assert) {
-    
+
     var times = [
           ['3 years, 2 days',   (+new Date) - (31557600000 * 3 + 86400000 * 2 + 60000)]
         , ['1 month, 23 hours',           (+new Date) - (2592000000 + 3600000 * 23)]
@@ -938,7 +938,7 @@ test("Test that timesince displays the largest and second largest bit of multipl
 )
 
 test("Test that timesince displays '0 minutes' when time is in future, or when time is < 60 seconds away", mocktimeout(function(assert) {
-    
+
     var t = new Date()
       , n = t + 1000
       , tpl = new plate.Template("{{ t|timesince:n }}")
@@ -953,7 +953,7 @@ test("Test that timesince displays '0 minutes' when time is in future, or when t
   })
 )
 test("Test that title titlecases input.", mocktimeout(function(assert) {
-      
+
       var words = ['hey','there','how','are','you',"you're",'1st','lol'],
           sentence = words.sort(function() {
               return Math.random() > 0.5;
@@ -971,7 +971,7 @@ test("Test that title titlecases input.", mocktimeout(function(assert) {
 )
 
 test("Test that striptags removes all HTML tags no matter how cool they are.", mocktimeout(function(assert) {
-      
+
       var testData =[
       '<div class="versionadded">',
       '<span class="title">New in Django 1.1.2:</span> <a class="reference internal" href="../../../releases/1.1.2/"><em>Please, see the release notes</em></a></div>',
@@ -991,7 +991,7 @@ test("Test that striptags removes all HTML tags no matter how cool they are.", m
 )
 
 test("Test that a string of characters gets truncated properly.", mocktimeout(function(assert) {
-      
+
       var input = 'This is a collection of words.';
 
       var tpl = new plate.Template('{{ input|truncatechars:8 }}'),
@@ -1018,7 +1018,7 @@ test("Test that a string of characters gets truncated properly.", mocktimeout(fu
 )
 
 test("Test that a busted number doesn't double call the callback.", mocktimeout(function(assert) {
-      
+
       var input = 'This is a collection of words.';
 
       var tpl = new plate.Template('{{ input|truncatechars:abc }}'),
@@ -1031,7 +1031,7 @@ test("Test that a busted number doesn't double call the callback.", mocktimeout(
 )
 
 test("Test that a string of words gets truncated properly.", mocktimeout(function(assert) {
-      
+
       var input = 'This is a collection of words.';
 
       var tpl = new plate.Template('{{ input|truncatewords:3 }}'),
@@ -1058,7 +1058,7 @@ test("Test that a string of words gets truncated properly.", mocktimeout(functio
 )
 
 test("Test that a busted number doesn't double call the callback.", mocktimeout(function(assert) {
-      
+
       var input = 'This is a collection of words.';
 
       var tpl = new plate.Template('{{ input|truncatewords:abc }}'),
@@ -1071,7 +1071,7 @@ test("Test that a busted number doesn't double call the callback.", mocktimeout(
 )
 
 test("Test that unordered list... makes unordered lists. Awesome ones.", mocktimeout(function(assert) {
-      
+
       var input = ['States', ['Kansas', ['Lawrence', 'Topeka'], 'Illinois']],
           output = '<li>States<ul><li>Kansas<ul><li>Lawrence</li><li>Topeka</li></ul></li><li>Illinois</li></ul></li>';
 
@@ -1085,7 +1085,7 @@ test("Test that unordered list... makes unordered lists. Awesome ones.", mocktim
 )
 
 test("Test that urlencode encodes all appropriate characters by using the built-in escape function.", mocktimeout(function(assert) {
-      
+
       var stringOfEverything = (function() {
           var out = [];
           while(out.length < 256) { out.push(String.fromCharCode(out.length)); }
@@ -1113,8 +1113,22 @@ test("Test that urlize will turn urls of the form http://whatever.com/whatever, 
     })
 )
 
+test("Test that urlizetrunc will turn urls of the form http://whatever.com/whatever, https://whatever.org/whatever into links with truncated text.", mocktimeout(function(assert) {
+
+      var links = ['https://google.com/', 'http://neversaw.us/media/blah.png', 'http://example.com/?some=params&are=here'],
+          para = ['hey there i love ', links[0], ' and(',links[1],')', ' and paramed ', links[2]].join(''),
+          result = 'hey there i love <a href="'+links[0]+'">https://google....</a> and(<a href="'+links[1]+'">http://neversaw...</a>) and paramed <a href="'+links[2]+'">http://example....</a>';
+
+      var tpl = new plate.Template('{{ para|urlizetrunc:"15" }}');
+
+      tpl.render({para:para}, function(err, data) {
+        assert.equal(data, result);
+      });
+    })
+)
+
 test("Assert that wordcount counts the number of words.", mocktimeout(function(assert) {
-      
+
       var lorem = 'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
           count = lorem.split(/\s+/g).length,
           tpl = new plate.Template("{{ lorem|wordcount }}");
@@ -1126,7 +1140,7 @@ test("Assert that wordcount counts the number of words.", mocktimeout(function(a
 )
 
 test("Assert that wordwrap wraps lines at a given number.", mocktimeout(function(assert) {
-      
+
       var lorem = 'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
           values = [1,2,3,4,5,6,7,8,9],
           tpl = new plate.Template("{% for value in values %}{{ lorem|wordwrap:value }}:{% endfor %}");
@@ -1148,7 +1162,7 @@ test("Assert that wordwrap wraps lines at a given number.", mocktimeout(function
 )
 
 test("Test that the yesno filter coerces values into truthy,falsy", mocktimeout(function(assert) {
-      
+
       return
 
       var tpl = new plate.Template('{% for value in values %}{{ value|yesno:"truthy,falsy" }}\n{% endfor %}'),
@@ -1166,7 +1180,7 @@ test("Test that the yesno filter coerces values into truthy,falsy", mocktimeout(
 )
 
 test("Test that the yesno filter coerces values into true,false,maybe", mocktimeout(function(assert) {
-      
+
       var tpl = new plate.Template('{% for value in values %}{{ value|yesno:"truthy,falsy,maybe" }}\n{% endfor %}'),
           context = {
             values:[true, 1, {}, [], false, null]
