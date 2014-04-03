@@ -21,7 +21,7 @@ plate.libraries = require('./lib/libraries')
 
 module.exports = plate
 
-},{"./lib/date":5,"./lib/debug":6,"./lib/index":65,"./lib/libraries":66,"./lib/promise":71,"dst":91}],2:[function(require,module,exports){
+},{"./lib/date":5,"./lib/debug":6,"./lib/index":65,"./lib/libraries":66,"./lib/promise":71,"dst":92}],2:[function(require,module,exports){
 module.exports = BlockContext
 
 function BlockContext() {
@@ -514,7 +514,7 @@ function time_format(value, format_string) {
   return tf.format(format_string)
 }
 
-},{"tz":92}],6:[function(require,module,exports){
+},{"tz":93}],6:[function(require,module,exports){
 module.exports = {
     log: function(value) { console.log(value) }
   , error: function(err) { console.error(err, err && err.stack) }
@@ -1426,27 +1426,27 @@ module.exports = function(input) {
 
 },{}],60:[function(require,module,exports){
 var safe = require('./safe')
+var url_finder = require('../url_finder')
 
 module.exports = function(input) {
-  var str = input.toString()
-  return safe(str.replace(/(((http(s)?:\/\/)|(mailto:))([\w\d\-\.:@\/?&=])+)/g, function() {
+  return safe(url_finder(input, function() {
     return '<a href="'+arguments[0]+'">'+arguments[0]+'</a>';
   }))
 }
 
-},{"./safe":47}],61:[function(require,module,exports){
+},{"../url_finder":91,"./safe":47}],61:[function(require,module,exports){
 var safe = require('./safe')
+var url_finder = require('../url_finder')
 
 module.exports = function(input, len) {
-  var str = input.toString()
   len = parseInt(len, 10) || 1000
-  return safe(str.replace(/(((http(s)?:\/\/)|(mailto:))([\w\d\-\.:@?&=])+)/g, function() {
+  return safe(url_finder(input, function() {
     var ltr = arguments[0].length > len ? arguments[0].slice(0, len) + '...' : arguments[0];
     return '<a href="'+arguments[0]+'">'+ltr+'</a>';
   }))
 }
 
-},{"./safe":47}],62:[function(require,module,exports){
+},{"../url_finder":91,"./safe":47}],62:[function(require,module,exports){
 module.exports = function(input) {
   var str = input.toString()
     , bits = str.split(/\s+/g)
@@ -1484,7 +1484,7 @@ module.exports = function(input, map) {
 }
 
 },{}],65:[function(require,module,exports){
-(function(global){var FilterToken = require('./filter_token')
+var global=self;var FilterToken = require('./filter_token')
   , TagToken = require('./tag_token')
   , CommentToken = require('./comment_token')
   , TextToken = require('./text_token') 
@@ -1635,7 +1635,6 @@ cons.tokenize = function(content) {
   return tokens
 }
 
-})(self)
 },{"./comment_token":3,"./context":4,"./filter_token":13,"./libraries":66,"./meta":68,"./parser":70,"./promise":71,"./tag_token":72,"./text_token":89}],66:[function(require,module,exports){
 module.exports = {
     Library: require('./library')
@@ -3135,6 +3134,11 @@ proto.is = function(names) {
 }
 
 },{}],91:[function(require,module,exports){
+module.exports = function(input, callback) {
+  var str = input.toString()
+  return str.replace(/(((http(s)?:\/\/)|(mailto:))([\w\d\-\.:@\/?&=%])+)/g, callback)
+}
+},{}],92:[function(require,module,exports){
 ;(function() {
 
 // so, the only way we (reliably) get access to DST in javascript
@@ -3208,7 +3212,7 @@ if(typeof module !== 'undefined') {
 
 })()
 
-},{}],92:[function(require,module,exports){
+},{}],93:[function(require,module,exports){
 var tz = require('./tz')
   , isDST = require('dst')
 
@@ -3286,7 +3290,7 @@ Date.prototype.tzoffset = function() {
   return 'GMT'+get_offset_fmt(this.getTimezoneOffset())
 }
 
-},{"./tz":93,"dst":91}],93:[function(require,module,exports){
+},{"./tz":94,"dst":92}],94:[function(require,module,exports){
 module.exports = {
   "+0900": [
     {
