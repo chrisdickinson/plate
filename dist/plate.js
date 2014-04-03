@@ -1484,7 +1484,7 @@ module.exports = function(input, map) {
 }
 
 },{}],65:[function(require,module,exports){
-var global=self;var FilterToken = require('./filter_token')
+(function(global){var FilterToken = require('./filter_token')
   , TagToken = require('./tag_token')
   , CommentToken = require('./comment_token')
   , TextToken = require('./text_token') 
@@ -1635,6 +1635,7 @@ cons.tokenize = function(content) {
   return tokens
 }
 
+})(self)
 },{"./comment_token":3,"./context":4,"./filter_token":13,"./libraries":66,"./meta":68,"./parser":70,"./promise":71,"./tag_token":72,"./text_token":89}],66:[function(require,module,exports){
 module.exports = {
     Library: require('./library')
