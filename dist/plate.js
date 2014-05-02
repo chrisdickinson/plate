@@ -1118,29 +1118,46 @@ module.exports = function(input, expected, ready) {
 }
 
 },{}],37:[function(require,module,exports){
-var safe = require('./safe')
+var escape = require('./escape')
+  , safe = require('./safe')
 
 module.exports = function(input) {
   var str = input.toString()
-    , paras = str.split('\n\n')
     , out = []
+    , paras
+    , brs
+
+  paras = str.split('\n\n')
 
   while(paras.length) {
-    out.unshift(paras.pop().replace(/\n/g, '<br />'))
+    brs = paras.pop().split('\n')
+
+    for(var i = 0, len = brs.length; i < len; ++i) {
+      brs[i] = escape(brs[i])
+    }
+
+    out.unshift(brs.join('<br />'))
   }
 
-  return safe('<p>'+out.join('</p><p>')+'</p>')
+  return safe('<p>' + out.join('</p><p>') + '</p>')
 }
 
-},{"./safe":47}],38:[function(require,module,exports){
-var safe = require('./safe')
+},{"./escape":24,"./safe":47}],38:[function(require,module,exports){
+var escape = require('./escape')
+  , safe = require('./safe')
 
 module.exports = function(input) {
   var str = input.toString()
-  return safe(str.replace(/\n/g, '<br />'))
+    , out = str.split('\n')
+
+  for(var i = 0, len = out.length; i < len; ++i) {
+    out[i] = escape(out[i])
+  }
+
+  return safe(out.join('<br />'))
 }
 
-},{"./safe":47}],39:[function(require,module,exports){
+},{"./escape":24,"./safe":47}],39:[function(require,module,exports){
 module.exports = function(input) {
   var str = input.toString()
     , bits = str.split('\n')
