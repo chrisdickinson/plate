@@ -496,6 +496,21 @@ test("Test that linebreaks wraps all double-spaced elements in <p> tags.", mockt
     })
 )
 
+test("Test that linebreaks escapes.", mocktimeout(function(assert) {
+
+      var text = "Hi there\n\nI am <strong>new</strong> to world\n\nEnjoying time very much.",
+          tpl = new plate.Template(
+            "{{ text|linebreaks }}"
+          ),
+          context = { text: text };
+
+      tpl.render(context, function(err, data) {
+        assert.equal(data, "<p>Hi there</p><p>I am &lt;strong&gt;new&lt;/strong&gt; to world</p><p>Enjoying time very much.</p>");
+      });
+    })
+)
+
+
 test("Test that linebreaks creates <br /> tags for all single newline characters.", mocktimeout(function(assert) {
 
       var text = "Hi there\nI am new to world\nEnjoying time very much.",
@@ -520,6 +535,23 @@ test("Test that linebreaksbr converts all newlines to br elements", mocktimeout(
 
       tpl.render(context, function(err, data) {
         assert.equal(data, text.replace(/\n/g, '<br />'));
+      });
+    })
+)
+
+test("Test that linebreaksbr escapes", mocktimeout(function(assert) {
+
+      var text = "Hi there\n\nI am <em>new</em>\n to world\n\nEnjoying time very much.",
+          tpl = new plate.Template(
+            "{{ text|linebreaksbr }}"
+          ),
+          context = { text: text };
+
+      tpl.render(context, function(err, data) {
+        assert.equal(
+            data
+          , "Hi there<br /><br />I am &lt;em&gt;new&lt;/em&gt;<br /> to world<br /><br />Enjoying time very much."
+        )
       });
     })
 )
