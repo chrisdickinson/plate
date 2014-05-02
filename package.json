@@ -1,6 +1,6 @@
 {
   "name": "plate",
-  "version": "1.4.3",
+  "version": "1.4.4",
   "description": "A javascript templating language",
   "keywords": [
     "template",
